@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		017252FD1536BAFE00775BA8 /* Photo.m in Sources */ = {isa = PBXBuildFile; fileRef = 017252FC1536BAFE00775BA8 /* Photo.m */; };
+		01761E431546D62900EF8749 /* TappingImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 01761E401546D60400EF8749 /* TappingImageView.m */; };
+		01761E441546D63500EF8749 /* ZoomingScrollView.m in Sources */ = {isa = PBXBuildFile; fileRef = 01761E421546D60400EF8749 /* ZoomingScrollView.m */; };
+		0179797C152D7B3B00645399 /* Browser.m in Sources */ = {isa = PBXBuildFile; fileRef = 0179797B152D7B3B00645399 /* Browser.m */; };
 		017BA7FD152C7A9E00DF16B2 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 017BA7FC152C7A9E00DF16B2 /* UIKit.framework */; };
 		017BA7FF152C7A9E00DF16B2 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 017BA7FE152C7A9E00DF16B2 /* Foundation.framework */; };
 		017BA801152C7A9E00DF16B2 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 017BA800152C7A9E00DF16B2 /* CoreGraphics.framework */; };
@@ -15,22 +19,46 @@
 		017BA80D152C7A9F00DF16B2 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 017BA80C152C7A9F00DF16B2 /* AppDelegate.m */; };
 		017BA810152C7A9F00DF16B2 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 017BA80F152C7A9F00DF16B2 /* ViewController.m */; };
 		017BA813152C7A9F00DF16B2 /* ViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 017BA811152C7A9F00DF16B2 /* ViewController.xib */; };
+		01800D83152EE7BF0044CEE0 /* Checkmark.png in Resources */ = {isa = PBXBuildFile; fileRef = 01800D7E152EE7BF0044CEE0 /* Checkmark.png */; };
+		01800D84152EE7BF0044CEE0 /* UIBarButtonItemArrowLeft.png in Resources */ = {isa = PBXBuildFile; fileRef = 01800D7F152EE7BF0044CEE0 /* UIBarButtonItemArrowLeft.png */; };
+		01800D85152EE7BF0044CEE0 /* UIBarButtonItemArrowLeft@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 01800D80152EE7BF0044CEE0 /* UIBarButtonItemArrowLeft@2x.png */; };
+		01800D86152EE7BF0044CEE0 /* UIBarButtonItemArrowRight.png in Resources */ = {isa = PBXBuildFile; fileRef = 01800D81152EE7BF0044CEE0 /* UIBarButtonItemArrowRight.png */; };
+		01800D87152EE7BF0044CEE0 /* UIBarButtonItemArrowRight@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 01800D82152EE7BF0044CEE0 /* UIBarButtonItemArrowRight@2x.png */; };
+		018AF61015459C0500820E79 /* UIImageExtras.m in Sources */ = {isa = PBXBuildFile; fileRef = 018AF60E15459BF500820E79 /* UIImageExtras.m */; };
+		01DF222E1536FAD10089B7F2 /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 01DF222D1536FAD00089B7F2 /* CFNetwork.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		017252F91536BA1300775BA8 /* PhotoDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PhotoDelegate.h; sourceTree = "<group>"; };
+		017252FB1536BAFE00775BA8 /* Photo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Photo.h; sourceTree = "<group>"; };
+		017252FC1536BAFE00775BA8 /* Photo.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Photo.m; sourceTree = "<group>"; };
+		01761E3F1546D60300EF8749 /* TappingImageView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TappingImageView.h; sourceTree = "<group>"; };
+		01761E401546D60400EF8749 /* TappingImageView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TappingImageView.m; sourceTree = "<group>"; };
+		01761E411546D60400EF8749 /* ZoomingScrollView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZoomingScrollView.h; sourceTree = "<group>"; };
+		01761E421546D60400EF8749 /* ZoomingScrollView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZoomingScrollView.m; sourceTree = "<group>"; };
+		0179797A152D7B3B00645399 /* Browser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Browser.h; sourceTree = "<group>"; };
+		0179797B152D7B3B00645399 /* Browser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Browser.m; sourceTree = "<group>"; };
 		017BA7F8152C7A9E00DF16B2 /* PhotoBrowser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PhotoBrowser.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		017BA7FC152C7A9E00DF16B2 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		017BA7FE152C7A9E00DF16B2 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		017BA800152C7A9E00DF16B2 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
-		017BA804152C7A9E00DF16B2 /* PhotoBrowser-Info.plist */ = {isa = PBXFileReference; path = "PhotoBrowser-Info.plist"; sourceTree = "<group>"; };
+		017BA804152C7A9E00DF16B2 /* PhotoBrowser-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "PhotoBrowser-Info.plist"; sourceTree = "<group>"; };
 		017BA806152C7A9E00DF16B2 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		017BA808152C7A9E00DF16B2 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		017BA80A152C7A9E00DF16B2 /* PhotoBrowser-Prefix.pch */ = {isa = PBXFileReference; path = "PhotoBrowser-Prefix.pch"; sourceTree = "<group>"; };
-		017BA80B152C7A9F00DF16B2 /* AppDelegate.h */ = {isa = PBXFileReference; path = AppDelegate.h; sourceTree = "<group>"; };
+		017BA80A152C7A9E00DF16B2 /* PhotoBrowser-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "PhotoBrowser-Prefix.pch"; sourceTree = "<group>"; };
+		017BA80B152C7A9F00DF16B2 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		017BA80C152C7A9F00DF16B2 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
-		017BA80E152C7A9F00DF16B2 /* ViewController.h */ = {isa = PBXFileReference; path = ViewController.h; sourceTree = "<group>"; };
+		017BA80E152C7A9F00DF16B2 /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
 		017BA80F152C7A9F00DF16B2 /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
 		017BA812152C7A9F00DF16B2 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/ViewController.xib; sourceTree = "<group>"; };
+		01800D7E152EE7BF0044CEE0 /* Checkmark.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Checkmark.png; sourceTree = "<group>"; };
+		01800D7F152EE7BF0044CEE0 /* UIBarButtonItemArrowLeft.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = UIBarButtonItemArrowLeft.png; sourceTree = "<group>"; };
+		01800D80152EE7BF0044CEE0 /* UIBarButtonItemArrowLeft@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "UIBarButtonItemArrowLeft@2x.png"; sourceTree = "<group>"; };
+		01800D81152EE7BF0044CEE0 /* UIBarButtonItemArrowRight.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = UIBarButtonItemArrowRight.png; sourceTree = "<group>"; };
+		01800D82152EE7BF0044CEE0 /* UIBarButtonItemArrowRight@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "UIBarButtonItemArrowRight@2x.png"; sourceTree = "<group>"; };
+		018AF60D15459BF500820E79 /* UIImageExtras.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UIImageExtras.h; sourceTree = "<group>"; };
+		018AF60E15459BF500820E79 /* UIImageExtras.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UIImageExtras.m; sourceTree = "<group>"; };
+		01DF222D1536FAD00089B7F2 /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = System/Library/Frameworks/CFNetwork.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -38,6 +66,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				01DF222E1536FAD10089B7F2 /* CFNetwork.framework in Frameworks */,
 				017BA7FD152C7A9E00DF16B2 /* UIKit.framework in Frameworks */,
 				017BA7FF152C7A9E00DF16B2 /* Foundation.framework in Frameworks */,
 				017BA801152C7A9E00DF16B2 /* CoreGraphics.framework in Frameworks */,
@@ -47,9 +76,22 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		01797986152D912D00645399 /* Images */ = {
+			isa = PBXGroup;
+			children = (
+				01800D7E152EE7BF0044CEE0 /* Checkmark.png */,
+				01800D7F152EE7BF0044CEE0 /* UIBarButtonItemArrowLeft.png */,
+				01800D80152EE7BF0044CEE0 /* UIBarButtonItemArrowLeft@2x.png */,
+				01800D81152EE7BF0044CEE0 /* UIBarButtonItemArrowRight.png */,
+				01800D82152EE7BF0044CEE0 /* UIBarButtonItemArrowRight@2x.png */,
+			);
+			name = Images;
+			sourceTree = "<group>";
+		};
 		017BA7ED152C7A9E00DF16B2 = {
 			isa = PBXGroup;
 			children = (
+				01DF222D1536FAD00089B7F2 /* CFNetwork.framework */,
 				017BA802152C7A9E00DF16B2 /* PhotoBrowser */,
 				017BA7FB152C7A9E00DF16B2 /* Frameworks */,
 				017BA7F9152C7A9E00DF16B2 /* Products */,
@@ -77,11 +119,23 @@
 		017BA802152C7A9E00DF16B2 /* PhotoBrowser */ = {
 			isa = PBXGroup;
 			children = (
+				01797986152D912D00645399 /* Images */,
 				017BA80B152C7A9F00DF16B2 /* AppDelegate.h */,
 				017BA80C152C7A9F00DF16B2 /* AppDelegate.m */,
 				017BA80E152C7A9F00DF16B2 /* ViewController.h */,
 				017BA80F152C7A9F00DF16B2 /* ViewController.m */,
+				0179797A152D7B3B00645399 /* Browser.h */,
+				0179797B152D7B3B00645399 /* Browser.m */,
+				017252F91536BA1300775BA8 /* PhotoDelegate.h */,
+				017252FB1536BAFE00775BA8 /* Photo.h */,
+				017252FC1536BAFE00775BA8 /* Photo.m */,
 				017BA811152C7A9F00DF16B2 /* ViewController.xib */,
+				01761E3F1546D60300EF8749 /* TappingImageView.h */,
+				01761E401546D60400EF8749 /* TappingImageView.m */,
+				01761E411546D60400EF8749 /* ZoomingScrollView.h */,
+				01761E421546D60400EF8749 /* ZoomingScrollView.m */,
+				018AF60D15459BF500820E79 /* UIImageExtras.h */,
+				018AF60E15459BF500820E79 /* UIImageExtras.m */,
 				017BA803152C7A9E00DF16B2 /* Supporting Files */,
 			);
 			path = PhotoBrowser;
@@ -150,6 +204,11 @@
 			files = (
 				017BA807152C7A9E00DF16B2 /* InfoPlist.strings in Resources */,
 				017BA813152C7A9F00DF16B2 /* ViewController.xib in Resources */,
+				01800D83152EE7BF0044CEE0 /* Checkmark.png in Resources */,
+				01800D84152EE7BF0044CEE0 /* UIBarButtonItemArrowLeft.png in Resources */,
+				01800D85152EE7BF0044CEE0 /* UIBarButtonItemArrowLeft@2x.png in Resources */,
+				01800D86152EE7BF0044CEE0 /* UIBarButtonItemArrowRight.png in Resources */,
+				01800D87152EE7BF0044CEE0 /* UIBarButtonItemArrowRight@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -160,9 +219,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				01761E441546D63500EF8749 /* ZoomingScrollView.m in Sources */,
+				01761E431546D62900EF8749 /* TappingImageView.m in Sources */,
+				018AF61015459C0500820E79 /* UIImageExtras.m in Sources */,
 				017BA809152C7A9E00DF16B2 /* main.m in Sources */,
 				017BA80D152C7A9F00DF16B2 /* AppDelegate.m in Sources */,
 				017BA810152C7A9F00DF16B2 /* ViewController.m in Sources */,
+				0179797C152D7B3B00645399 /* Browser.m in Sources */,
+				017252FD1536BAFE00775BA8 /* Photo.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -237,7 +301,9 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "PhotoBrowser/PhotoBrowser-Prefix.pch";
 				INFOPLIST_FILE = "PhotoBrowser/PhotoBrowser-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = "1,2";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -248,7 +314,9 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "PhotoBrowser/PhotoBrowser-Prefix.pch";
 				INFOPLIST_FILE = "PhotoBrowser/PhotoBrowser-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = "1,2";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
@@ -272,6 +340,7 @@
 				017BA818152C7A9F00DF16B2 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
