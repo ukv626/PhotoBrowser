@@ -14,7 +14,6 @@
 
 @synthesize window = _window;
 @synthesize viewController = _viewController;
-@synthesize photos = _photos;
 
 - (void)dealloc
 {
@@ -35,8 +34,10 @@
 
         [photos addObject:photo];
     }
-    self.photos = photos;
-    Browser *browser = [[Browser alloc] initWithDelegate:self];
+
+    Browser *browser = [[Browser alloc] init];
+    browser.photos = photos;
+    browser.photosPerPage = 4;
 //    self.viewController = [[[ViewController alloc] initWithNibName:@"ViewController" bundle:nil] autorelease];
     self.viewController = (UIViewController *)[[[UINavigationController alloc] initWithRootViewController:browser] autorelease];
     self.window.rootViewController = self.viewController;
@@ -71,20 +72,5 @@
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
 }
 
-- (NSUInteger)numberOfPhotosOnPage:(Browser *)browser {
-    return 9;
-}
-
-- (NSUInteger)numberOfPhotos:(Browser *)browser {
-    return _photos.count;
-}
-
-- (id<PhotoDelegate>)browser:(Browser *)browser photoAtIndex:(NSUInteger)index {
-//    NSLog(@"Appdelgate::browser: ");
-    if(index < _photos.count)
-        return [_photos objectAtIndex:index];
-    
-    return nil;
-}
 
 @end

@@ -10,26 +10,22 @@
 #import "PhotoDelegate.h"
 #import "Photo.h"
 
-// Delegate
-@class Browser;
-@protocol BrowserDelegate <NSObject>
-
-- (NSUInteger)numberOfPhotosOnPage:(Browser *)browser;
-- (NSUInteger)numberOfPhotos:(Browser *)browser;
-- (id<PhotoDelegate>)browser:(Browser *)browser photoAtIndex:(NSUInteger)index;
-@end
-
-@interface Browser : UIViewController <UIScrollViewDelegate>
+@interface Browser : UIViewController <UIScrollViewDelegate> {
+    NSArray *photos;
+}
 
 // Properties
+@property (nonatomic, retain) NSArray *photos;
+@property (nonatomic, assign) NSUInteger photosPerPage;
 @property (nonatomic) BOOL displayActionButton;
 
 // Init
 - (id)initWithPhotos:(NSArray *)photosArray DEPRECATED_ATTRIBUTE;
-- (id)initWithDelegate:(id<BrowserDelegate>)delagate;
+- (id)init;
 
 // Reloads the browser and refetches data
 - (void)reloadData;
+- (void)reload:(NSUInteger) photosPerPage imageIndex:(NSUInteger)imageIndex;
 
 // Set page that browser starts on
 - (void)setInitialPageIndex:(NSUInteger)index;

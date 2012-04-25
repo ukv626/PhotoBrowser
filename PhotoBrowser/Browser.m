@@ -27,13 +27,7 @@
 @interface Browser () {
     
 	// Data
-    id <BrowserDelegate> _delegate;
-    NSUInteger _photosCount;
-    NSUInteger _photosOnPageCount;
-    NSUInteger _pagesCount;
-    NSMutableArray *_photos;
 	NSArray *_depreciatedPhotoData; // Depreciated
-    BOOL _firstRunFlag;
 	
 	// Views
 	UIScrollView *_pagingScrollView;
@@ -59,6 +53,7 @@
     UIBarButtonItem *_previousViewControllerBackButton;
     
     // Misc
+    NSUInteger _photosPerPage;
     BOOL _displayActionButton;
 	BOOL _performingLayout;
 	BOOL _rotating;
@@ -115,7 +110,6 @@
 - (BOOL)areControlsHidden;
 
 // Data
-- (NSUInteger)numberOfPhotosOnPage;
 - (NSUInteger)numberOfPhotos;
 - (NSUInteger)numberOfPages;
 - (id<PhotoDelegate>)photoAtIndex:(NSUInteger)index;
@@ -140,6 +134,9 @@
 @implementation Browser
 
 // Properties
+@synthesize photos;
+@synthesize photosPerPage = _photosPerPage;
+
 @synthesize previousNavBarTintColor = _previousNavBarTintColor;
 @synthesize navigationBarBackgroundImageDefault = _navigationBarBackgroundImageDefault,
 navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandscapePhone;
@@ -155,19 +152,18 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
         // Defaults
         self.wantsFullScreenLayout = YES;
         self.hidesBottomBarWhenPushed = YES;
-        _photosCount = NSNotFound;
-        _photosOnPageCount = NSNotFound;
-        _pagesCount = NSNotFound;
+        
+        photos = [[NSArray alloc] init];
+        _photosPerPage = NSNotFound;
+
 		_currentPageIndex = 0;
 		_performingLayout = NO; // Reset on view did appear
 		_rotating = NO;
         _viewIsActive = NO;
         _visiblePages = [[NSMutableSet alloc] init];
-        _recycledPages = [[NSMutableSet alloc] init];
-        _photos = [[NSMutableArray alloc] init];
+        _recycledPages = [[NSMutableSet alloc] init];        
         _displayActionButton = NO;
         _didSavePreviousStateOfNavBar = NO;
-        _firstRunFlag = true;
         
         // Listen for MWPhoto notifications
         [[NSNotificationCenter defaultCenter] addObserver:self
@@ -178,12 +174,7 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
     return self;
 }
 
-- (id)initWithDelegate:(id <BrowserDelegate>)delegate {
-    if ((self = [self init])) {
-        _delegate = delegate;
-	}
-	return self;
-}
+
 
 - (id)initWithPhotos:(NSArray *)photosArray {
 	if ((self = [self init])) {
@@ -208,34 +199,34 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
   	[_depreciatedPhotoData release];
     [self releaseAllUnderlyingPhotos];
 //    [[SDImageCache sharedImageCache] clearMemory]; // clear memory
-    [_photos release];
+    [photos release];
 //    [_progressHUD release];
     [super dealloc];
 }
 
 - (void)releasePageUnderlyingPhotos:(NSUInteger)index {
     NSLog(@"%s:%d", __PRETTY_FUNCTION__, index);
-    NSUInteger photosOnPage = [self numberOfPhotosOnPage];
-    for (NSUInteger i=0; i<photosOnPage; i++) {
-        id<PhotoDelegate> photo = [self photoAtIndex:index*photosOnPage + i];
+
+    for (NSUInteger i=0; i<_photosPerPage; i++) {
+        id<PhotoDelegate> photo = [self photoAtIndex:index*_photosPerPage + i];
         if(photo) {
             [photo unloadUnderlyingImage];
-            [_photos replaceObjectAtIndex:i withObject:[NSNull null]];
+            //[photos replaceObjectAtIndex:i withObject:[NSNull null]];
         }
     }
 }
 
 - (void)releaseAllUnderlyingPhotos {
-    for (id p in _photos) { 
+    for (id p in photos) { 
         if (p != [NSNull null]) [p unloadUnderlyingImage]; 
     } // Release photos
 }
 
 - (void)loadPageUnderlyingPhotos:(NSUInteger)index {
     NSLog(@"%s:%d", __PRETTY_FUNCTION__, index);
-    NSUInteger photosOnPage = [self numberOfPhotosOnPage];
-    for (NSUInteger i=0; i<photosOnPage; i++) {
-        id<PhotoDelegate> photo = [self photoAtIndex:index*photosOnPage + i];
+
+    for (NSUInteger i=0; i<_photosPerPage; i++) {
+        id<PhotoDelegate> photo = [self photoAtIndex:index*_photosPerPage + i];
         if(photo) {
             [photo loadUnderlyingImageAndNotify];
         }
@@ -509,11 +500,10 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 	// Adjust frames and configuration of each visible page
 	for (ZoomingScrollView *page in _visiblePages) {
         NSUInteger index = PAGE_INDEX(page);
-		page.frame = [self frameForPageAtIndex:index];
+        page.frame = [self frameForPageAtIndex:index];
 //        page.captionView.frame = [self frameForCaptionView:page.captionView atIndex:index];
 
-		if(!_firstRunFlag) 
-            [page setMaxMinZoomScalesForCurrentBounds];
+        //[page setMaxMinZoomScalesForCurrentBounds];
 	}
 	
 	// Adjust contentOffset to preserve page location based on values collected prior to location
@@ -521,13 +511,10 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 	
     // initial
     [self didStartViewingPageAtIndex:_currentPageIndex prevIndex:_currentPageIndex]; 
-    if(_firstRunFlag) [self loadPageUnderlyingPhotos:_currentPageIndex + 1];
     
 	// Reset
 	_currentPageIndex = indexPriorToLayout;
 	_performingLayout = NO;
-    _firstRunFlag = NO;
-    
 }
 
 #pragma mark - Rotation
@@ -559,6 +546,41 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 
 - (void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation {
 	_rotating = NO;
+    NSLog(@"didRotate");
+    
+    // Adjust frames and configuration of each visible page
+    for (ZoomingScrollView *page in _visiblePages) {
+        NSUInteger index = PAGE_INDEX(page);
+        page.frame = [self frameForPageAtIndex:index];
+        //        page.captionView.frame = [self frameForCaptionView:page.captionView atIndex:index];
+        
+        [page setMaxMinZoomScalesForCurrentBounds];
+	}
+}
+
+- (void)reload:(NSUInteger)photosPerPage imageIndex:(NSUInteger)imageIndex{
+    // Perform layout
+
+    // release adjucent pages
+    if(_currentPageIndex > 0)
+        [self releasePageUnderlyingPhotos:_currentPageIndex - 1];
+    if(_currentPageIndex < [self numberOfPhotos] - 1)
+        [self releasePageUnderlyingPhotos:_currentPageIndex + 1];
+    
+    // calculate new current page
+    if(_photosPerPage > photosPerPage)
+        _currentPageIndex = _photosPerPage * _currentPageIndex + imageIndex;
+    else 
+        _currentPageIndex = _currentPageIndex / photosPerPage;
+
+    _photosPerPage = photosPerPage;
+    [self performLayout];
+    
+	// Layout manually (iOS < 5)
+//    if (SYSTEM_VERSION_LESS_THAN(@"5")) [self viewWillLayoutSubviews];
+	
+	// Delay control holding
+	[self hideControlsAfterDelay];
 }
 
 #pragma mark - Data
@@ -566,13 +588,12 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 - (void)reloadData {
     
     // Reset
-    _photosCount = NSNotFound;
     
     // Get data
-    NSUInteger numberOfPhotos = [self numberOfPhotos];
+    //NSUInteger numberOfPhotos = [self numberOfPhotos];
     [self releaseAllUnderlyingPhotos];
-    [_photos removeAllObjects];
-    for (int i = 0; i < numberOfPhotos; i++) [_photos addObject:[NSNull null]];
+    //[photos removeAllObjects];
+    //for (int i = 0; i < numberOfPhotos; i++) [_photos addObject:[NSNull null]];
     
     // Update
     [self performLayout];
@@ -585,60 +606,29 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 
 
 - (NSUInteger)numberOfPages {
-    if (_pagesCount == NSNotFound) {
-        NSUInteger photosCount = [self numberOfPhotos];
-        NSUInteger photosOnPageCount = [self numberOfPhotosOnPage];
+    NSUInteger pagesCount, photosCount = [self numberOfPhotos];
         
-        if(photosCount % photosOnPageCount) {
-            _pagesCount = photosCount / photosOnPageCount + 1;
-        }
-        else {
-            _pagesCount = photosCount / photosOnPageCount;
-        }
-    }
+    if(photosCount % _photosPerPage)
+        pagesCount = photosCount / _photosPerPage + 1;
+    else 
+        pagesCount = photosCount / _photosPerPage;
+    
 //    NSLog(@"%s %d %d %d",__PRETTY_FUNCTION__, _photosCount, _photosOnPageCount, _pagesCount);
-    return _pagesCount;
+    return pagesCount;
 }
 
 
 
 - (NSUInteger)numberOfPhotos {
-    if (_photosCount == NSNotFound) {
-        if ([_delegate respondsToSelector:@selector(numberOfPhotos:)]) {
-            _photosCount = [_delegate numberOfPhotos:self];
-        } else if (_depreciatedPhotoData) {
-            _photosCount = _depreciatedPhotoData.count;
-        }
-    }
-    if (_photosCount == NSNotFound) _photosCount = 0;
-    return _photosCount;
+    return [photos count];
 }
 
 
-- (NSUInteger)numberOfPhotosOnPage {
-    if (_photosOnPageCount == NSNotFound) {
-        if ([_delegate respondsToSelector:@selector(numberOfPhotosOnPage:)]) {
-            _photosOnPageCount = [_delegate numberOfPhotosOnPage:self];
-        } 
-    }
-    if (_photosOnPageCount == NSNotFound) _photosOnPageCount = 1;
-    
-    return _photosOnPageCount;
-}
 
 - (id<PhotoDelegate>)photoAtIndex:(NSUInteger)index {
     id<PhotoDelegate> photo = nil;
-    if (index < _photos.count) {
-        if ([_photos objectAtIndex:index] == [NSNull null]) {
-            if ([_delegate respondsToSelector:@selector(browser:photoAtIndex:)]) {
-                photo = [_delegate browser:self photoAtIndex:index];
-            } else if (_depreciatedPhotoData && index < _depreciatedPhotoData.count) {
-                photo = [_depreciatedPhotoData objectAtIndex:index];
-            }
-            if (photo) [_photos replaceObjectAtIndex:index withObject:photo];
-        } else {
-            photo = [_photos objectAtIndex:index];
-        }
+    if (index < photos.count) {
+       photo = [photos objectAtIndex:index];
     }
     return photo;
 }
@@ -806,15 +796,15 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
     NSLog(@"configurePage: %d", index);
 	page.frame = [self frameForPageAtIndex:index];
     page.tag = PAGE_INDEX_TAG_OFFSET + index;
-    NSUInteger photosOnPage = [self numberOfPhotosOnPage];
-    NSMutableArray *photos = [[NSMutableArray alloc] init];
-    for (NSUInteger i=0; i<photosOnPage; i++) {
-        id<PhotoDelegate> photo = [self photoAtIndex:index*photosOnPage + i];
+    
+    NSMutableArray *pagePhotos = [[NSMutableArray alloc] init];
+    for (NSUInteger i=0; i<_photosPerPage; i++) {
+        id<PhotoDelegate> photo = [self photoAtIndex:index*_photosPerPage + i];
         if(photo) {
-            [photos addObject:photo];
+            [pagePhotos addObject:photo];
         }
     }
-    page.photos = photos;
+    page.photos = pagePhotos;
 }
 
 - (ZoomingScrollView *)dequeueRecycledPage {
@@ -830,21 +820,23 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 - (void)didStartViewingPageAtIndex:(NSUInteger)index prevIndex:(NSUInteger)prevIndex {
     NSLog(@"%s:%d %d", __PRETTY_FUNCTION__, index, prevIndex);
     
-    // -->
-    if(index > prevIndex) {
+    if(index > prevIndex) { // -->
         if(index >= 2)
             [self releasePageUnderlyingPhotos:index - 2];
         if(index <= [self numberOfPages] - 1)
             [self loadPageUnderlyingPhotos:index + 1];
-    }
-         
-    // <--
-    if(index < prevIndex) {
+    } else if(index < prevIndex) { // <--
         if(index <= [self numberOfPages] - 2)
             [self releasePageUnderlyingPhotos:index + 2];
     
         if(index >= 1)
             [self loadPageUnderlyingPhotos:index - 1]; 
+    } else {
+        // load adjucent pages
+        if(_currentPageIndex > 0)
+            [self loadPageUnderlyingPhotos:_currentPageIndex - 1];
+        if(_currentPageIndex < [self numberOfPhotos] - 1)
+            [self loadPageUnderlyingPhotos:_currentPageIndex + 1];
     }
         
 	// Recycle no longer needed pages

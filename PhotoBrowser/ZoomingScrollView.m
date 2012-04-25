@@ -12,7 +12,6 @@
 
 
 @interface Browser()
-- (NSUInteger)numberOfPhotosOnPage;
 - (UIImage *)imageForPhoto:(id<PhotoDelegate>)photo;
 - (void)cancelControlHiding;
 - (void)hideControlsAfterDelay;
@@ -46,10 +45,10 @@
         _imageViews = [[NSMutableArray alloc] init];
         //_photos = [[NSMutableArray alloc] init];
         
-        _spacing = [browser numberOfPhotosOnPage] == 1 ? 0 : 5;
+        _spacing = browser.photosPerPage  == 1 ? 0 : 5;
                 
         // Image Views
-        for(NSUInteger i=0; i<[self.browser numberOfPhotosOnPage]; i++) {
+        for(NSUInteger i=0; i<browser.photosPerPage; i++) {
 //            NSLog(@"frame %d: %.2f, %2.f, %.2f, %.2f", i, dx, dy, thumbSize.width, thumbSize.height);
             TappingImageView *imageView = [[TappingImageView alloc] initWithFrame:CGRectZero];
             
@@ -186,28 +185,27 @@
 
 #pragma mark - Setup
 
-- (void)setMaxMinZoomScalesForCurrentBounds {
+- (void)setMaxMinZoomScalesForCurrentBounds {    
     NSLog(@"%s", __PRETTY_FUNCTION__);
     
     // Reset
     self.maximumZoomScale = 1;
     self.minimumZoomScale = 1;
     self.zoomScale = 1;
-    self.contentSize = CGSizeMake(0, 0);
-    
+    self.contentSize = CGSizeMake(0, 0);    
+
     float dx = _spacing;
     float dy = _spacing;
     CGSize thumbSize = [self thumbnailSize];
     CGRect bounds = [self bounds];
         
-    for (NSUInteger i = 0; i < [self.browser numberOfPhotosOnPage]; i++) {                               
+    for (NSUInteger i = 0; i < self.browser.photosPerPage; i++) {                               
         TappingImageView *imageView = [_imageViews objectAtIndex:i];
         
         imageView.frame = CGRectMake(dx, dy, thumbSize.width, thumbSize.height);                                
         
         dx += thumbSize.width + _spacing;
         if(dx + thumbSize.width + _spacing > bounds.size.width) {
-            //                NSLog(@"if(%.2f > %.2f)", dx + thumbSize.width + _spacing, boundsSize.width - _spacing);
             dx = _spacing;
             dy += thumbSize.height + _spacing;
         }   
@@ -278,7 +276,7 @@
 #pragma mark - UIScrollViewDelegate
 
 - (UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView {
-    if([self.browser numberOfPhotosOnPage] == 1)
+    if(self.browser.photosPerPage == 1)
         return [_imageViews objectAtIndex:0];
     else 
         return nil;
@@ -332,24 +330,29 @@
 
 - (void)imageView:(UIImageView *)imageView doubleTapDetected:(UITouch *)touch {
 
-    NSUInteger selectedImage;
-    for (NSUInteger i=0; i<[_imageViews count]; i++) {
-        TappingImageView *iView = [_imageViews objectAtIndex:i];
-        if(CGRectContainsPoint(iView.frame, [touch locationInView:self])) {
-            selectedImage = i;
-            break;
-        }
+    NSLog(@"doubleTapDetected");
+    if(_browser.photosPerPage == 1) {
+        //[self handleDoubleTap:[touch locationInView:imageView]];        
+        [_browser reload:4 imageIndex:0];
+    } else {
+        NSUInteger selectedImage;
+        for (NSUInteger i=0; i<[_imageViews count]; i++) {
+            TappingImageView *iView = [_imageViews objectAtIndex:i];
+            if(CGRectContainsPoint(iView.frame, [touch locationInView:self])) {
+                selectedImage = i;
+                break;
+            }
         
-    }
-    NSLog(@"doubleTapDetected at index: %d", selectedImage);
-    [self handleDoubleTap:[touch locationInView:imageView]];
+        }
+        [_browser reload:1 imageIndex:selectedImage];        
+    }        
 }
 
 - (CGSize)thumbnailSize {
     CGSize resultSize;
     CGRect bounds = [self bounds];        
     
-    float rowCount = sqrt([self.browser numberOfPhotosOnPage]);
+    float rowCount = sqrt(self.browser.photosPerPage);
     
     resultSize.width = floorf((bounds.size.width - _spacing * (rowCount + 1)) / rowCount);
     resultSize.height = floorf((bounds.size.height - _spacing * (rowCount + 1)) / rowCount);

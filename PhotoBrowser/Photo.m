@@ -14,7 +14,8 @@
 @interface Photo() {
     
     // Image sources
-//    NSString *_photoPath;
+    NSUInteger _photoNumber;
+    NSString *_photoPath;
     NSURL *_photoURL;
     
     // Image
@@ -45,7 +46,7 @@
 @implementation Photo
 
 @synthesize underlyingImage = _underlyingImage, caption = _caption;
-@synthesize photoNumber;
+@synthesize photoNumber = _photoNumber;
 
 
 #pragma mark Class Methods
@@ -103,6 +104,10 @@
 
 - (void)loadUnderlyingImageAndNotify {
     NSAssert([[NSThread currentThread] isMainThread], @"This method must be called on the main thread.");
+    
+    if(_loadingProgress == YES)
+        return;
+    
     _loadingProgress = YES;
     if(self.underlyingImage) {
         // Image alreadt loaded

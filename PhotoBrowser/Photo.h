@@ -10,11 +10,7 @@
 #import "PhotoDelegate.h"
 
 
-@interface Photo : NSObject <PhotoDelegate, NSStreamDelegate> {
-    NSUInteger photoNumber;
-    NSString *_photoPath;
-    
-}
+@interface Photo : NSObject <PhotoDelegate, NSStreamDelegate>
 
 @property (nonatomic, retain) NSString *photoPath;
 @property (nonatomic, assign) NSUInteger photoNumber;

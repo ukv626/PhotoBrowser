@@ -11,12 +11,9 @@
 
 @class ViewController;
 
-@interface AppDelegate : UIResponder <UIApplicationDelegate, BrowserDelegate> {
-    NSArray *_photos;
-}
+@interface AppDelegate : UIResponder <UIApplicationDelegate> 
 
 @property (strong, nonatomic) UIWindow *window;
-@property (nonatomic, retain) NSArray *photos;
 
 @property (strong, nonatomic) UIViewController *viewController;
 
