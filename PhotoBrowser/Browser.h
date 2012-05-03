@@ -10,7 +10,7 @@
 #import "PhotoDelegate.h"
 #import "Photo.h"
 
-@interface Browser : UIViewController <UIScrollViewDelegate> {
+@interface Browser : UIViewController <UIScrollViewDelegate, UIActionSheetDelegate> {
     NSArray *photos;
 }
 

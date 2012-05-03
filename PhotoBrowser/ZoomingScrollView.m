@@ -60,6 +60,11 @@
             [imageView release];                                                            
         }        
 
+//        // Spinner
+//        _spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
+//        _spinner.hidesWhenStopped = YES;
+//        _spinner.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin | UIViewAutoresizingFlexibleRightMargin;
+//        [self addSubview:_spinner];
         
         // Setup
         self.backgroundColor = [UIColor blackColor];
@@ -75,6 +80,7 @@
 - (void)dealloc {
     [_photos release];
     [_imageViews release];
+//    [_spinner release];
     [super dealloc];
 }
 
@@ -117,8 +123,9 @@
                                                                                                    [self bounds].size.height)];
     if(img) {
         TappingImageView *imageView = [_imageViews objectAtIndex:index];
-        imageView.image = img;     
-    }
+        imageView.image = img;
+//        [_spinner stopAnimating];
+    } 
 }
 
 
@@ -179,7 +186,7 @@
 
 
 - (void)displayImageFailure {
-    //[_spinner stopAnimating];
+//    [_spinner stopAnimating];
 }
 
 
@@ -222,16 +229,19 @@
             UIImage *img = [[self.browser imageForPhoto:photo] imageByScalingAndCroppingForSize:CGSizeMake(bounds.size.width, bounds.size.height)];
             if(img) {
                 // Hide spinner
-                //[_spinner stopAnimating];
+//                [_spinner stopAnimating];
                 
                 // Set image
                 imageView.image = img;
                 imageView.hidden = NO;                           
+            } else {
+//                [_spinner startAnimating];
             }
         }
         
 
     }
+    
     
     // Sizes
     CGSize boundsSize = self.bounds.size;
@@ -266,6 +276,10 @@
 
 - (void)layoutSubviews {
     // Update tap view frame
+    
+//    // Spinner
+//    if(!_spinner.hidden)
+//        _spinner.center = CGPointMake(floorf(self.bounds.size.width/2.0), floorf(self.bounds.size.height/2.0));
     
     // Super
     [super layoutSubviews];
@@ -325,15 +339,13 @@
 
 // Image View
 - (void)imageView:(UIImageView *)imageView singleTapDetected:(UITouch *)touch {
-    [self handleSingleTap:[touch locationInView:imageView]];
+    [self handleSingleTap:[touch locationInView:imageView]];    
 }
 
 - (void)imageView:(UIImageView *)imageView doubleTapDetected:(UITouch *)touch {
-
     NSLog(@"doubleTapDetected");
     if(_browser.photosPerPage == 1) {
-        //[self handleDoubleTap:[touch locationInView:imageView]];        
-        [_browser reload:4 imageIndex:0];
+        [self handleDoubleTap:[touch locationInView:imageView]];        
     } else {
         NSUInteger selectedImage;
         for (NSUInteger i=0; i<[_imageViews count]; i++) {
@@ -341,8 +353,7 @@
             if(CGRectContainsPoint(iView.frame, [touch locationInView:self])) {
                 selectedImage = i;
                 break;
-            }
-        
+            }            
         }
         [_browser reload:1 imageIndex:selectedImage];        
     }        

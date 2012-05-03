@@ -7,9 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		01720CB815494FDD00ECC483 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 01720CB715494FDD00ECC483 /* QuartzCore.framework */; };
 		017252FD1536BAFE00775BA8 /* Photo.m in Sources */ = {isa = PBXBuildFile; fileRef = 017252FC1536BAFE00775BA8 /* Photo.m */; };
+		017254BD155169C60087586A /* MBProgressHUD.m in Sources */ = {isa = PBXBuildFile; fileRef = 017254BB155169B20087586A /* MBProgressHUD.m */; };
 		01761E431546D62900EF8749 /* TappingImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 01761E401546D60400EF8749 /* TappingImageView.m */; };
 		01761E441546D63500EF8749 /* ZoomingScrollView.m in Sources */ = {isa = PBXBuildFile; fileRef = 01761E421546D60400EF8749 /* ZoomingScrollView.m */; };
+		017913EC1552640F00878E0C /* FtpLs.m in Sources */ = {isa = PBXBuildFile; fileRef = 017913EB1552640F00878E0C /* FtpLs.m */; };
 		0179797C152D7B3B00645399 /* Browser.m in Sources */ = {isa = PBXBuildFile; fileRef = 0179797B152D7B3B00645399 /* Browser.m */; };
 		017BA7FD152C7A9E00DF16B2 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 017BA7FC152C7A9E00DF16B2 /* UIKit.framework */; };
 		017BA7FF152C7A9E00DF16B2 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 017BA7FE152C7A9E00DF16B2 /* Foundation.framework */; };
@@ -29,13 +32,18 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		01720CB715494FDD00ECC483 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		017252F91536BA1300775BA8 /* PhotoDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PhotoDelegate.h; sourceTree = "<group>"; };
 		017252FB1536BAFE00775BA8 /* Photo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Photo.h; sourceTree = "<group>"; };
 		017252FC1536BAFE00775BA8 /* Photo.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Photo.m; sourceTree = "<group>"; };
+		017254BA155169B20087586A /* MBProgressHUD.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MBProgressHUD.h; sourceTree = "<group>"; };
+		017254BB155169B20087586A /* MBProgressHUD.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MBProgressHUD.m; sourceTree = "<group>"; };
 		01761E3F1546D60300EF8749 /* TappingImageView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TappingImageView.h; sourceTree = "<group>"; };
 		01761E401546D60400EF8749 /* TappingImageView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TappingImageView.m; sourceTree = "<group>"; };
 		01761E411546D60400EF8749 /* ZoomingScrollView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZoomingScrollView.h; sourceTree = "<group>"; };
 		01761E421546D60400EF8749 /* ZoomingScrollView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZoomingScrollView.m; sourceTree = "<group>"; };
+		017913EA1552640F00878E0C /* FtpLs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FtpLs.h; sourceTree = "<group>"; };
+		017913EB1552640F00878E0C /* FtpLs.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FtpLs.m; sourceTree = "<group>"; };
 		0179797A152D7B3B00645399 /* Browser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Browser.h; sourceTree = "<group>"; };
 		0179797B152D7B3B00645399 /* Browser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Browser.m; sourceTree = "<group>"; };
 		017BA7F8152C7A9E00DF16B2 /* PhotoBrowser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PhotoBrowser.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -66,6 +74,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				01720CB815494FDD00ECC483 /* QuartzCore.framework in Frameworks */,
 				01DF222E1536FAD10089B7F2 /* CFNetwork.framework in Frameworks */,
 				017BA7FD152C7A9E00DF16B2 /* UIKit.framework in Frameworks */,
 				017BA7FF152C7A9E00DF16B2 /* Foundation.framework in Frameworks */,
@@ -91,7 +100,6 @@
 		017BA7ED152C7A9E00DF16B2 = {
 			isa = PBXGroup;
 			children = (
-				01DF222D1536FAD00089B7F2 /* CFNetwork.framework */,
 				017BA802152C7A9E00DF16B2 /* PhotoBrowser */,
 				017BA7FB152C7A9E00DF16B2 /* Frameworks */,
 				017BA7F9152C7A9E00DF16B2 /* Products */,
@@ -109,6 +117,8 @@
 		017BA7FB152C7A9E00DF16B2 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				01720CB715494FDD00ECC483 /* QuartzCore.framework */,
+				01DF222D1536FAD00089B7F2 /* CFNetwork.framework */,
 				017BA7FC152C7A9E00DF16B2 /* UIKit.framework */,
 				017BA7FE152C7A9E00DF16B2 /* Foundation.framework */,
 				017BA800152C7A9E00DF16B2 /* CoreGraphics.framework */,
@@ -127,6 +137,8 @@
 				0179797A152D7B3B00645399 /* Browser.h */,
 				0179797B152D7B3B00645399 /* Browser.m */,
 				017252F91536BA1300775BA8 /* PhotoDelegate.h */,
+				017913EA1552640F00878E0C /* FtpLs.h */,
+				017913EB1552640F00878E0C /* FtpLs.m */,
 				017252FB1536BAFE00775BA8 /* Photo.h */,
 				017252FC1536BAFE00775BA8 /* Photo.m */,
 				017BA811152C7A9F00DF16B2 /* ViewController.xib */,
@@ -136,6 +148,8 @@
 				01761E421546D60400EF8749 /* ZoomingScrollView.m */,
 				018AF60D15459BF500820E79 /* UIImageExtras.h */,
 				018AF60E15459BF500820E79 /* UIImageExtras.m */,
+				017254BA155169B20087586A /* MBProgressHUD.h */,
+				017254BB155169B20087586A /* MBProgressHUD.m */,
 				017BA803152C7A9E00DF16B2 /* Supporting Files */,
 			);
 			path = PhotoBrowser;
@@ -219,6 +233,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				017254BD155169C60087586A /* MBProgressHUD.m in Sources */,
 				01761E441546D63500EF8749 /* ZoomingScrollView.m in Sources */,
 				01761E431546D62900EF8749 /* TappingImageView.m in Sources */,
 				018AF61015459C0500820E79 /* UIImageExtras.m in Sources */,
@@ -227,6 +242,7 @@
 				017BA810152C7A9F00DF16B2 /* ViewController.m in Sources */,
 				0179797C152D7B3B00645399 /* Browser.m in Sources */,
 				017252FD1536BAFE00775BA8 /* Photo.m in Sources */,
+				017913EC1552640F00878E0C /* FtpLs.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

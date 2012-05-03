@@ -9,6 +9,7 @@
 #import "AppDelegate.h"
 
 #import "Browser.h"
+#import "FtpLs.h"
 
 @implementation AppDelegate
 
@@ -34,10 +35,13 @@
 
         [photos addObject:photo];
     }
+    
+//    FtpLs *ftpLs = [[FtpLs alloc] initWithURL:[NSURL URLWithString:@"ftp://127.0.0.1/Downloads/"]];
+//    assert(ftpLs);       
 
     Browser *browser = [[Browser alloc] init];
     browser.photos = photos;
-    browser.photosPerPage = 4;
+    browser.photosPerPage = 1;
 //    self.viewController = [[[ViewController alloc] initWithNibName:@"ViewController" bundle:nil] autorelease];
     self.viewController = (UIViewController *)[[[UINavigationController alloc] initWithRootViewController:browser] autorelease];
     self.window.rootViewController = self.viewController;

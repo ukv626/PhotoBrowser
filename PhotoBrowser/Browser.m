@@ -10,7 +10,7 @@
 #import "Browser.h"
 #import "ZoomingScrollView.h"
 //#import "Photo.h"
-//#import "MBProgressHUD.h"
+#import "MBProgressHUD.h"
 //#import "SDImageCache.h"
 
 #define SYSTEM_VERSION_EQUAL_TO(v)                  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedSame)
@@ -40,9 +40,9 @@
 	// Navigation & controls
 	UIToolbar *_toolbar;
 	NSTimer *_controlVisibilityTimer;
-	UIBarButtonItem *_previousButton, *_nextButton, *_actionButton;
+	UIBarButtonItem *_previousButton, *_nextButton, *_actionButton, *_zoomOutButton;
     UIActionSheet *_actionsSheet;
-//    MBProgressHUD *_progressHUD;
+    MBProgressHUD *_progressHUD;
     
     // Appearance
     UIImage *_navigationBarBackgroundImageDefault, 
@@ -67,7 +67,7 @@
 @property (nonatomic, retain) UIBarButtonItem *previousViewControllerBackButton;
 @property (nonatomic, retain) UIImage *navigationBarBackgroundImageDefault, *navigationBarBackgroundImageLandscapePhone;
 @property (nonatomic, retain) UIActionSheet *actionsSheet;
-//@property (nonatomic, retain) MBProgressHUD *progressHUD;
+@property (nonatomic, retain) MBProgressHUD *progressHUD;
 
 // Private Methods
 
@@ -101,6 +101,7 @@
 - (void)jumpToPageAtIndex:(NSUInteger)index;
 - (void)gotoPreviousPage;
 - (void)gotoNextPage;
+- (void)zoomOut;
 
 // Controls
 - (void)cancelControlHiding;
@@ -119,7 +120,7 @@
 - (void)releaseAllUnderlyingPhotos;
 
 // Actions
-//- (void)savePhoto;
+- (void)savePhoto;
 //- (void)copyPhoto;
 //- (void)emailPhoto;
 
@@ -141,7 +142,7 @@
 @synthesize navigationBarBackgroundImageDefault = _navigationBarBackgroundImageDefault,
 navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandscapePhone;
 @synthesize displayActionButton = _displayActionButton, actionsSheet = _actionsSheet;
-//@synthesize progressHUD = _progressHUD;
+@synthesize progressHUD = _progressHUD;
 @synthesize previousViewControllerBackButton = _previousViewControllerBackButton;
 
 #pragma mark - NSObject
@@ -162,12 +163,12 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
         _viewIsActive = NO;
         _visiblePages = [[NSMutableSet alloc] init];
         _recycledPages = [[NSMutableSet alloc] init];        
-        _displayActionButton = NO;
+        _displayActionButton = YES;
         _didSavePreviousStateOfNavBar = NO;
         
         // Listen for MWPhoto notifications
         [[NSNotificationCenter defaultCenter] addObserver:self
-                                                 selector:@selector(handleMWPhotoLoadingDidEndNotification:)
+                                                 selector:@selector(handlePhotoLoadingDidEndNotification:)
                                                      name:PHOTO_LOADING_DID_END_NOTIFICATION
                                                    object:nil];
     }
@@ -196,11 +197,12 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 	[_previousButton release];
 	[_nextButton release];
     [_actionButton release];
+    [_zoomOutButton release];
   	[_depreciatedPhotoData release];
     [self releaseAllUnderlyingPhotos];
 //    [[SDImageCache sharedImageCache] clearMemory]; // clear memory
     [photos release];
-//    [_progressHUD release];
+    [_progressHUD release];
     [super dealloc];
 }
 
@@ -227,7 +229,7 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 
     for (NSUInteger i=0; i<_photosPerPage; i++) {
         id<PhotoDelegate> photo = [self photoAtIndex:index*_photosPerPage + i];
-        if(photo) {
+        if(photo && ![photo underlyingImage]) {            
             [photo loadUnderlyingImageAndNotify];
         }
     }
@@ -276,6 +278,8 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
     _toolbar.autoresizingMask = UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleWidth;
     
     // Toolbar Items
+    _zoomOutButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(zoomOut)];
+    
     _previousButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"UIBarButtonItemArrowLeft.png"] style:UIBarButtonItemStylePlain target:self action:@selector(gotoPreviousPage)];
     _nextButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"UIBarButtonItemArrowRight.png"] style:UIBarButtonItemStylePlain target:self action:@selector(gotoNextPage)];
     _actionButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(actionButtonPressed:)];
@@ -309,7 +313,11 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
     fixedLeftSpace.width = 32; // To balance action button
     UIBarButtonItem *flexSpace = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:self action:nil] autorelease];
     NSMutableArray *items = [[NSMutableArray alloc] init];
-    if (_displayActionButton) [items addObject:fixedLeftSpace];
+    
+    [items addObject:_zoomOutButton];
+    //[items addObject:flexSpace];
+    
+    //if (_displayActionButton) [items addObject:fixedLeftSpace];
     [items addObject:flexSpace];
     if ([self numberOfPages] > 1) [items addObject:_previousButton];
     [items addObject:flexSpace];
@@ -368,7 +376,7 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
     [_toolbar release], _toolbar = nil;
     [_previousButton release], _previousButton = nil;
     [_nextButton release], _nextButton = nil;
-//    self.progressHUD = nil;
+    self.progressHUD = nil;
     [super viewDidUnload];
 }
 
@@ -515,6 +523,7 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 	// Reset
 	_currentPageIndex = indexPriorToLayout;
 	_performingLayout = NO;
+     
 }
 
 #pragma mark - Rotation
@@ -540,8 +549,7 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
     if (SYSTEM_VERSION_LESS_THAN(@"5")) [self viewWillLayoutSubviews];
 	
 	// Delay control holding
-	[self hideControlsAfterDelay];
-	
+	[self hideControlsAfterDelay];	
 }
 
 - (void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation {
@@ -662,6 +670,7 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 
 - (void)loadAdjacentPhotosIfNecessary:(id<PhotoDelegate>)photo {
     NSLog(@"loadAdjacentPhotosIfNecessary");
+    /*
     ZoomingScrollView *page = [self pageDisplayingPhoto:photo];
     if (page) {
         // If page is current page then initiate loading of previous and next pages
@@ -685,11 +694,12 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
             }
         }
     }
+     */
 }
 
 #pragma mark - MWPhoto Loading Notification
 
-- (void)handleMWPhotoLoadingDidEndNotification:(NSNotification *)notification {
+- (void)handlePhotoLoadingDidEndNotification:(NSNotification *)notification {
     
     Photo *photo = [notification object];
     NSLog(@"get notification about: %d %@", photo.photoNumber, photo.photoPath );
@@ -986,7 +996,8 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 	// Buttons
 	_previousButton.enabled = (_currentPageIndex > 0);
 	_nextButton.enabled = (_currentPageIndex < [self numberOfPages] - 1);
-	
+    _zoomOutButton.enabled = _photosPerPage == 1;
+	_actionButton.enabled = _photosPerPage == 1;
 }
 
 - (void)jumpToPageAtIndex:(NSUInteger)index {
@@ -1005,6 +1016,10 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 
 - (void)gotoPreviousPage { [self jumpToPageAtIndex:_currentPageIndex-1]; }
 - (void)gotoNextPage { [self jumpToPageAtIndex:_currentPageIndex+1]; }
+
+- (void)zoomOut {
+    [self reload:4 imageIndex:0];
+}
 
 #pragma mark - Control Hiding / Showing
 
@@ -1107,119 +1122,117 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
     [self dismissModalViewControllerAnimated:YES];
 }
 
-//- (void)actionButtonPressed:(id)sender {
-//    if (_actionsSheet) {
-//        // Dismiss
-//        [_actionsSheet dismissWithClickedButtonIndex:_actionsSheet.cancelButtonIndex animated:YES];
-//    } else {
-//        id <MWPhoto> photo = [self photoAtIndex:_currentPageIndex];
-//        if ([self numberOfPhotos] > 0 && [photo underlyingImage]) {
-//            
-//            // Keep controls hidden
-//            [self setControlsHidden:NO animated:YES permanent:YES];
-//            
-//            // Sheet
-//            if ([MFMailComposeViewController canSendMail]) {
-//                self.actionsSheet = [[[UIActionSheet alloc] initWithTitle:nil delegate:self
-//                                                        cancelButtonTitle:NSLocalizedString(@"Cancel", nil) destructiveButtonTitle:nil
-//                                                        otherButtonTitles:NSLocalizedString(@"Save", nil), NSLocalizedString(@"Copy", nil), NSLocalizedString(@"Email", nil), nil] autorelease];
-//            } else {
-//                self.actionsSheet = [[[UIActionSheet alloc] initWithTitle:nil delegate:self
-//                                                        cancelButtonTitle:NSLocalizedString(@"Cancel", nil) destructiveButtonTitle:nil
-//                                                        otherButtonTitles:NSLocalizedString(@"Save", nil), NSLocalizedString(@"Copy", nil), nil] autorelease];
-//            }
-//            _actionsSheet.actionSheetStyle = UIActionSheetStyleBlackTranslucent;
-//            if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
-//                [_actionsSheet showFromBarButtonItem:sender animated:YES];
-//            } else {
-//                [_actionsSheet showInView:self.view];
-//            }
-//            
-//        }
-//    }
-//}
-//
-//#pragma mark - Action Sheet Delegate
-//
-//- (void)actionSheet:(UIActionSheet *)actionSheet didDismissWithButtonIndex:(NSInteger)buttonIndex {
-//    if (actionSheet == _actionsSheet) {           
-//        // Actions 
-//        self.actionsSheet = nil;
-//        if (buttonIndex != actionSheet.cancelButtonIndex) {
-//            if (buttonIndex == actionSheet.firstOtherButtonIndex) {
-//                [self savePhoto]; return;
-//            } else if (buttonIndex == actionSheet.firstOtherButtonIndex + 1) {
-//                [self copyPhoto]; return;	
-//            } else if (buttonIndex == actionSheet.firstOtherButtonIndex + 2) {
-//                [self emailPhoto]; return;
-//            }
-//        }
-//    }
-//    [self hideControlsAfterDelay]; // Continue as normal...
-//}
-//
-//#pragma mark - MBProgressHUD
-//
-//- (MBProgressHUD *)progressHUD {
-//    if (!_progressHUD) {
-//        _progressHUD = [[MBProgressHUD alloc] initWithView:self.view];
-//        _progressHUD.minSize = CGSizeMake(120, 120);
-//        _progressHUD.minShowTime = 1;
-//        // The sample image is based on the
-//        // work by: http://www.pixelpressicons.com
-//        // licence: http://creativecommons.org/licenses/by/2.5/ca/
-//        self.progressHUD.customView = [[[UIImageView alloc] initWithImage:[UIImage imageNamed:@"MWPhotoBrowser.bundle/Photos/Checkmark.png"]] autorelease];
-//        [self.view addSubview:_progressHUD];
-//    }
-//    return _progressHUD;
-//}
-//
-//- (void)showProgressHUDWithMessage:(NSString *)message {
-//    self.progressHUD.labelText = message;
-//    self.progressHUD.mode = MBProgressHUDModeIndeterminate;
-//    [self.progressHUD show:YES];
-//    self.navigationController.navigationBar.userInteractionEnabled = NO;
-//}
-//
-//- (void)hideProgressHUD:(BOOL)animated {
-//    [self.progressHUD hide:animated];
-//    self.navigationController.navigationBar.userInteractionEnabled = YES;
-//}
-//
-//- (void)showProgressHUDCompleteMessage:(NSString *)message {
-//    if (message) {
-//        if (self.progressHUD.isHidden) [self.progressHUD show:YES];
-//        self.progressHUD.labelText = message;
-//        self.progressHUD.mode = MBProgressHUDModeCustomView;
-//        [self.progressHUD hide:YES afterDelay:1.5];
-//    } else {
-//        [self.progressHUD hide:YES];
-//    }
-//    self.navigationController.navigationBar.userInteractionEnabled = YES;
-//}
-//
-//#pragma mark - Actions
-//
-//- (void)savePhoto {
-//    id <MWPhoto> photo = [self photoAtIndex:_currentPageIndex];
-//    if ([photo underlyingImage]) {
-//        [self showProgressHUDWithMessage:[NSString stringWithFormat:@"%@\u2026" , NSLocalizedString(@"Saving", @"Displayed with ellipsis as 'Saving...' when an item is in the process of being saved")]];
-//        [self performSelector:@selector(actuallySavePhoto:) withObject:photo afterDelay:0];
-//    }
-//}
-//
-//- (void)actuallySavePhoto:(id<MWPhoto>)photo {
-//    if ([photo underlyingImage]) {
-//        UIImageWriteToSavedPhotosAlbum([photo underlyingImage], self, 
-//                                       @selector(image:didFinishSavingWithError:contextInfo:), nil);
-//    }
-//}
-//
-//- (void)image:(UIImage *)image didFinishSavingWithError:(NSError *)error contextInfo:(void *)contextInfo {
-//    [self showProgressHUDCompleteMessage: error ? NSLocalizedString(@"Failed", @"Informing the user a process has failed") : NSLocalizedString(@"Saved", @"Informing the user an item has been saved")];
-//    [self hideControlsAfterDelay]; // Continue as normal...
-//}
-//
+- (void)actionButtonPressed:(id)sender {
+    NSLog(@"%s", __PRETTY_FUNCTION__);
+    
+    if (_actionsSheet) {
+        // Dismiss
+        [_actionsSheet dismissWithClickedButtonIndex:_actionsSheet.cancelButtonIndex animated:YES];
+    } else {
+        id <PhotoDelegate> photo = [self photoAtIndex:_currentPageIndex];
+        if ([self numberOfPhotos] > 0 && [photo underlyingImage]) {
+            
+            // Keep controls hidden
+            [self setControlsHidden:NO animated:YES permanent:YES];
+            
+            // Sheet
+            self.actionsSheet = [[[UIActionSheet alloc] initWithTitle:nil delegate:self
+                                  cancelButtonTitle:NSLocalizedString(@"Cancel", nil) destructiveButtonTitle:nil
+                                  otherButtonTitles:NSLocalizedString(@"Save", nil), NSLocalizedString(@"Copy", nil), nil] autorelease];
+
+            _actionsSheet.actionSheetStyle = UIActionSheetStyleBlackTranslucent;
+            if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+                [_actionsSheet showFromBarButtonItem:sender animated:YES];
+            } else {
+                NSLog(@"showInView");
+                [_actionsSheet showInView:self.view];
+            }
+            
+        }
+    }
+    
+}
+
+
+#pragma mark - Action Sheet Delegate
+
+- (void)actionSheet:(UIActionSheet *)actionSheet didDismissWithButtonIndex:(NSInteger)buttonIndex {
+    if (actionSheet == _actionsSheet) {           
+        // Actions 
+        self.actionsSheet = nil;
+        if (buttonIndex != actionSheet.cancelButtonIndex) {
+            if (buttonIndex == actionSheet.firstOtherButtonIndex) {
+                [self savePhoto]; return;
+            } else if (buttonIndex == actionSheet.firstOtherButtonIndex + 1) {
+                [self savePhoto]; return;	
+            }
+        }
+    }
+    [self hideControlsAfterDelay]; // Continue as normal...
+}
+
+#pragma mark - MBProgressHUD
+
+- (MBProgressHUD *)progressHUD {
+    if (!_progressHUD) {
+        _progressHUD = [[MBProgressHUD alloc] initWithView:self.view];
+        _progressHUD.minSize = CGSizeMake(120, 120);
+        _progressHUD.minShowTime = 1;
+        // The sample image is based on the
+        // work by: http://www.pixelpressicons.com
+        // licence: http://creativecommons.org/licenses/by/2.5/ca/
+        self.progressHUD.customView = [[[UIImageView alloc] initWithImage:[UIImage imageNamed:@"Checkmark.png"]] autorelease];
+        [self.view addSubview:_progressHUD];
+    }
+    return _progressHUD;
+}
+
+- (void)showProgressHUDWithMessage:(NSString *)message {
+    self.progressHUD.labelText = message;
+    self.progressHUD.mode = MBProgressHUDModeIndeterminate;
+    [self.progressHUD show:YES];
+    self.navigationController.navigationBar.userInteractionEnabled = NO;
+}
+
+- (void)hideProgressHUD:(BOOL)animated {
+    [self.progressHUD hide:animated];
+    self.navigationController.navigationBar.userInteractionEnabled = YES;
+}
+
+- (void)showProgressHUDCompleteMessage:(NSString *)message {
+    if (message) {
+        if (self.progressHUD.isHidden) [self.progressHUD show:YES];
+        self.progressHUD.labelText = message;
+        self.progressHUD.mode = MBProgressHUDModeCustomView;
+        [self.progressHUD hide:YES afterDelay:1.5];
+    } else {
+        [self.progressHUD hide:YES];
+    }
+    self.navigationController.navigationBar.userInteractionEnabled = YES;
+}
+
+#pragma mark - Actions
+
+- (void)savePhoto {
+    id <PhotoDelegate> photo = [self photoAtIndex:_currentPageIndex];
+    if ([photo underlyingImage]) {
+        [self showProgressHUDWithMessage:[NSString stringWithFormat:@"%@\u2026" , NSLocalizedString(@"Saving", @"Displayed with ellipsis as 'Saving...' when an item is in the process of being saved")]];
+        [self performSelector:@selector(actuallySavePhoto:) withObject:photo afterDelay:0];
+    }
+}
+
+- (void)actuallySavePhoto:(id<PhotoDelegate>)photo {
+    if ([photo underlyingImage]) {
+        UIImageWriteToSavedPhotosAlbum([photo underlyingImage], self, 
+                                       @selector(image:didFinishSavingWithError:contextInfo:), nil);
+    }
+}
+
+- (void)image:(UIImage *)image didFinishSavingWithError:(NSError *)error contextInfo:(void *)contextInfo {
+    [self showProgressHUDCompleteMessage: error ? NSLocalizedString(@"Failed", @"Informing the user a process has failed") : NSLocalizedString(@"Saved", @"Informing the user an item has been saved")];
+    [self hideControlsAfterDelay]; // Continue as normal...
+}
+
 //- (void)copyPhoto {
 //    id <MWPhoto> photo = [self photoAtIndex:_currentPageIndex];
 //    if ([photo underlyingImage]) {

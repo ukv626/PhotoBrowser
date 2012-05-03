@@ -17,7 +17,7 @@
 @property (nonatomic, retain) NSString *caption;
 
 // Class
-+ (Photo *)photpWithImage:(UIImage *)image;
++ (Photo *)photoWithImage:(UIImage *)image;
 + (Photo *)photoWithFilePath:(NSString *)path;
 + (Photo *)photoWithURL:(NSURL *)url;
 

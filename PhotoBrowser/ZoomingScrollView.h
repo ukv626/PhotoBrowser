@@ -15,8 +15,8 @@
 @interface ZoomingScrollView : UIScrollView <UIScrollViewDelegate, TappingImageViewDelegate> {
     Browser *_browser;
     NSMutableArray *_photos;
-//    TappingImageView *_imageView;
     NSMutableArray *_imageViews;
+//    UIActivityIndicatorView *_spinner;
 }
 
 @property (nonatomic, retain) NSMutableArray *photos;

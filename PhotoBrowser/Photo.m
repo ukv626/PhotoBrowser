@@ -51,7 +51,7 @@
 
 #pragma mark Class Methods
 
-+ (Photo *)photpWithImage:(UIImage *)image {
++ (Photo *)photoWithImage:(UIImage *)image {
     return [[[Photo alloc] initWithImage:image] autorelease];
 }
 

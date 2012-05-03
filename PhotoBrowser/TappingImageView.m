@@ -22,7 +22,10 @@
         CALayer *l = [self layer];
         [l setMasksToBounds:YES];
         [l setCornerRadius:6.0];
-        
+
+//        CATransform3D transform;
+//        transform = CATransform3DMakeRotation(0.39, 1.0, 0.0, 1.0);
+//        self.layer.affineTransform = transform;
 //        [l setBorderWidth:2.0];
 //        [l setBorderColor:[[UIColor blackColor] CGColor]];
     }
