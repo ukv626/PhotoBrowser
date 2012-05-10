@@ -74,14 +74,21 @@
 
 - (id)initWithFilePath:(NSString *)path {
     if ((self = [super init])) {
-        _photoPath = [path copy];
+        self.photoPath = [path copy];
     }
     return  self;
 }
 
 - (id)initWithURL:(NSURL *)url {
     if ((self = [super init])) {
-        _photoURL = [url copy];
+        self.photoURL = [url copy];
+        
+        NSString *filename = [self.photoURL path]; //lastPathComponent];
+        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+        self.photoPath = [[paths objectAtIndex:0] stringByAppendingPathComponent:filename];
+
+//        self.photoPath = [NSTemporaryDirectory() stringByAppendingPathComponent:filename];
+        //[[AppDelegate sharedAppDelegate] pathForTemporaryFileWithPrefix:@"Get"];
     }
     return self;
 }
@@ -102,6 +109,16 @@
     return _underlyingImage;
 }
 
+- (BOOL)fileExist {
+    BOOL result = NO;
+    
+    if([[NSFileManager defaultManager] fileExistsAtPath:self.photoPath]) {
+        result = YES;
+    }
+    
+    return result;
+}
+
 - (void)loadUnderlyingImageAndNotify {
     NSAssert([[NSThread currentThread] isMainThread], @"This method must be called on the main thread.");
     
@@ -110,10 +127,10 @@
     
     _loadingProgress = YES;
     if(self.underlyingImage) {
-        // Image alreadt loaded
+        // Image already loaded
         [self imageLoadingComplete];
     } else {
-        if(_photoPath) {
+        if([self fileExist]) {
             // Load async from file
             [self performSelectorInBackground:@selector(loadImageFromFileAsync) withObject:nil];
         } else if(_photoURL){
@@ -199,8 +216,6 @@
     assert(self.fileStream == nil);
     
     // Open a stream for the file we're going to recieve into
-    NSString *filename = [[self.photoURL path] lastPathComponent];
-    self.photoPath = [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"%@", filename]];  //[[AppDelegate sharedAppDelegate] pathForTemporaryFileWithPrefix:@"Get"];
     NSLog(@"write to: %@", self.photoPath);
     self.fileStream = [NSOutputStream outputStreamToFileAtPath:self.photoPath append:NO];
     [self.fileStream open];

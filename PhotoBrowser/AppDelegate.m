@@ -7,14 +7,50 @@
 //
 
 #import "AppDelegate.h"
-
-#import "Browser.h"
-#import "FtpLs.h"
+#import "LoginView.h"
 
 @implementation AppDelegate
 
 @synthesize window = _window;
 @synthesize viewController = _viewController;
+
+/*
++ (void)initialize
+// Set up our default preferences.  We can't do this in -applicationDidFinishLaunching: 
+// because it's too late; the view controller's -viewDidLoad method has already run 
+// by the time applicationDidFinishLaunching: is called.
+{
+    if ([self class] == [AppDelegate class]) {
+        NSString *      initialDefaultsPath;
+        NSDictionary *  initialDefaults;
+        
+        initialDefaultsPath = [[NSBundle mainBundle] pathForResource:@"InitialDefaults" ofType:@"plist"];
+        assert(initialDefaultsPath != nil);
+        
+        initialDefaults = [NSDictionary dictionaryWithContentsOfFile:initialDefaultsPath];
+        assert(initialDefaults != nil);
+        
+        // If we're running on the device certain defaults don't make any sense 
+        // (specifically, the upload defaults, which reference localhost), so 
+        // we nix them.
+        
+#if ! TARGET_IPHONE_SIMULATOR
+        {
+            NSMutableDictionary *   initialDefaultsChanged;
+            
+            initialDefaultsChanged = [initialDefaults mutableCopy];
+            assert(initialDefaultsChanged != nil);
+            
+            [initialDefaultsChanged setObject:@"" forKey:@"URLText"];
+            
+            initialDefaults = initialDefaultsChanged;
+        }
+#endif
+        
+        [[NSUserDefaults standardUserDefaults] registerDefaults:initialDefaults];
+    }
+}
+*/
 
 - (void)dealloc
 {
@@ -27,23 +63,11 @@
 {
     self.window = [[[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]] autorelease];
     // Override point for customization after application launch.
-        
-    NSMutableArray *photos = [[NSMutableArray alloc] init];
-    for (int i=1; i<=14; ++i) {
-//        Photo *photo = [Photo photoWithFilePath:[[NSBundle mainBundle] pathForResource:[NSString stringWithFormat: @"%d", i + 1] ofType:@"jpg"]];
-        Photo *photo = [Photo photoWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"ftp://127.0.0.1/Downloads/%d.jpg", i]]];
-
-        [photos addObject:photo];
-    }
+      
     
-//    FtpLs *ftpLs = [[FtpLs alloc] initWithURL:[NSURL URLWithString:@"ftp://127.0.0.1/Downloads/"]];
-//    assert(ftpLs);       
-
-    Browser *browser = [[Browser alloc] init];
-    browser.photos = photos;
-    browser.photosPerPage = 1;
+    LoginView *loginView = [[LoginView alloc] init];
 //    self.viewController = [[[ViewController alloc] initWithNibName:@"ViewController" bundle:nil] autorelease];
-    self.viewController = (UIViewController *)[[[UINavigationController alloc] initWithRootViewController:browser] autorelease];
+    self.viewController = (UIViewController *)[[[UINavigationController alloc] initWithRootViewController:loginView] autorelease];
     self.window.rootViewController = self.viewController;
     [self.window makeKeyAndVisible];
     return YES;

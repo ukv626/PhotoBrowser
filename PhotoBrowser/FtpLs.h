@@ -8,12 +8,10 @@
 
 #import <Foundation/Foundation.h>
 
-@interface FtpLs : NSObject <NSStreamDelegate> {
-    NSURL *_url;
-    NSInputStream *_networkStream;
-    NSMutableData *_listData;
-    NSMutableArray *_listEntries;
-}
+#define DIRLIST_LOADING_DID_END_NOTIFICATION @"DIRLIST_LOADING_DID_END_NOTIFICATION"
+
+@interface FtpLs : NSObject <NSStreamDelegate>
+
 
 @property (nonatomic, retain) NSMutableArray *listEntries;
 

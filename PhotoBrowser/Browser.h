@@ -10,8 +10,14 @@
 #import "PhotoDelegate.h"
 #import "Photo.h"
 
+#define SYSTEM_VERSION_EQUAL_TO(v)                  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedSame)
+#define SYSTEM_VERSION_GREATER_THAN(v)              ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedDescending)
+#define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
+#define SYSTEM_VERSION_LESS_THAN(v)                 ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedAscending)
+#define SYSTEM_VERSION_LESS_THAN_OR_EQUAL_TO(v)     ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedDescending)
+
 @interface Browser : UIViewController <UIScrollViewDelegate, UIActionSheetDelegate> {
-    NSArray *photos;
+    
 }
 
 // Properties
@@ -20,7 +26,7 @@
 @property (nonatomic) BOOL displayActionButton;
 
 // Init
-- (id)initWithPhotos:(NSArray *)photosArray DEPRECATED_ATTRIBUTE;
+- (id)initWithPhotos:(NSArray *)photosArray photosPerPage:(NSUInteger)photosPerPage;
 - (id)init;
 
 // Reloads the browser and refetches data

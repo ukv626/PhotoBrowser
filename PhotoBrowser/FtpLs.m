@@ -11,7 +11,12 @@
 
 #import <CFNetwork/CFNetwork.h>
 
-@interface FtpLs ()
+@interface FtpLs () {
+    NSURL *_url;
+    NSInputStream *_networkStream;
+    NSMutableData *_listData;
+    NSMutableArray *_listEntries;
+}
 
 @property (nonatomic, readonly) BOOL isReceiving;
 @property (nonatomic, retain) NSURL *url;
@@ -35,33 +40,68 @@
     return self;
 }
 
+- (BOOL)isDirectory:(NSDictionary *)entry {
+    BOOL result = NO;
+    
+    assert(entry != nil);
+    
+    NSNumber *typeNum = [entry objectForKey:(id) kCFFTPResourceType];
+    int type = typeNum != nil ? [typeNum intValue] : 0;
+    
+    if(type == 4)
+        result = YES;
+    
+    return result;
+}
+
+- (BOOL)isImageFile:(NSDictionary *)entry {
+    BOOL        result = NO;
+    assert(entry != nil);
+    
+    NSString *filename = [entry objectForKey:(id) kCFFTPResourceName];
+    NSString *extension;    
+    
+    if (filename != nil) {
+        extension = [filename pathExtension];
+        if (extension != nil) {
+            result = ([extension caseInsensitiveCompare:@"gif"] == NSOrderedSame)
+            || ([extension caseInsensitiveCompare:@"png"] == NSOrderedSame)
+            || ([extension caseInsensitiveCompare:@"jpg"] == NSOrderedSame)
+            || ([extension caseInsensitiveCompare:@"jpeg"] == NSOrderedSame);
+        }
+    }
+    return result;
+}
+
 
 - (void)_addListEntries:(NSArray *)newEntries {
     NSLog(@"%s", __PRETTY_FUNCTION__);
     
     assert(self.listEntries != nil);
-    NSArray *photoExts = [NSArray arrayWithObjects:@"JPG",@"JPEG",@"PNG", nil];
     
-    for (NSDictionary *entry in newEntries) {
-        NSString *filename = [entry objectForKey:(id) kCFFTPResourceName];
-        NSString *ext = [filename pathExtension];
-        
-        BOOL isPicture = NO;
-        for (NSString *photoExt in photoExts) {
-            if([[ext uppercaseString] isEqual: photoExt]) {
-                isPicture = YES;
-                break;
-            }
-        }
-                
-        if(isPicture) {
-            NSLog(@"%@", filename);
-            NSString *fileUrl = [[self.url absoluteString] stringByAppendingString:filename];
-            Photo *photo = [Photo photoWithURL: [NSURL URLWithString:fileUrl]];
-            [self.listEntries addObject:photo];
+    for (NSDictionary *entry in newEntries) {                                            
+        if([self isDirectory:entry] || [self isImageFile:entry]) {
+            [self.listEntries addObject:entry];
         }
     }
-//    [self.listEntries addObjectsFromArray:newEntries];
+         
+     
+    NSArray *sortedEntries;
+    sortedEntries = [self.listEntries sortedArrayUsingComparator:^NSComparisonResult(id obj1, id obj2) {
+        if([obj1 isKindOfClass:[NSDictionary class]] && [obj2 isKindOfClass:[NSDictionary class]]) {
+            NSNumber *typeNum1 = [obj1 objectForKey:(id) kCFFTPResourceType];
+            NSNumber *typeNum2 = [obj2 objectForKey:(id) kCFFTPResourceType];
+
+            if(typeNum1 != nil && typeNum2 != nil) {           
+                return [typeNum1 intValue] > [typeNum2 intValue];
+            }
+            
+        }
+        return (NSComparisonResult)NSOrderedSame;
+    }];
+
+    self.listEntries = (NSMutableArray *)sortedEntries; // addObjectsFromArray:sortedEntries];
+    [[NSNotificationCenter defaultCenter] postNotificationName:DIRLIST_LOADING_DID_END_NOTIFICATION object:self];
 }
 
 - (BOOL)isReceiving {
@@ -253,6 +293,8 @@
 
 
 - (void)dealloc {
+    NSLog(@"%s", __PRETTY_FUNCTION__);
+    
     [self _stopReceiveWithStatus:@"Stopped"];
     [_listEntries release];
     [_url release];

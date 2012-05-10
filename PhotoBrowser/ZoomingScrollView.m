@@ -218,7 +218,7 @@
         }   
         
         
-        if(i > [_photos count] - 1) continue;
+        if((i > [_photos count] - 1) || ([_photos count] == 0)) continue;
         // Get image
         Photo *photo = [_photos objectAtIndex:i];
                            

@@ -12,12 +12,9 @@
 //#import "Photo.h"
 #import "MBProgressHUD.h"
 //#import "SDImageCache.h"
+#import "FtpLs.h"
 
-#define SYSTEM_VERSION_EQUAL_TO(v)                  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedSame)
-#define SYSTEM_VERSION_GREATER_THAN(v)              ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedDescending)
-#define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
-#define SYSTEM_VERSION_LESS_THAN(v)                 ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedAscending)
-#define SYSTEM_VERSION_LESS_THAN_OR_EQUAL_TO(v)     ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedDescending)
+
 
 #define PADDING                 10
 #define PAGE_INDEX_TAG_OFFSET   1000
@@ -27,7 +24,7 @@
 @interface Browser () {
     
 	// Data
-	NSArray *_depreciatedPhotoData; // Depreciated
+    NSArray *_photos;
 	
 	// Views
 	UIScrollView *_pagingScrollView;
@@ -52,6 +49,9 @@
     UIStatusBarStyle _previousStatusBarStyle;
     UIBarButtonItem *_previousViewControllerBackButton;
     
+    // FtpLs
+//    FtpLs *_ftpLs;
+    
     // Misc
     NSUInteger _photosPerPage;
     BOOL _displayActionButton;
@@ -68,6 +68,7 @@
 @property (nonatomic, retain) UIImage *navigationBarBackgroundImageDefault, *navigationBarBackgroundImageLandscapePhone;
 @property (nonatomic, retain) UIActionSheet *actionsSheet;
 @property (nonatomic, retain) MBProgressHUD *progressHUD;
+//@property (nonatomic, retain) FtpLs *ftpLs;
 
 // Private Methods
 
@@ -135,7 +136,7 @@
 @implementation Browser
 
 // Properties
-@synthesize photos;
+@synthesize photos = _photos;
 @synthesize photosPerPage = _photosPerPage;
 
 @synthesize previousNavBarTintColor = _previousNavBarTintColor;
@@ -144,6 +145,8 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 @synthesize displayActionButton = _displayActionButton, actionsSheet = _actionsSheet;
 @synthesize progressHUD = _progressHUD;
 @synthesize previousViewControllerBackButton = _previousViewControllerBackButton;
+
+//@synthesize ftpLs = _ftpLs;
 
 #pragma mark - NSObject
 
@@ -154,7 +157,7 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
         self.wantsFullScreenLayout = YES;
         self.hidesBottomBarWhenPushed = YES;
         
-        photos = [[NSArray alloc] init];
+        _photos = [[NSArray alloc] init];
         _photosPerPage = NSNotFound;
 
 		_currentPageIndex = 0;
@@ -166,7 +169,7 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
         _displayActionButton = YES;
         _didSavePreviousStateOfNavBar = NO;
         
-        // Listen for MWPhoto notifications
+        // Listen for Photo notifications
         [[NSNotificationCenter defaultCenter] addObserver:self
                                                  selector:@selector(handlePhotoLoadingDidEndNotification:)
                                                      name:PHOTO_LOADING_DID_END_NOTIFICATION
@@ -177,14 +180,18 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 
 
 
-- (id)initWithPhotos:(NSArray *)photosArray {
+- (id)initWithPhotos:(NSArray *)photosArray photosPerPage:(NSUInteger)photosPerPage {
 	if ((self = [self init])) {
-		_depreciatedPhotoData = [photosArray retain];
+		_photos = [photosArray retain];
+        _photosPerPage = photosPerPage;
 	}
 	return self;
 }
 
+
 - (void)dealloc {
+    NSLog(@"%s", __PRETTY_FUNCTION__);
+    
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     [_previousNavBarTintColor release];
     [_navigationBarBackgroundImageDefault release];
@@ -198,10 +205,9 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 	[_nextButton release];
     [_actionButton release];
     [_zoomOutButton release];
-  	[_depreciatedPhotoData release];
     [self releaseAllUnderlyingPhotos];
 //    [[SDImageCache sharedImageCache] clearMemory]; // clear memory
-    [photos release];
+    [_photos release];
     [_progressHUD release];
     [super dealloc];
 }
@@ -219,7 +225,7 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 }
 
 - (void)releaseAllUnderlyingPhotos {
-    for (id p in photos) { 
+    for (id p in _photos) { 
         if (p != [NSNull null]) [p unloadUnderlyingImage]; 
     } // Release photos
 }
@@ -251,6 +257,10 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 
 // Implement viewDidLoad to do additional setup after loading the view, typically from a nib.
 - (void)viewDidLoad {
+    NSLog(@"%s", __PRETTY_FUNCTION__);
+    
+//    CGRect frame = [[UIScreen mainScreen] bounds];
+//    NSLog(@"browser.viewDidLoad: %.0f x %.0f", frame.size.width, frame.size.height);
 	
 	// View
 	self.view.backgroundColor = [UIColor blackColor];
@@ -287,12 +297,12 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
     // Update
     [self reloadData];
     
-	// Super
+    // Super
     [super viewDidLoad];
-	
 }
 
 - (void)performLayout {
+    NSLog(@"%s", __PRETTY_FUNCTION__);
     
     // Setup
     _performingLayout = YES;
@@ -363,12 +373,13 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
     // Content offset
 	_pagingScrollView.contentOffset = [self contentOffsetForPageAtIndex:_currentPageIndex];
     [self tilePages];
-    _performingLayout = NO;
-    
+    _performingLayout = NO;    
 }
 
 // Release any retained subviews of the main view.
 - (void)viewDidUnload {
+    NSLog(@"%s", __PRETTY_FUNCTION__);
+    
 	_currentPageIndex = 0;
     [_pagingScrollView release], _pagingScrollView = nil;
     [_visiblePages release], _visiblePages = nil;
@@ -408,7 +419,6 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
-    
     // Check that we're being popped for good
     if ([self.navigationController.viewControllers objectAtIndex:0] != self &&
         ![self.navigationController.viewControllers containsObject:self]) {
@@ -511,7 +521,7 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
         page.frame = [self frameForPageAtIndex:index];
 //        page.captionView.frame = [self frameForCaptionView:page.captionView atIndex:index];
 
-        //[page setMaxMinZoomScalesForCurrentBounds];
+        [page setMaxMinZoomScalesForCurrentBounds];
 	}
 	
 	// Adjust contentOffset to preserve page location based on values collected prior to location
@@ -533,7 +543,6 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 }
 
 - (void)willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration {
-    
 	// Remember page index before rotation
 	_pageIndexBeforeRotation = _currentPageIndex;
 	_rotating = YES;
@@ -541,7 +550,6 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 }
 
 - (void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration {
-	
 	// Perform layout
 	_currentPageIndex = _pageIndexBeforeRotation;
     
@@ -554,7 +562,6 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 
 - (void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation {
 	_rotating = NO;
-    NSLog(@"didRotate");
     
     // Adjust frames and configuration of each visible page
     for (ZoomingScrollView *page in _visiblePages) {
@@ -567,6 +574,7 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 }
 
 - (void)reload:(NSUInteger)photosPerPage imageIndex:(NSUInteger)imageIndex{
+    NSLog(@"%s", __PRETTY_FUNCTION__);
     // Perform layout
 
     // release adjucent pages
@@ -628,15 +636,15 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 
 
 - (NSUInteger)numberOfPhotos {
-    return [photos count];
+    return [_photos count];
 }
 
 
 
 - (id<PhotoDelegate>)photoAtIndex:(NSUInteger)index {
     id<PhotoDelegate> photo = nil;
-    if (index < photos.count) {
-       photo = [photos objectAtIndex:index];
+    if (index < _photos.count) {
+       photo = [_photos objectAtIndex:index];
     }
     return photo;
 }
@@ -697,7 +705,7 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
      */
 }
 
-#pragma mark - MWPhoto Loading Notification
+#pragma mark - Loading Notifications
 
 - (void)handlePhotoLoadingDidEndNotification:(NSNotification *)notification {
     
@@ -716,10 +724,10 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
     }
 }
 
+
 #pragma mark - Paging
 
 - (void)tilePages {
-	
 	// Calculate which pages should be visible
 	// Ignore padding as paging bounces encroach on that
 	// and lead to false page loads
@@ -904,7 +912,8 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 #pragma mark - Frame Calculations
 
 - (CGRect)frameForPagingScrollView {
-    CGRect frame = self.view.bounds;// [[UIScreen mainScreen] bounds];
+    CGRect frame = self.view.bounds; //[[UIScreen mainScreen] bounds];
+    NSLog(@"browser: %.0f x %.0f", frame.size.width, frame.size.height);
     frame.origin.x -= PADDING;
     frame.size.width += (2 * PADDING);
     return frame;

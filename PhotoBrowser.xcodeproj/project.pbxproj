@@ -13,6 +13,7 @@
 		01761E431546D62900EF8749 /* TappingImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 01761E401546D60400EF8749 /* TappingImageView.m */; };
 		01761E441546D63500EF8749 /* ZoomingScrollView.m in Sources */ = {isa = PBXBuildFile; fileRef = 01761E421546D60400EF8749 /* ZoomingScrollView.m */; };
 		017913EC1552640F00878E0C /* FtpLs.m in Sources */ = {isa = PBXBuildFile; fileRef = 017913EB1552640F00878E0C /* FtpLs.m */; };
+		017914151552C03500878E0C /* LoginView.m in Sources */ = {isa = PBXBuildFile; fileRef = 017914141552C03500878E0C /* LoginView.m */; };
 		0179797C152D7B3B00645399 /* Browser.m in Sources */ = {isa = PBXBuildFile; fileRef = 0179797B152D7B3B00645399 /* Browser.m */; };
 		017BA7FD152C7A9E00DF16B2 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 017BA7FC152C7A9E00DF16B2 /* UIKit.framework */; };
 		017BA7FF152C7A9E00DF16B2 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 017BA7FE152C7A9E00DF16B2 /* Foundation.framework */; };
@@ -28,6 +29,7 @@
 		01800D86152EE7BF0044CEE0 /* UIBarButtonItemArrowRight.png in Resources */ = {isa = PBXBuildFile; fileRef = 01800D81152EE7BF0044CEE0 /* UIBarButtonItemArrowRight.png */; };
 		01800D87152EE7BF0044CEE0 /* UIBarButtonItemArrowRight@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 01800D82152EE7BF0044CEE0 /* UIBarButtonItemArrowRight@2x.png */; };
 		018AF61015459C0500820E79 /* UIImageExtras.m in Sources */ = {isa = PBXBuildFile; fileRef = 018AF60E15459BF500820E79 /* UIImageExtras.m */; };
+		01AB923B155545FC009E5E12 /* DirectoryList.m in Sources */ = {isa = PBXBuildFile; fileRef = 01AB923A155545FC009E5E12 /* DirectoryList.m */; };
 		01DF222E1536FAD10089B7F2 /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 01DF222D1536FAD00089B7F2 /* CFNetwork.framework */; };
 /* End PBXBuildFile section */
 
@@ -44,6 +46,8 @@
 		01761E421546D60400EF8749 /* ZoomingScrollView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZoomingScrollView.m; sourceTree = "<group>"; };
 		017913EA1552640F00878E0C /* FtpLs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FtpLs.h; sourceTree = "<group>"; };
 		017913EB1552640F00878E0C /* FtpLs.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FtpLs.m; sourceTree = "<group>"; };
+		017914131552C03500878E0C /* LoginView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LoginView.h; sourceTree = "<group>"; };
+		017914141552C03500878E0C /* LoginView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LoginView.m; sourceTree = "<group>"; };
 		0179797A152D7B3B00645399 /* Browser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Browser.h; sourceTree = "<group>"; };
 		0179797B152D7B3B00645399 /* Browser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Browser.m; sourceTree = "<group>"; };
 		017BA7F8152C7A9E00DF16B2 /* PhotoBrowser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PhotoBrowser.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -66,6 +70,8 @@
 		01800D82152EE7BF0044CEE0 /* UIBarButtonItemArrowRight@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "UIBarButtonItemArrowRight@2x.png"; sourceTree = "<group>"; };
 		018AF60D15459BF500820E79 /* UIImageExtras.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UIImageExtras.h; sourceTree = "<group>"; };
 		018AF60E15459BF500820E79 /* UIImageExtras.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UIImageExtras.m; sourceTree = "<group>"; };
+		01AB9239155545FC009E5E12 /* DirectoryList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DirectoryList.h; sourceTree = "<group>"; };
+		01AB923A155545FC009E5E12 /* DirectoryList.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DirectoryList.m; sourceTree = "<group>"; };
 		01DF222D1536FAD00089B7F2 /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = System/Library/Frameworks/CFNetwork.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -139,6 +145,10 @@
 				017252F91536BA1300775BA8 /* PhotoDelegate.h */,
 				017913EA1552640F00878E0C /* FtpLs.h */,
 				017913EB1552640F00878E0C /* FtpLs.m */,
+				01AB9239155545FC009E5E12 /* DirectoryList.h */,
+				01AB923A155545FC009E5E12 /* DirectoryList.m */,
+				017914131552C03500878E0C /* LoginView.h */,
+				017914141552C03500878E0C /* LoginView.m */,
 				017252FB1536BAFE00775BA8 /* Photo.h */,
 				017252FC1536BAFE00775BA8 /* Photo.m */,
 				017BA811152C7A9F00DF16B2 /* ViewController.xib */,
@@ -243,6 +253,8 @@
 				0179797C152D7B3B00645399 /* Browser.m in Sources */,
 				017252FD1536BAFE00775BA8 /* Photo.m in Sources */,
 				017913EC1552640F00878E0C /* FtpLs.m in Sources */,
+				017914151552C03500878E0C /* LoginView.m in Sources */,
+				01AB923B155545FC009E5E12 /* DirectoryList.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
