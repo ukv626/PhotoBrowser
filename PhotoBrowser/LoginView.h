@@ -9,6 +9,9 @@
 #import <UIKit/UIKit.h>
 
 @interface LoginView : UIViewController < UITextFieldDelegate> {
+    UILabel *_urlLabel;
+    UILabel *_loginLabel;
+    
     UITextField *_urlText;
     UITextField *_usernameText;
     UITextField *_passwordText;
@@ -16,6 +19,8 @@
     UIBarButtonItem *_connectButton;
 }
 
+@property (nonatomic, retain) IBOutlet UILabel *urlLabel;
+@property (nonatomic, retain) IBOutlet UILabel *loginLabel;
 @property (nonatomic, retain) IBOutlet UITextField *urlText;
 @property (nonatomic, retain) IBOutlet UITextField *usernameText;
 @property (nonatomic, retain) IBOutlet UITextField *passwordText;

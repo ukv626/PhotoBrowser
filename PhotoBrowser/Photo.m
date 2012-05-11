@@ -83,7 +83,7 @@
     if ((self = [super init])) {
         self.photoURL = [url copy];
         
-        NSString *filename = [self.photoURL path]; //lastPathComponent];
+        NSString *filename = [NSString stringWithFormat:@"%@/%@", [self.photoURL host],[self.photoURL path]];
         NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
         self.photoPath = [[paths objectAtIndex:0] stringByAppendingPathComponent:filename];
 
@@ -225,9 +225,9 @@
     assert(ftpStream != NULL);
     self.networkStream = (NSInputStream *)ftpStream;
     BOOL success;
-    success = [self.networkStream setProperty:@"ukv" forKey:(id)kCFStreamPropertyFTPUserName];
+    success = [self.networkStream setProperty:@"adm" forKey:(id)kCFStreamPropertyFTPUserName];
     assert(success);
-    success = [self.networkStream setProperty:@"njgktcc" forKey:(id)kCFStreamPropertyFTPPassword];
+    success = [self.networkStream setProperty:@"38392332" forKey:(id)kCFStreamPropertyFTPPassword];
     assert(success);
     
     self.networkStream.delegate = self;

@@ -13,56 +13,27 @@
 //#import "FtpLs.h"
 
 
-@interface LoginView ()
+@interface LoginView () {
+    //
+}
 
 // Private methods
-- (CGRect)frameForMainView;
+//- (CGRect)frameForMainView;
 @end
 
 @implementation LoginView
 
 
 
-- (void)viewWillLayoutSubviews {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
-    
-    // Super
-    if (SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"5")) [super viewWillLayoutSubviews];
-
-    
-//    CGRect frame = self.view.frame;
-//    NSLog(@"view.bounds: %.0f x %.0f", frame.size.width, frame.size.height);
-    
-    //self.view.frame = [self frameForMainView];
-}
-
 - (IBAction)connectAction:(id)sender {
     NSLog(@"%s", __PRETTY_FUNCTION__);
     
-    //CGRect bounds = [self frameForMainView];
-    
-//    NSMutableArray *photos = [[NSMutableArray alloc] init];
-//    for (int i=1; i<=14; ++i) {
-//     //        Photo *photo = [Photo photoWithFilePath:[[NSBundle mainBundle] pathForResource:[NSString stringWithFormat: @"%d", i + 1] ofType:@"jpg"]];
-//        Photo *photo = [Photo photoWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"ftp://127.0.0.1/Downloads/%d.jpg", i]]];
-//     
-//        [photos addObject:photo];
-//    }
-              
-    //Browser *browser = [[Browser alloc] initWithURL:[NSURL URLWithString:@"ftp://127.0.0.1/Downloads/"]];
-    //browser.photos = photos;
-    //browser.photosPerPage = 1;
-    //[self startConnection];
-    
-    DirectoryList *dirList = [[DirectoryList alloc] initWithURL:[NSURL URLWithString:@"ftp://127.0.0.1/Downloads/"]];
-//    dirList.listEntries = ftpLs.listEntries;
+    DirectoryList *dirList = [[DirectoryList alloc] initWithURL:[NSURL URLWithString:self.urlText.text]];
     
     [self.navigationController pushViewController:dirList animated:YES];
     
     // Release
     [dirList release];
-
-    
 }
 
 /*
@@ -108,6 +79,9 @@
 
 #pragma mark * View controller boilerplate
 
+@synthesize urlLabel = _urlLabel;
+@synthesize loginLabel = _loginLabel;
+
 @synthesize urlText = _urlText;
 @synthesize usernameText = _usernameText;
 @synthesize passwordText = _passwordText;
@@ -116,25 +90,39 @@
 
 - (void)viewDidLoad
 {
-    CGRect bounds = [[UIScreen mainScreen] bounds];
+    NSLog(@"%s", __PRETTY_FUNCTION__);
+    
+    CGRect bounds = [[UIScreen mainScreen] applicationFrame];
     self.view = [[UIView alloc] initWithFrame:bounds];
     self.view.backgroundColor = [UIColor blueColor];
     
     self.title = @"FTPhoto";
+
+    self.urlLabel = [[UILabel alloc] init];
+
+    self.urlLabel.backgroundColor = [UIColor blueColor];
+    self.urlLabel.text = @"Connect to FTP Server";
     
-    self.urlText = [[UITextField alloc] initWithFrame:CGRectMake(0, 0, bounds.size.width, 30)];
+    self.urlText = [[UITextField alloc] init];
     self.urlText.delegate = self;
     self.urlText.borderStyle = UITextBorderStyleRoundedRect;
     self.urlText.clearButtonMode = UITextFieldViewModeWhileEditing;
-    self.urlText.text = @"qwe";
+//    self.urlText.text = @"ftp://127.0.0.1/Downloads/";
+    self.urlText.text = @"ftp://ftp.itandem.ru";
+    self.urlText.keyboardType = UIKeyboardTypeURL;
+    self.urlText.returnKeyType = UIReturnKeyDone;
     
-    self.usernameText = [[UITextField alloc] initWithFrame:CGRectMake(0, 50, bounds.size.width, 30)];
+    self.loginLabel = [[UILabel alloc] init];
+    self.loginLabel.backgroundColor = [UIColor blueColor];
+    self.loginLabel.text = @"Login Details";
+    
+    self.usernameText = [[UITextField alloc] init];
     self.usernameText.delegate = self;
     self.usernameText.borderStyle = UITextBorderStyleRoundedRect;
     self.usernameText.placeholder = @"Username";
     self.usernameText.clearButtonMode = UITextFieldViewModeWhileEditing;
     
-    self.passwordText = [[UITextField alloc] initWithFrame:CGRectMake(0, 100, bounds.size.width, 30)];
+    self.passwordText = [[UITextField alloc] init];
     self.passwordText.delegate = self;
     self.passwordText.borderStyle = UITextBorderStyleRoundedRect;
     self.passwordText.placeholder = @"Password";
@@ -143,7 +131,10 @@
     self.connectButton = [[UIBarButtonItem alloc] initWithTitle:@"Connect" style:UIBarButtonItemStylePlain target:self action:@selector(connectAction:)];
     self.navigationItem.rightBarButtonItem = self.connectButton;
     
+    [self.view addSubview:self.urlLabel];
     [self.view addSubview:self.urlText];
+    
+    [self.view addSubview:self.loginLabel];
     [self.view addSubview:self.usernameText];
     [self.view addSubview:self.passwordText];
     
@@ -180,12 +171,48 @@
     
 }
 
+- (void)viewWillLayoutSubviews {
+    NSLog(@"%s", __PRETTY_FUNCTION__);
+    
+    // Super
+    if (SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"5")) [super viewWillLayoutSubviews];
+    
+    CGRect bounds = self.view.bounds;
+    float offsetX = 20;
+    float offsetY = 20;
+    self.urlLabel.frame = CGRectMake(offsetX, offsetY, bounds.size.width - 2*offsetX, 30);
+    offsetY += self.urlLabel.frame.size.height;
+
+    self.urlText.frame = CGRectMake(offsetX, offsetY, bounds.size.width - 2*offsetX, 30);
+    offsetY += self.urlText.frame.size.height + 20;
+
+    self.loginLabel.frame = CGRectMake(offsetX, offsetY, bounds.size.width - 2*offsetX, 30);
+    offsetY += self.loginLabel.frame.size.height;
+
+    self.usernameText.frame = CGRectMake(offsetX, offsetY, bounds.size.width - 2*offsetX, 30);
+    offsetY += self.usernameText.frame.size.height + 5;
+
+    self.passwordText.frame = CGRectMake(offsetX, offsetY, bounds.size.width - 2*offsetX, 30);
+
+    
+    //    CGRect frame = self.view.frame;
+    //    NSLog(@"view.bounds: %.0f x %.0f", frame.size.width, frame.size.height);
+    
+    //self.view.frame = [self frameForMainView];
+}
+
+
+
 - (void)dealloc {
-    [self->_urlText release];
-    [self->_usernameText release];
-    [self->_passwordText release];
-    [self->_activityIndicator release];
-    [self->_connectButton release];
+    NSLog(@"%s", __PRETTY_FUNCTION__);
+    
+    [self.urlLabel release];
+    [self.loginLabel release];
+    [self.urlText release];
+    [self.usernameText release];
+    [self.passwordText release];
+    [self.activityIndicator release];
+    [self.connectButton release];
     
     [super dealloc];
 }
@@ -197,11 +224,13 @@
 
 #pragma mark - Frame Calculations
 
+/*
 - (CGRect)frameForMainView {
     CGRect bounds = [[UIScreen mainScreen] bounds];
 
     NSLog(@"%.0f x %.0f", bounds.size.width, bounds.size.height);
     return bounds;
 }
+ */
 
 @end

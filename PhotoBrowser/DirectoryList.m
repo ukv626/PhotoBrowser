@@ -119,9 +119,9 @@
     assert(ftpStream != NULL);
     
     self.networkStream = (NSInputStream *)ftpStream;
-    success = [self.networkStream setProperty:@"ukv" forKey:(id)kCFStreamPropertyFTPUserName];
+    success = [self.networkStream setProperty:@"adm" forKey:(id)kCFStreamPropertyFTPUserName];
     assert(success);
-    success = [self.networkStream setProperty:@"njgktcc" forKey:(id)kCFStreamPropertyFTPPassword];
+    success = [self.networkStream setProperty:@"38392332" forKey:(id)kCFStreamPropertyFTPPassword];
     assert(success);
     
     self.networkStream.delegate = self;
@@ -423,7 +423,7 @@
             }                                 
         }
 
-        [self createDirectory:[self.url path]];
+        [self createDirectory:[NSString stringWithFormat:@"%@/%@", [self.url host],[self.url path]]];
 
         Browser *browser = [[Browser alloc]initWithPhotos:self.imageEntries photosPerPage:1];
         //browser.photosPerPage = 1;
@@ -510,7 +510,10 @@
 {
     [super viewDidLoad];
 
-    self.title = [_url lastPathComponent];
+    self.title = [self.url lastPathComponent];
+    if([self.title length] == 0) {
+        self.title = [self.url host];
+    }
 
     if(self.activityIndicator == nil) {
         self.activityIndicator = [[UIActivityIndicatorView alloc]initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
