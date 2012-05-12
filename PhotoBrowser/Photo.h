@@ -12,9 +12,11 @@
 
 @interface Photo : NSObject <PhotoDelegate, NSStreamDelegate>
 
-@property (nonatomic, retain) NSString *photoPath;
+@property (nonatomic, copy) NSString *photoPath;
 @property (nonatomic, assign) NSUInteger photoNumber;
 @property (nonatomic, retain) NSString *caption;
+@property (nonatomic, copy) NSString *username;
+@property (nonatomic, copy) NSString *password;
 
 // Class
 + (Photo *)photoWithImage:(UIImage *)image;

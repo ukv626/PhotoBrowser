@@ -10,6 +10,7 @@
 		01720CB815494FDD00ECC483 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 01720CB715494FDD00ECC483 /* QuartzCore.framework */; };
 		017252FD1536BAFE00775BA8 /* Photo.m in Sources */ = {isa = PBXBuildFile; fileRef = 017252FC1536BAFE00775BA8 /* Photo.m */; };
 		017254BD155169C60087586A /* MBProgressHUD.m in Sources */ = {isa = PBXBuildFile; fileRef = 017254BB155169B20087586A /* MBProgressHUD.m */; };
+		01736941155E3AB600A3C800 /* BaseLs.m in Sources */ = {isa = PBXBuildFile; fileRef = 01736940155E3AB500A3C800 /* BaseLs.m */; };
 		01761E431546D62900EF8749 /* TappingImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 01761E401546D60400EF8749 /* TappingImageView.m */; };
 		01761E441546D63500EF8749 /* ZoomingScrollView.m in Sources */ = {isa = PBXBuildFile; fileRef = 01761E421546D60400EF8749 /* ZoomingScrollView.m */; };
 		017913EC1552640F00878E0C /* FtpLs.m in Sources */ = {isa = PBXBuildFile; fileRef = 017913EB1552640F00878E0C /* FtpLs.m */; };
@@ -40,6 +41,8 @@
 		017252FC1536BAFE00775BA8 /* Photo.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Photo.m; sourceTree = "<group>"; };
 		017254BA155169B20087586A /* MBProgressHUD.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MBProgressHUD.h; sourceTree = "<group>"; };
 		017254BB155169B20087586A /* MBProgressHUD.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MBProgressHUD.m; sourceTree = "<group>"; };
+		0173693F155E3AB500A3C800 /* BaseLs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BaseLs.h; sourceTree = "<group>"; };
+		01736940155E3AB500A3C800 /* BaseLs.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BaseLs.m; sourceTree = "<group>"; };
 		01761E3F1546D60300EF8749 /* TappingImageView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TappingImageView.h; sourceTree = "<group>"; };
 		01761E401546D60400EF8749 /* TappingImageView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TappingImageView.m; sourceTree = "<group>"; };
 		01761E411546D60400EF8749 /* ZoomingScrollView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZoomingScrollView.h; sourceTree = "<group>"; };
@@ -143,6 +146,8 @@
 				0179797A152D7B3B00645399 /* Browser.h */,
 				0179797B152D7B3B00645399 /* Browser.m */,
 				017252F91536BA1300775BA8 /* PhotoDelegate.h */,
+				0173693F155E3AB500A3C800 /* BaseLs.h */,
+				01736940155E3AB500A3C800 /* BaseLs.m */,
 				017913EA1552640F00878E0C /* FtpLs.h */,
 				017913EB1552640F00878E0C /* FtpLs.m */,
 				01AB9239155545FC009E5E12 /* DirectoryList.h */,
@@ -255,6 +260,7 @@
 				017913EC1552640F00878E0C /* FtpLs.m in Sources */,
 				017914151552C03500878E0C /* LoginView.m in Sources */,
 				01AB923B155545FC009E5E12 /* DirectoryList.m in Sources */,
+				01736941155E3AB600A3C800 /* BaseLs.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

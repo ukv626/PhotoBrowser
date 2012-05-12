@@ -10,7 +10,7 @@
 #import "Browser.h"
 //#import "Photo.h"
 #import "DirectoryList.h"
-//#import "FtpLs.h"
+#import "FtpLs.h"
 
 
 @interface LoginView () {
@@ -28,8 +28,13 @@
 - (IBAction)connectAction:(id)sender {
     NSLog(@"%s", __PRETTY_FUNCTION__);
     
-    DirectoryList *dirList = [[DirectoryList alloc] initWithURL:[NSURL URLWithString:self.urlText.text]];
+    FtpLs *ftpLs = [[FtpLs alloc] initWithURL:[NSURL URLWithString:self.urlText.text]];
+    ftpLs.username = self.usernameText.text;
+    ftpLs.password = self.passwordText.text;
     
+    DirectoryList *dirList = [[DirectoryList alloc] initWithDriver:ftpLs];
+    
+    [ftpLs release];
     [self.navigationController pushViewController:dirList animated:YES];
     
     // Release
@@ -121,12 +126,15 @@
     self.usernameText.borderStyle = UITextBorderStyleRoundedRect;
     self.usernameText.placeholder = @"Username";
     self.usernameText.clearButtonMode = UITextFieldViewModeWhileEditing;
+    self.usernameText.text = @"adm";
     
     self.passwordText = [[UITextField alloc] init];
     self.passwordText.delegate = self;
     self.passwordText.borderStyle = UITextBorderStyleRoundedRect;
     self.passwordText.placeholder = @"Password";
     self.passwordText.clearButtonMode = UITextFieldViewModeWhileEditing;
+    self.passwordText.secureTextEntry = YES;
+    self.passwordText.text = @"38392332";
     
     self.connectButton = [[UIBarButtonItem alloc] initWithTitle:@"Connect" style:UIBarButtonItemStylePlain target:self action:@selector(connectAction:)];
     self.navigationItem.rightBarButtonItem = self.connectButton;
@@ -206,13 +214,13 @@
 - (void)dealloc {
     NSLog(@"%s", __PRETTY_FUNCTION__);
     
-    [self.urlLabel release];
-    [self.loginLabel release];
-    [self.urlText release];
-    [self.usernameText release];
-    [self.passwordText release];
-    [self.activityIndicator release];
-    [self.connectButton release];
+    [_urlLabel release];
+    [_loginLabel release];
+    [_urlText release];
+    [_usernameText release];
+    [_passwordText release];
+    [_activityIndicator release];
+    [_connectButton release];
     
     [super dealloc];
 }

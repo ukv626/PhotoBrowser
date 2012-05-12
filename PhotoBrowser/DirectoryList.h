@@ -8,9 +8,11 @@
 
 #import <UIKit/UIKit.h>
 
+@class BaseLs;
+
 @interface DirectoryList : UITableViewController <NSStreamDelegate>
 
 // Init
-- (id)initWithURL:(NSURL *)url;
+- (id)initWithDriver:(BaseLs *)driver;
 
 @end

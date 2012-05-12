@@ -12,14 +12,11 @@
 #import <CFNetwork/CFNetwork.h>
 
 @interface FtpLs () {
-    NSURL *_url;
     NSInputStream *_networkStream;
     NSMutableData *_listData;
-    NSMutableArray *_listEntries;
 }
 
 @property (nonatomic, readonly) BOOL isReceiving;
-@property (nonatomic, retain) NSURL *url;
 @property (nonatomic, retain) NSInputStream *networkStream;
 @property (nonatomic, retain) NSMutableData *listData;
 
@@ -27,17 +24,11 @@
 
 @implementation FtpLs
 
-@synthesize url = _url;
 @synthesize networkStream = _networkStream;
 @synthesize listData = _listData;
-@synthesize listEntries = _listEntries;
 
 - (id)initWithURL:(NSURL *)url {
-    if ((self = [super init])) {
-        _url = [url copy];
-        [self _startReceive];
-    }
-    return self;
+    return [super initWithURL:url];
 }
 
 - (BOOL)isDirectory:(NSDictionary *)entry {
@@ -54,44 +45,34 @@
     return result;
 }
 
-- (BOOL)isImageFile:(NSDictionary *)entry {
-    BOOL        result = NO;
-    assert(entry != nil);
+- (void)createDirectory:(NSString *)dirName {
+    NSString *path;
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    path = [[paths objectAtIndex:0] stringByAppendingPathComponent:dirName];
+    NSError *error;
     
-    NSString *filename = [entry objectForKey:(id) kCFFTPResourceName];
-    NSString *extension;    
-    
-    if (filename != nil) {
-        extension = [filename pathExtension];
-        if (extension != nil) {
-            result = ([extension caseInsensitiveCompare:@"gif"] == NSOrderedSame)
-            || ([extension caseInsensitiveCompare:@"png"] == NSOrderedSame)
-            || ([extension caseInsensitiveCompare:@"jpg"] == NSOrderedSame)
-            || ([extension caseInsensitiveCompare:@"jpeg"] == NSOrderedSame);
+    //    NSLog(@"%@", path);
+    if(![[NSFileManager defaultManager] fileExistsAtPath:path]) {
+        if(![[NSFileManager defaultManager] createDirectoryAtPath:path 
+                                      withIntermediateDirectories:YES attributes:nil error:&error]) {
+            NSLog(@"Create directory error: %@", error);
+            
         }
     }
-    return result;
+    
 }
-
 
 - (void)_addListEntries:(NSArray *)newEntries {
     NSLog(@"%s", __PRETTY_FUNCTION__);
     
     assert(self.listEntries != nil);
-    
-    for (NSDictionary *entry in newEntries) {                                            
-        if([self isDirectory:entry] || [self isImageFile:entry]) {
-            [self.listEntries addObject:entry];
-        }
-    }
-         
-     
+        
     NSArray *sortedEntries;
-    sortedEntries = [self.listEntries sortedArrayUsingComparator:^NSComparisonResult(id obj1, id obj2) {
+    sortedEntries = [newEntries sortedArrayUsingComparator:^NSComparisonResult(id obj1, id obj2) {
         if([obj1 isKindOfClass:[NSDictionary class]] && [obj2 isKindOfClass:[NSDictionary class]]) {
             NSNumber *typeNum1 = [obj1 objectForKey:(id) kCFFTPResourceType];
             NSNumber *typeNum2 = [obj2 objectForKey:(id) kCFFTPResourceType];
-
+            
             if(typeNum1 != nil && typeNum2 != nil) {           
                 return [typeNum1 intValue] > [typeNum2 intValue];
             }
@@ -99,8 +80,9 @@
         }
         return (NSComparisonResult)NSOrderedSame;
     }];
+    
+    [self.listEntries addObjectsFromArray:sortedEntries];
 
-    self.listEntries = (NSMutableArray *)sortedEntries; // addObjectsFromArray:sortedEntries];
     [[NSNotificationCenter defaultCenter] postNotificationName:DIRLIST_LOADING_DID_END_NOTIFICATION object:self];
 }
 
@@ -109,8 +91,11 @@
 }
 
 
-- (void)_startReceive {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
+- (void)startReceive {
+//    NSLog(@"%s", __PRETTY_FUNCTION__);
+    NSLog(@"%s: %@", __PRETTY_FUNCTION__, self.url);
+    
+    [self.listEntries removeAllObjects];
     
     BOOL success;
     CFReadStreamRef ftpStream;
@@ -118,7 +103,7 @@
     assert(self.networkStream == nil);
     success = (self.url != nil);
     
-    self.listEntries = [NSMutableArray array];
+//    self.listEntries = [NSMutableArray array];
     self.listData = [NSMutableData data];
     assert(self.listData != nil);
     
@@ -127,10 +112,13 @@
     assert(ftpStream != NULL);
     
     self.networkStream = (NSInputStream *)ftpStream;
-    success = [self.networkStream setProperty:@"ukv" forKey:(id)kCFStreamPropertyFTPUserName];
-    assert(success);
-    success = [self.networkStream setProperty:@"njgktcc" forKey:(id)kCFStreamPropertyFTPPassword];
-    assert(success);
+    if([self.username length] > 0 && [self.password length] > 0) {
+        success = [self.networkStream setProperty:self.username forKey:(id)kCFStreamPropertyFTPUserName];
+        assert(success);
+        
+        success = [self.networkStream setProperty:self.password forKey:(id)kCFStreamPropertyFTPPassword];
+        assert(success);
+    }
     
     self.networkStream.delegate = self;
     [self.networkStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
@@ -140,9 +128,9 @@
     CFRelease(ftpStream);
 }
 
-- (void)_stopReceiveWithStatus:(NSString *)statusString {
-    NSLog(@"%s : %@", __PRETTY_FUNCTION__, statusString);
+- (void)_stopReceiveWithStatus:(NSString *)statusString {    
     if (self.networkStream != nil) {
+        NSLog(@"%s : %@", __PRETTY_FUNCTION__, statusString);
         [self.networkStream removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
         self.networkStream.delegate = nil;
         [self.networkStream close];
@@ -212,9 +200,11 @@
         if (bytesConsumed > 0) {
             if(thisEntry != NULL) {
                 NSDictionary *entryToAdd;
-                
-                entryToAdd = [self _entryByReencodingNameInEntry:(NSDictionary *)thisEntry encoding:NSUTF8StringEncoding];                
-                [newEntries addObject:entryToAdd];
+                // add only directories and image files
+                if(([self isDirectory:(NSDictionary *)thisEntry] || [self isImageFile:(NSDictionary *)thisEntry])) {
+                    entryToAdd = [self _entryByReencodingNameInEntry:(NSDictionary *)thisEntry encoding:NSUTF8StringEncoding];                
+                    [newEntries addObject:entryToAdd];
+                }
             }
             // We consume the bytes regardless of whether we get an entry.
             offset += bytesConsumed;
@@ -296,9 +286,7 @@
     NSLog(@"%s", __PRETTY_FUNCTION__);
     
     [self _stopReceiveWithStatus:@"Stopped"];
-    [_listEntries release];
-    [_url release];
-    [_listData release];
+//    [_listData release];
     
     [super dealloc];
 }

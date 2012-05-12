@@ -1147,7 +1147,7 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
             // Sheet
             self.actionsSheet = [[[UIActionSheet alloc] initWithTitle:nil delegate:self
                                   cancelButtonTitle:NSLocalizedString(@"Cancel", nil) destructiveButtonTitle:nil
-                                  otherButtonTitles:NSLocalizedString(@"Save", nil), NSLocalizedString(@"Copy", nil), nil] autorelease];
+                                  otherButtonTitles:NSLocalizedString(@"Save", nil), /*NSLocalizedString(@"Copy", nil),*/ nil] autorelease];
 
             _actionsSheet.actionSheetStyle = UIActionSheetStyleBlackTranslucent;
             if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {

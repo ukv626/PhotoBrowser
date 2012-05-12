@@ -28,6 +28,10 @@
     // Other
     NSString *_caption;
     BOOL _loadingProgress;
+
+    // Login Details
+    NSString *_username;
+    NSString *_password;
 }
 
 // Properties
@@ -35,7 +39,7 @@
 @property (nonatomic, readonly) BOOL isReceiving;
 @property (nonatomic, retain) NSInputStream *networkStream;
 @property (nonatomic, retain) NSOutputStream *fileStream;
-@property (nonatomic, retain) NSURL *photoURL;
+@property (nonatomic, copy) NSURL *photoURL;
 //@property (nonatomic, retain) NSString *photoPath;
 
 // Methods
@@ -74,14 +78,14 @@
 
 - (id)initWithFilePath:(NSString *)path {
     if ((self = [super init])) {
-        self.photoPath = [path copy];
+        self.photoPath = path;
     }
     return  self;
 }
 
 - (id)initWithURL:(NSURL *)url {
     if ((self = [super init])) {
-        self.photoURL = [url copy];
+        self.photoURL = url;
         
         NSString *filename = [NSString stringWithFormat:@"%@/%@", [self.photoURL host],[self.photoURL path]];
         NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
@@ -203,6 +207,8 @@
 @synthesize fileStream = _fileStream;
 @synthesize photoURL = _photoURL;
 @synthesize photoPath = _photoPath;
+@synthesize username = _username;
+@synthesize password = _password;
 
 - (BOOL)isReceiving {
     return (self.networkStream != nil);
@@ -224,11 +230,16 @@
     ftpStream = CFReadStreamCreateWithFTPURL(NULL, (CFURLRef)self.photoURL);
     assert(ftpStream != NULL);
     self.networkStream = (NSInputStream *)ftpStream;
-    BOOL success;
-    success = [self.networkStream setProperty:@"adm" forKey:(id)kCFStreamPropertyFTPUserName];
-    assert(success);
-    success = [self.networkStream setProperty:@"38392332" forKey:(id)kCFStreamPropertyFTPPassword];
-    assert(success);
+    
+    if([self.username length] > 0 && [self.password length] > 0) {
+        BOOL success;
+        
+        success = [self.networkStream setProperty:self.username forKey:(id)kCFStreamPropertyFTPUserName];
+        assert(success);
+        
+        success = [self.networkStream setProperty:self.password forKey:(id)kCFStreamPropertyFTPPassword];
+        assert(success);
+    }
     
     self.networkStream.delegate = self;
     [self.networkStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
@@ -241,7 +252,7 @@
 
 // Shuts down the connection and dislays the result
 - (void)_stopReceivingWithStatus:(NSString *)statusString {
-//    NSLog(@"stopWith: %@",statusString);
+//    NSLog(@"Photo stopWith: %@",statusString);
     if(self.networkStream != nil) {
         [self.networkStream removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
          self.networkStream.delegate = nil;

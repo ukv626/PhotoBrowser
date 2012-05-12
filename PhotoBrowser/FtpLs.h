@@ -7,15 +7,8 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "BaseLs.h"
 
-#define DIRLIST_LOADING_DID_END_NOTIFICATION @"DIRLIST_LOADING_DID_END_NOTIFICATION"
-
-@interface FtpLs : NSObject <NSStreamDelegate>
-
-
-@property (nonatomic, retain) NSMutableArray *listEntries;
-
-// Init
-- (id)initWithURL:(NSURL *)url;
+@interface FtpLs : BaseLs <NSStreamDelegate>
 
 @end
