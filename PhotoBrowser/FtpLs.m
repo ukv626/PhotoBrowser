@@ -7,13 +7,15 @@
 //
 
 #import "FtpLs.h"
-#import "Photo.h"
-
+#import "LoadingDelegate.h"
 #import <CFNetwork/CFNetwork.h>
 
 @interface FtpLs () {
-    NSInputStream *_networkStream;
+    id<LoadingDelegate> _delegate;
+    NSMutableArray *listEntries;
     NSMutableData *_listData;
+    
+    NSInputStream *_networkStream;        
 }
 
 @property (nonatomic, readonly) BOOL isReceiving;
@@ -24,11 +26,41 @@
 
 @implementation FtpLs
 
+@synthesize delegate = _delegate;
+@synthesize listEntries = _listEntries;
 @synthesize networkStream = _networkStream;
 @synthesize listData = _listData;
 
+
 - (id)initWithURL:(NSURL *)url {
-    return [super initWithURL:url];
+    NSLog(@"%s", __PRETTY_FUNCTION__);
+
+    if((self = [super initWithURL:url])) {
+        _listEntries = [[NSMutableArray alloc] init];
+    }
+    
+    return self;
+}
+
+- (BOOL)isImageFile:(NSDictionary *)entry {
+    BOOL        result = NO;
+    
+    assert(entry != nil);
+    
+    NSString *filename = [entry objectForKey:(id) kCFFTPResourceName];
+    NSString *extension;    
+    
+    if (filename != nil) {
+        extension = [filename pathExtension];
+        if (extension != nil) {
+            result = ([extension caseInsensitiveCompare:@"gif"] == NSOrderedSame)
+            || ([extension caseInsensitiveCompare:@"png"] == NSOrderedSame)
+            || ([extension caseInsensitiveCompare:@"jpg"] == NSOrderedSame)
+            || ([extension caseInsensitiveCompare:@"jpeg"] == NSOrderedSame);
+        }
+    }
+    
+    return result;
 }
 
 - (BOOL)isDirectory:(NSDictionary *)entry {
@@ -83,7 +115,9 @@
     
     [self.listEntries addObjectsFromArray:sortedEntries];
 
-    [[NSNotificationCenter defaultCenter] postNotificationName:DIRLIST_LOADING_DID_END_NOTIFICATION object:self];
+    // Notificate delegate
+    [self.delegate handleLoadingDidEndNotification];
+//    [[NSNotificationCenter defaultCenter] postNotificationName:DIRLIST_LOADING_DID_END_NOTIFICATION object:self];
 }
 
 - (BOOL)isReceiving {
@@ -96,14 +130,14 @@
     NSLog(@"%s: %@", __PRETTY_FUNCTION__, self.url);
     
     [self.listEntries removeAllObjects];
-    
+        
     BOOL success;
     CFReadStreamRef ftpStream;
     
     assert(self.networkStream == nil);
     success = (self.url != nil);
     
-//    self.listEntries = [NSMutableArray array];
+//    _listEntries = [NSMutableArray array];
     self.listData = [NSMutableData data];
     assert(self.listData != nil);
     
@@ -128,6 +162,7 @@
     CFRelease(ftpStream);
 }
 
+// Shuts down the connection
 - (void)_stopReceiveWithStatus:(NSString *)statusString {    
     if (self.networkStream != nil) {
         NSLog(@"%s : %@", __PRETTY_FUNCTION__, statusString);
@@ -136,7 +171,10 @@
         [self.networkStream close];
         self.networkStream = nil;
     }
-    self.listData = nil;
+    
+    if(self.listData != nil) {
+        self.listData = nil;
+    }
 }
 
 - (NSDictionary *)_entryByReencodingNameInEntry:(NSDictionary *)entry encoding:(NSStringEncoding)newEncoding {
@@ -251,13 +289,15 @@
                 [self _stopReceiveWithStatus:@"Network read error"];
             } else if(bytesRead == 0) {
                 [self _stopReceiveWithStatus:nil];
+                // downloaded
+                
             } else {
                 assert(self.listData != nil);
                 
                 // Append the data to our listing buffer.
                 [self.listData appendBytes:buffer length:bytesRead];
                 
-                // Check the listing buffer for any complete entries and update the UI if we find any.
+                // Check the listing buffer for any complete entries and update the UI if we find any.                                                                                                                
                 [self _parseListData];
             }
         } break;
@@ -286,11 +326,23 @@
     NSLog(@"%s", __PRETTY_FUNCTION__);
     
     [self _stopReceiveWithStatus:@"Stopped"];
-//    [_listData release];
+    [_listEntries release];
     
     [super dealloc];
 }
 
-
+/*
+- (id)copyWithZone:(NSZone *)zone {
+    NSLog(@"%s", __PRETTY_FUNCTION__);
+    
+    FtpLs *newCopy = [super copyWithZone: zone];
+    
+    [newCopy setListEntries:self.listEntries];
+    [newCopy setNetworkStream:self.networkStream];
+    [newCopy setListData:self.listData];
+    
+    return newCopy;
+}
+*/
 
 @end

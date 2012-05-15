@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		017119A41561406700D963DC /* FtpDownloader.m in Sources */ = {isa = PBXBuildFile; fileRef = 017119A31561406700D963DC /* FtpDownloader.m */; };
 		01720CB815494FDD00ECC483 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 01720CB715494FDD00ECC483 /* QuartzCore.framework */; };
 		017252FD1536BAFE00775BA8 /* Photo.m in Sources */ = {isa = PBXBuildFile; fileRef = 017252FC1536BAFE00775BA8 /* Photo.m */; };
 		017254BD155169C60087586A /* MBProgressHUD.m in Sources */ = {isa = PBXBuildFile; fileRef = 017254BB155169B20087586A /* MBProgressHUD.m */; };
@@ -35,6 +36,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		016E9934156290AA00561C9E /* LoadingDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LoadingDelegate.h; sourceTree = "<group>"; };
+		017119A21561406600D963DC /* FtpDownloader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FtpDownloader.h; sourceTree = "<group>"; };
+		017119A31561406700D963DC /* FtpDownloader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FtpDownloader.m; sourceTree = "<group>"; };
 		01720CB715494FDD00ECC483 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		017252F91536BA1300775BA8 /* PhotoDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PhotoDelegate.h; sourceTree = "<group>"; };
 		017252FB1536BAFE00775BA8 /* Photo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Photo.h; sourceTree = "<group>"; };
@@ -146,17 +150,19 @@
 				0179797A152D7B3B00645399 /* Browser.h */,
 				0179797B152D7B3B00645399 /* Browser.m */,
 				017252F91536BA1300775BA8 /* PhotoDelegate.h */,
+				016E9934156290AA00561C9E /* LoadingDelegate.h */,
 				0173693F155E3AB500A3C800 /* BaseLs.h */,
 				01736940155E3AB500A3C800 /* BaseLs.m */,
 				017913EA1552640F00878E0C /* FtpLs.h */,
 				017913EB1552640F00878E0C /* FtpLs.m */,
+				017119A21561406600D963DC /* FtpDownloader.h */,
+				017119A31561406700D963DC /* FtpDownloader.m */,
 				01AB9239155545FC009E5E12 /* DirectoryList.h */,
 				01AB923A155545FC009E5E12 /* DirectoryList.m */,
 				017914131552C03500878E0C /* LoginView.h */,
 				017914141552C03500878E0C /* LoginView.m */,
 				017252FB1536BAFE00775BA8 /* Photo.h */,
 				017252FC1536BAFE00775BA8 /* Photo.m */,
-				017BA811152C7A9F00DF16B2 /* ViewController.xib */,
 				01761E3F1546D60300EF8749 /* TappingImageView.h */,
 				01761E401546D60400EF8749 /* TappingImageView.m */,
 				01761E411546D60400EF8749 /* ZoomingScrollView.h */,
@@ -165,6 +171,7 @@
 				018AF60E15459BF500820E79 /* UIImageExtras.m */,
 				017254BA155169B20087586A /* MBProgressHUD.h */,
 				017254BB155169B20087586A /* MBProgressHUD.m */,
+				017BA811152C7A9F00DF16B2 /* ViewController.xib */,
 				017BA803152C7A9E00DF16B2 /* Supporting Files */,
 			);
 			path = PhotoBrowser;
@@ -261,6 +268,7 @@
 				017914151552C03500878E0C /* LoginView.m in Sources */,
 				01AB923B155545FC009E5E12 /* DirectoryList.m in Sources */,
 				01736941155E3AB600A3C800 /* BaseLs.m in Sources */,
+				017119A41561406700D963DC /* FtpDownloader.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

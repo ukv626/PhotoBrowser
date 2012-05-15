@@ -10,6 +10,7 @@
 
 // Name of notification used when a photo has completed loading process
 // Used to notify browser display the image
+#define PHOTO_DOWNLOADING_DID_END_NOTIFICATION @"PHOTO_DOWNLOADING_DID_END_NOTIFICATION"
 #define PHOTO_LOADING_DID_END_NOTIFICATION @"PHOTO_LOADING_DID_END_NOTIFICATION"
 
 @protocol PhotoDelegate <NSObject>

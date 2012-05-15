@@ -112,8 +112,8 @@
     self.urlText.delegate = self;
     self.urlText.borderStyle = UITextBorderStyleRoundedRect;
     self.urlText.clearButtonMode = UITextFieldViewModeWhileEditing;
-//    self.urlText.text = @"ftp://127.0.0.1/Downloads/";
-    self.urlText.text = @"ftp://ftp.itandem.ru";
+    self.urlText.text = @"ftp://127.0.0.1/Downloads/";
+//    self.urlText.text = @"ftp://ftp.itandem.ru";
     self.urlText.keyboardType = UIKeyboardTypeURL;
     self.urlText.returnKeyType = UIReturnKeyDone;
     
@@ -126,7 +126,7 @@
     self.usernameText.borderStyle = UITextBorderStyleRoundedRect;
     self.usernameText.placeholder = @"Username";
     self.usernameText.clearButtonMode = UITextFieldViewModeWhileEditing;
-    self.usernameText.text = @"adm";
+    self.usernameText.text = @"ukv";
     
     self.passwordText = [[UITextField alloc] init];
     self.passwordText.delegate = self;
@@ -134,7 +134,7 @@
     self.passwordText.placeholder = @"Password";
     self.passwordText.clearButtonMode = UITextFieldViewModeWhileEditing;
     self.passwordText.secureTextEntry = YES;
-    self.passwordText.text = @"38392332";
+    self.passwordText.text = @"njgktcc";
     
     self.connectButton = [[UIBarButtonItem alloc] initWithTitle:@"Connect" style:UIBarButtonItemStylePlain target:self action:@selector(connectAction:)];
     self.navigationItem.rightBarButtonItem = self.connectButton;

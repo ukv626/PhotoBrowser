@@ -8,24 +8,28 @@
 
 #import <Foundation/Foundation.h>
 #import "PhotoDelegate.h"
+#import "LoadingDelegate.h"
+#import "FtpDownloader.h"
 
+@interface Photo : NSObject <PhotoDelegate, LoadingDelegate >
 
-@interface Photo : NSObject <PhotoDelegate, NSStreamDelegate>
-
+@property (nonatomic, retain) FtpDownloader* driver;
 @property (nonatomic, copy) NSString *photoPath;
 @property (nonatomic, assign) NSUInteger photoNumber;
-@property (nonatomic, retain) NSString *caption;
-@property (nonatomic, copy) NSString *username;
-@property (nonatomic, copy) NSString *password;
+@property (nonatomic, copy) NSString *caption;
 
 // Class
 + (Photo *)photoWithImage:(UIImage *)image;
 + (Photo *)photoWithFilePath:(NSString *)path;
-+ (Photo *)photoWithURL:(NSURL *)url;
+//+ (Photo *)photoWithURL:(NSURL *)url;
 
 // Init
 - (id)initWithImage:(UIImage *)image;
 - (id)initWithFilePath:(NSString *)path;
-- (id)initWithURL:(NSURL *)url;
+//- (id)initWithURL:(NSURL *)url;
+- (id)initWithDriver:(FtpDownloader *)driver;
+
+//
+- (void)handleLoadingDidEndNotification;
 
 @end

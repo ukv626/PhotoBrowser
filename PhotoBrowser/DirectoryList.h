@@ -8,11 +8,15 @@
 
 #import <UIKit/UIKit.h>
 
-@class BaseLs;
+#import "FtpLs.h"
+#import "LoadingDelegate.h"
 
-@interface DirectoryList : UITableViewController <NSStreamDelegate>
+@interface DirectoryList : UITableViewController <NSStreamDelegate, LoadingDelegate>
 
 // Init
-- (id)initWithDriver:(BaseLs *)driver;
+- (id)initWithDriver:(FtpLs *)driver;
+
+//
+- (void)handleLoadingDidEndNotification;
 
 @end

@@ -14,17 +14,14 @@
     
 }
 
-@property (nonatomic, retain) NSURL *url;
-@property (nonatomic, readonly) NSMutableArray *listEntries;
+@property (nonatomic, copy) NSURL *url;
 @property (nonatomic, copy) NSString *username;
 @property (nonatomic, copy) NSString *password;
 
 - (id)initWithURL:(NSURL *)url;
+//- (id)copyWithZone:(NSZone *)zone;
 
 - (void)startReceive;
 
-- (BOOL)isImageFile:(NSDictionary *)entry;
-- (BOOL)isDirectory:(NSDictionary *)entry;
-- (void)createDirectory:(NSString *)path;
 
 @end

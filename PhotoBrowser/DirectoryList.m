@@ -9,24 +9,17 @@
 #import "DirectoryList.h"
 #include <sys/dirent.h>
 
-#import "BaseLs.h"
 #import "Browser.h"
+#import "FtpDownloader.h"
 
 
 @interface DirectoryList () {
-    BaseLs *_driver;
-    
-    NSURL *_url;
-    NSArray *_listEntries;
-    NSMutableArray *_imageEntries;
+    FtpLs *_driver;
         
     UIActivityIndicatorView *_activityIndicator;
 }
 
-@property (nonatomic, retain) BaseLs *driver;
-@property (nonatomic, copy) NSURL *url;
-@property (nonatomic, copy) NSArray *listEntries;
-@property (nonatomic, retain) NSMutableArray *imageEntries;
+@property (nonatomic, retain) FtpLs *driver;
 @property (nonatomic, retain) IBOutlet UIActivityIndicatorView * activityIndicator;
 
 
@@ -40,6 +33,8 @@
 - (void)_receiveDidStart {
     //[self.tableView reloadData];
     [self.activityIndicator startAnimating];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleDirLoadingDidEndNotification:) name:DIRLIST_LOADING_DID_END_NOTIFICATION object:nil];
 }
 
 - (void)_updateStatus {
@@ -60,9 +55,6 @@
 
 
 @synthesize driver = _driver;
-@synthesize url = _url;
-@synthesize listEntries = _listEntries;
-@synthesize imageEntries = _imageEntries;
 @synthesize activityIndicator = _activityIndicator;
 
 #pragma mark - Table view data source and delegate
@@ -76,7 +68,7 @@
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     // Return the number of rows in the section.
-    return self.listEntries.count;
+    return self.driver.listEntries.count;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -89,7 +81,7 @@
         cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier] autorelease];
     }
     
-    NSDictionary *listEntry = [self.listEntries objectAtIndex:indexPath.row];
+    NSDictionary *listEntry = [self.driver.listEntries objectAtIndex:indexPath.row];
     assert([listEntry isKindOfClass:[NSDictionary class]]);
     
     cell.textLabel.text = [listEntry objectForKey:(id) kCFFTPResourceName];
@@ -177,41 +169,48 @@
         
         NSString *entryName = cell.textLabel.text;
             
-        self.driver.url = [NSURL URLWithString:[NSString stringWithFormat:@"%@/%@/", [self.url absoluteString], [entryName stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]]];
+        FtpLs *newDriver = [[FtpLs alloc] initWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"%@/%@/", [self.driver.url absoluteString], [entryName stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]]]];
+        newDriver.username = self.driver.username;
+        newDriver.password = self.driver.password;
+                                                      
         
-        DirectoryList *dirList = [[DirectoryList alloc] initWithDriver:self.driver];
+        DirectoryList *dirList = [[DirectoryList alloc] initWithDriver:newDriver];
+        [newDriver release];
         
         [self.navigationController pushViewController:dirList animated:YES];
         
         // Release
         [dirList release];         
     } else {
-        NSLog(@"listEntries:%d imageEntries:%d [%@]", [self.listEntries count], [self.imageEntries count], self.url);
+        NSLog(@"listEntries:%d", [self.driver.listEntries count]);        
         
-        if(self.imageEntries == nil) {
-            self.imageEntries = [NSMutableArray array];
-            
-            for (NSDictionary *entry in self.listEntries) {                                            
-                if([self.driver isImageFile:entry]) {
-                    NSString *filename = [entry objectForKey:(id) kCFFTPResourceName];
-                    NSString *fileURL = [[self.url absoluteString] stringByAppendingString:[filename stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+        
+        [self.driver createDirectory:[NSString stringWithFormat:@"%@/%@", [self.driver.url host],[self.driver.url path]]];
+        
+        NSMutableArray *photos = [[NSMutableArray alloc] init];
+        for (NSDictionary *entry in self.driver.listEntries) {                                            
+            if([self.driver isImageFile:entry]) {
+                NSString *filename = [entry objectForKey:(id) kCFFTPResourceName];
+                NSString *fileURL = [[self.driver.url absoluteString] stringByAppendingString:[filename stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
                     //NSLog(@"%@", fileURL);
                                           
-                    Photo *photo = [[Photo alloc]initWithURL:[NSURL URLWithString:fileURL]];
-                    photo.username = self.driver.username;
-                    photo.password = self.driver.password;
-                    [self.imageEntries addObject:photo];
-                    
-                    [photo release];
-                }
-            }                                 
-        }
+                FtpDownloader *newDriver = [[FtpDownloader alloc] initWithURL:[NSURL URLWithString:fileURL]];
+                newDriver.username = self.driver.username;
+                newDriver.password = self.driver.password;
+                Photo *photo = [[Photo alloc] initWithDriver:newDriver]; 
+                [newDriver release];
+                   
+                [photos addObject:photo];
+                [photo release];
+            }
+        }                                 
+        
 
-        [self.driver createDirectory:[NSString stringWithFormat:@"%@/%@", [self.driver.url host],[self.driver.url path]]];
+        Browser *browser = [[Browser alloc] initWithPhotos:photos photosPerPage:1];
+        [browser setInitialPageIndex:(indexPath.row - ([self.driver.listEntries count] - [photos count]))];
 
-        Browser *browser = [[Browser alloc]initWithPhotos:self.imageEntries photosPerPage:1];
-        //browser.photosPerPage = 1;
-        [browser setInitialPageIndex:(indexPath.row - ([self.listEntries count] - [self.imageEntries count]))];
+        [photos release];
+        
         [self.navigationController pushViewController:browser animated:YES];
         // Release
         [browser release];
@@ -226,23 +225,25 @@
 }
 
 
-- (void)handleDirLoadingDidEndNotification:(NSNotification *)notification {
+- (void)handleLoadingDidEndNotification {
     NSLog(@"%s", __PRETTY_FUNCTION__);
-    self.listEntries = self.driver.listEntries;
     [self.tableView reloadData];
     
     [self _receiveDidStop];
-    [[NSNotificationCenter defaultCenter] removeObserver:self];    
+//    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
+
 
 #pragma mark * View controller boilerplate
 
-- (id)initWithDriver:(BaseLs *)driver {
+- (id)initWithDriver:(FtpLs *)driver {
+    NSLog(@"%s", __PRETTY_FUNCTION__);
+    
     self = [super initWithStyle:UITableViewStylePlain];
     if (self) {
         // Custom initialization
         self.driver = driver; //[driver retain];
-        self.url = self.driver.url;
+        self.driver.delegate = self;
     }
     return self;
 }
@@ -250,9 +251,9 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
 
-    self.title = [self.url lastPathComponent];
+    self.title = [self.driver.url lastPathComponent];
     if([self.title length] == 0) {
-        self.title = [self.url host];
+        self.title = [self.driver.url host];
     }
 
     if(self.activityIndicator == nil) {
@@ -273,15 +274,8 @@
     
     //self.activityIndicator.hidden = YES;
     
-    // Listen for Driver notifications
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(handleDirLoadingDidEndNotification:)
-                                                 name:DIRLIST_LOADING_DID_END_NOTIFICATION
-                                               object:nil];
-
-    
-    [self.driver startReceive];
-    [self _receiveDidStart];
+    [self _receiveDidStart];    
+    [self.driver startReceive];    
     
     // Uncomment the following line to preserve selection between presentations.
     // self.clearsSelectionOnViewWillAppear = NO;
@@ -303,9 +297,8 @@
 - (void)dealloc {
     NSLog(@"%s", __PRETTY_FUNCTION__);
     
-    [_driver release];
-    [_url release];
-    [_imageEntries release];
+    [self.driver release];
+//    [_imageEntries release];
     [_activityIndicator release];
     
     [super dealloc];

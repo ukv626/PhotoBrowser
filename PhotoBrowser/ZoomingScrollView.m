@@ -78,8 +78,11 @@
 }
 
 - (void)dealloc {
-    [_photos release];
+    NSLog(@"%s", __PRETTY_FUNCTION__);
+    
+//    [self.browser release];
     [_imageViews release];
+    [_photos release];
 //    [_spinner release];
     [super dealloc];
 }

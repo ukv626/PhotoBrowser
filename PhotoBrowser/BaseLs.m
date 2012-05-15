@@ -8,9 +8,9 @@
 
 #import "BaseLs.h"
 
+
 @interface BaseLs() {
     NSURL *_url;
-    NSMutableArray *_listEntries;
     NSString *_username;
     NSString *_password;
 }
@@ -19,22 +19,23 @@
 
 @implementation BaseLs
 
+
 @synthesize url = _url;
-@synthesize listEntries = _listEntries;
 @synthesize username = _username;
 @synthesize password = _password;
 
+
 - (id)initWithURL:(NSURL *)url {
-    if ((self = [super init])) {
-        _url = [url copy];
-        _listEntries = [[NSMutableArray alloc] init];
+    if((self = [super init])) {
+        self.url = url;
     }
+    
     return self;
 }
 
 - (void)dealloc {
-    [_url release];
-    [_listEntries release];
+    [self.username release];
+    [self.password release];
     
     [super dealloc];
 }
@@ -43,33 +44,17 @@
     //
 }
 
-- (BOOL)isImageFile:(NSDictionary *)entry {
-    BOOL        result = NO;
+/*
+- (id)copyWithZone:(NSZone *)zone {
+//    NSLog(@"%s", __PRETTY_FUNCTION__);
     
-    assert(entry != nil);
+    BaseLs *newCopy = [[[self class] allocWithZone: zone] init];
+    [newCopy setUrl:self.url];
+    [newCopy setUsername:self.username];
+    [newCopy setPassword:self.password];
     
-    NSString *filename = [entry objectForKey:(id) kCFFTPResourceName];
-    NSString *extension;    
-    
-    if (filename != nil) {
-        extension = [filename pathExtension];
-        if (extension != nil) {
-            result = ([extension caseInsensitiveCompare:@"gif"] == NSOrderedSame)
-            || ([extension caseInsensitiveCompare:@"png"] == NSOrderedSame)
-            || ([extension caseInsensitiveCompare:@"jpg"] == NSOrderedSame)
-            || ([extension caseInsensitiveCompare:@"jpeg"] == NSOrderedSame);
-        }
-    }
-    
-    return result;
+    return newCopy;
 }
-
-- (BOOL)isDirectory:(NSDictionary *)entry {
-    return NO;
-}
-
-- (void)createDirectory:(NSString *)path {
-    //
-}
+*/
 
 @end

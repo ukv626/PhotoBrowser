@@ -157,7 +157,7 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
         self.wantsFullScreenLayout = YES;
         self.hidesBottomBarWhenPushed = YES;
         
-        _photos = [[NSArray alloc] init];
+        //_photos = [[NSArray alloc] init];
         _photosPerPage = NSNotFound;
 
 		_currentPageIndex = 0;
@@ -169,11 +169,13 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
         _displayActionButton = YES;
         _didSavePreviousStateOfNavBar = NO;
         
+        
         // Listen for Photo notifications
         [[NSNotificationCenter defaultCenter] addObserver:self
                                                  selector:@selector(handlePhotoLoadingDidEndNotification:)
                                                      name:PHOTO_LOADING_DID_END_NOTIFICATION
                                                    object:nil];
+         
     }
     return self;
 }
@@ -182,7 +184,8 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 
 - (id)initWithPhotos:(NSArray *)photosArray photosPerPage:(NSUInteger)photosPerPage {
 	if ((self = [self init])) {
-		_photos = [photosArray retain];
+		self.photos = photosArray;
+        NSLog(@"Browser: photos.retainCount=%d", [self.photos retainCount]);
         _photosPerPage = photosPerPage;
 	}
 	return self;
@@ -206,6 +209,8 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
     [_actionButton release];
     [_zoomOutButton release];
     [self releaseAllUnderlyingPhotos];
+    
+    
 //    [[SDImageCache sharedImageCache] clearMemory]; // clear memory
     [_photos release];
     [_progressHUD release];
@@ -226,7 +231,9 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 
 - (void)releaseAllUnderlyingPhotos {
     for (id p in _photos) { 
-        if (p != [NSNull null]) [p unloadUnderlyingImage]; 
+        if (p != [NSNull null]) {
+            [p unloadUnderlyingImage]; 
+        }
     } // Release photos
 }
 
@@ -725,6 +732,7 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 }
 
 
+
 #pragma mark - Paging
 
 - (void)tilePages {
@@ -820,6 +828,7 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
         id<PhotoDelegate> photo = [self photoAtIndex:index*_photosPerPage + i];
         if(photo) {
             [pagePhotos addObject:photo];
+            [photo release];
         }
     }
     page.photos = pagePhotos;

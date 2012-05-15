@@ -12,35 +12,24 @@
 
 // Private
 @interface Photo() {
+    FtpDownloader *_driver;
     
     // Image sources
     NSUInteger _photoNumber;
     NSString *_photoPath;
-    NSURL *_photoURL;
+//    NSURL *_photoURL;
     
     // Image
     UIImage *_underlyingImage;
     
-    // Ftp
-    NSInputStream *_networkStream;
-    NSOutputStream *_fileStream;
-    
     // Other
     NSString *_caption;
     BOOL _loadingProgress;
-
-    // Login Details
-    NSString *_username;
-    NSString *_password;
 }
 
 // Properties
 @property (nonatomic, retain) UIImage *underlyingImage;
-@property (nonatomic, readonly) BOOL isReceiving;
-@property (nonatomic, retain) NSInputStream *networkStream;
-@property (nonatomic, retain) NSOutputStream *fileStream;
-@property (nonatomic, copy) NSURL *photoURL;
-//@property (nonatomic, retain) NSString *photoPath;
+//@property (nonatomic, copy) NSURL *photoURL;
 
 // Methods
 - (void)imageDidFinishLoadingSoDecompress;
@@ -49,9 +38,11 @@
 
 @implementation Photo
 
+@synthesize driver = _driver;
 @synthesize underlyingImage = _underlyingImage, caption = _caption;
 @synthesize photoNumber = _photoNumber;
-
+//@synthesize photoURL = _photoURL;
+@synthesize photoPath = _photoPath;
 
 #pragma mark Class Methods
 
@@ -61,10 +52,6 @@
 
 + (Photo *)photoWithFilePath:(NSString *)path {
     return [[[Photo alloc] initWithFilePath:path] autorelease];
-}
-
-+ (Photo *)photoWithURL:(NSURL *)url {
-    return [[[Photo alloc] initWithURL:url] autorelease];
 }
 
 #pragma mark NSObject
@@ -83,24 +70,26 @@
     return  self;
 }
 
-- (id)initWithURL:(NSURL *)url {
-    if ((self = [super init])) {
-        self.photoURL = url;
+- (id)initWithDriver:(FtpDownloader *)driver {
+    NSLog(@"%s", __PRETTY_FUNCTION__);
+    
+    if((self = [super init])) {
+        // Custom initialization
+        self.driver = driver; //[driver retain];
+        self.driver.delegate = self;
         
-        NSString *filename = [NSString stringWithFormat:@"%@/%@", [self.photoURL host],[self.photoURL path]];
+        NSString *filename = [NSString stringWithFormat:@"%@/%@", [self.driver.url host],[self.driver.url path]];
         NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
         self.photoPath = [[paths objectAtIndex:0] stringByAppendingPathComponent:filename];
-
-//        self.photoPath = [NSTemporaryDirectory() stringByAppendingPathComponent:filename];
-        //[[AppDelegate sharedAppDelegate] pathForTemporaryFileWithPrefix:@"Get"];
     }
     return self;
 }
 
 - (void)dealloc {
-    [self _stopReceivingWithStatus:@"Stopped"];
+    NSLog(@"%s [%@]", __PRETTY_FUNCTION__, self.photoPath);
+    [_driver release];
     [_photoPath release];
-    [_photoURL release];
+//    [_photoURL release];
     [_underlyingImage release];
     
     [super dealloc];
@@ -123,6 +112,11 @@
     return result;
 }
 
+- (void)handleLoadingDidEndNotification {
+    NSLog(@"%s", __PRETTY_FUNCTION__);
+    [self loadImageFromFileAsync];
+}
+
 - (void)loadUnderlyingImageAndNotify {
     NSAssert([[NSThread currentThread] isMainThread], @"This method must be called on the main thread.");
     
@@ -137,8 +131,9 @@
         if([self fileExist]) {
             // Load async from file
             [self performSelectorInBackground:@selector(loadImageFromFileAsync) withObject:nil];
-        } else if(_photoURL){
-            [self _startReceive];
+            [self imageLoadingComplete];
+        } else if(self.driver.url){
+            [self.driver startReceive];
             
         } else {
             // Failed - no source
@@ -163,7 +158,7 @@
 // Called in background
 // Load image in background from local file
 - (void)loadImageFromFileAsync {
-//    NSLog(@"%s", __PRETTY_FUNCTION__);
+    NSLog(@"%s", __PRETTY_FUNCTION__);
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     @try {
         NSError *error = nil;
@@ -199,131 +194,10 @@
     NSAssert([[NSThread currentThread] isMainThread], @"This method must be called on the main thread.");
     // Complete so notify
     _loadingProgress = NO;
+  
+    // Notify delegate
     [[NSNotificationCenter defaultCenter] postNotificationName:PHOTO_LOADING_DID_END_NOTIFICATION object:self];
 }
 
-#pragma mark Core Transfer code
-@synthesize networkStream = _networkStream;
-@synthesize fileStream = _fileStream;
-@synthesize photoURL = _photoURL;
-@synthesize photoPath = _photoPath;
-@synthesize username = _username;
-@synthesize password = _password;
-
-- (BOOL)isReceiving {
-    return (self.networkStream != nil);
-}
-
-- (void)_startReceive {
-//    BOOL success;
-    CFReadStreamRef ftpStream;
-    
-    assert(self.networkStream == nil);
-    assert(self.fileStream == nil);
-    
-    // Open a stream for the file we're going to recieve into
-    NSLog(@"write to: %@", self.photoPath);
-    self.fileStream = [NSOutputStream outputStreamToFileAtPath:self.photoPath append:NO];
-    [self.fileStream open];
-    
-    // Open a CFFTPStream for the URL
-    ftpStream = CFReadStreamCreateWithFTPURL(NULL, (CFURLRef)self.photoURL);
-    assert(ftpStream != NULL);
-    self.networkStream = (NSInputStream *)ftpStream;
-    
-    if([self.username length] > 0 && [self.password length] > 0) {
-        BOOL success;
-        
-        success = [self.networkStream setProperty:self.username forKey:(id)kCFStreamPropertyFTPUserName];
-        assert(success);
-        
-        success = [self.networkStream setProperty:self.password forKey:(id)kCFStreamPropertyFTPPassword];
-        assert(success);
-    }
-    
-    self.networkStream.delegate = self;
-    [self.networkStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
-    [self.networkStream open];
-    
-    // Have to release ftpStream to balance out the create. self.networkStream has retained this for out persistent use
-    CFRelease(ftpStream);            
-}
-
-
-// Shuts down the connection and dislays the result
-- (void)_stopReceivingWithStatus:(NSString *)statusString {
-//    NSLog(@"Photo stopWith: %@",statusString);
-    if(self.networkStream != nil) {
-        [self.networkStream removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
-         self.networkStream.delegate = nil;
-         [self.networkStream close];
-         self.networkStream = nil;         
-    }
-    if(self.fileStream != nil) {
-        [self.fileStream close];
-        self.fileStream = nil;
-    }    
-}
-
-// An NSStream delegate callback that's called when events happen on our network stream
-- (void)stream:(NSStream *)aStream handleEvent:(NSStreamEvent)eventCode {    
-    assert(aStream == self.networkStream);
-    
-    switch (eventCode) {
-            
-        case NSStreamEventOpenCompleted: {
-//            NSLog(@"Opened connection");
-        } break;
-            
-        case NSStreamEventHasBytesAvailable: {
-            NSInteger bytesRead;
-            uint8_t buffer[32768];
-            
-//            NSLog(@"Receiving");
-            // Pull some data off the network
-            bytesRead = [self.networkStream read:buffer maxLength:sizeof(buffer)];
-            if(bytesRead == -1) {
-                [self _stopReceivingWithStatus:@"Network read error"];
-            } else if(bytesRead == 0) {
-                [self _stopReceivingWithStatus:nil];
-                // downloaded
-                [self loadImageFromFileAsync];
-            } else {
-                NSInteger bytesWritten;
-                NSInteger bytesWrittensoFar;
-                
-                // Write to the file
-                bytesWrittensoFar = 0;
-                do {
-                    bytesWritten = [self.fileStream write:&buffer[bytesWrittensoFar] maxLength:bytesRead - bytesWrittensoFar];
-                    assert(bytesWritten != 0);
-                    if(bytesWritten == -1) {
-                        [self _stopReceivingWithStatus:@"File write error"];
-                        break;
-                    } else {
-                        bytesWrittensoFar += bytesWritten;
-                    }
-                } while (bytesWrittensoFar != bytesRead);                                    
-            }
-        } break;
-            
-        case NSStreamEventHasSpaceAvailable: {
-            assert(NO);
-        } break;
-            
-        case NSStreamEventErrorOccurred: {
-            [self _stopReceivingWithStatus:@"Stream open error"];
-        } break;
-            
-        case NSStreamEventEndEncountered: {
-            // ignore
-        } break;
-            
-        default: {
-            assert(NO);
-            
-        } break;
-    }
-}
 
 @end
