@@ -8,6 +8,7 @@
 
 #import "FtpLs.h"
 #import "LoadingDelegate.h"
+#import "EntryLs.h"
 #import <CFNetwork/CFNetwork.h>
 
 @interface FtpLs () {
@@ -42,12 +43,9 @@
     return self;
 }
 
-- (BOOL)isImageFile:(NSDictionary *)entry {
-    BOOL        result = NO;
+- (BOOL)isImageFile:(NSString *)filename {
+    BOOL result = NO;
     
-    assert(entry != nil);
-    
-    NSString *filename = [entry objectForKey:(id) kCFFTPResourceName];
     NSString *extension;    
     
     if (filename != nil) {
@@ -63,6 +61,7 @@
     return result;
 }
 
+/*
 - (BOOL)isDirectory:(NSDictionary *)entry {
     BOOL result = NO;
     
@@ -76,6 +75,7 @@
     
     return result;
 }
+*/
 
 - (void)createDirectory:(NSString *)dirName {
     NSString *path;
@@ -94,6 +94,8 @@
     
 }
 
+
+
 - (void)_addListEntries:(NSArray *)newEntries {
     NSLog(@"%s", __PRETTY_FUNCTION__);
     
@@ -101,23 +103,17 @@
         
     NSArray *sortedEntries;
     sortedEntries = [newEntries sortedArrayUsingComparator:^NSComparisonResult(id obj1, id obj2) {
-        if([obj1 isKindOfClass:[NSDictionary class]] && [obj2 isKindOfClass:[NSDictionary class]]) {
-            NSNumber *typeNum1 = [obj1 objectForKey:(id) kCFFTPResourceType];
-            NSNumber *typeNum2 = [obj2 objectForKey:(id) kCFFTPResourceType];
-            
-            if(typeNum1 != nil && typeNum2 != nil) {           
-                return [typeNum1 intValue] > [typeNum2 intValue];
-            }
-            
+        if([obj1 isKindOfClass:[EntryLs class]] && [obj2 isKindOfClass:[EntryLs class]]) {
+                return [obj1 isDir] < [obj2 isDir];
         }
+            
         return (NSComparisonResult)NSOrderedSame;
     }];
-    
+
     [self.listEntries addObjectsFromArray:sortedEntries];
 
     // Notificate delegate
     [self.delegate handleLoadingDidEndNotification];
-//    [[NSNotificationCenter defaultCenter] postNotificationName:DIRLIST_LOADING_DID_END_NOTIFICATION object:self];
 }
 
 - (BOOL)isReceiving {
@@ -237,12 +233,14 @@
                                                          self.listData.length - offset, &thisEntry);
         if (bytesConsumed > 0) {
             if(thisEntry != NULL) {
-                NSDictionary *entryToAdd;
+                EntryLs *entryToAdd;
                 // add only directories and image files
-                if(([self isDirectory:(NSDictionary *)thisEntry] || [self isImageFile:(NSDictionary *)thisEntry])) {
-                    entryToAdd = [self _entryByReencodingNameInEntry:(NSDictionary *)thisEntry encoding:NSUTF8StringEncoding];                
+//                if(([self isDirectory:(NSDictionary *)thisEntry] || [self isImageFile:(NSDictionary *)thisEntry])) {
+                    entryToAdd = [[EntryLs alloc] initWithDictionaryEntry:[self _entryByReencodingNameInEntry:(NSDictionary *)thisEntry encoding:NSUTF8StringEncoding]];
+                    
                     [newEntries addObject:entryToAdd];
-                }
+                    [entryToAdd release];
+//                }
             }
             // We consume the bytes regardless of whether we get an entry.
             offset += bytesConsumed;

@@ -11,7 +11,7 @@
 #import "FtpLs.h"
 #import "LoadingDelegate.h"
 
-@interface DirectoryList : UITableViewController <NSStreamDelegate, LoadingDelegate>
+@interface DirectoryList : UITableViewController <NSStreamDelegate, LoadingDelegate, UISearchBarDelegate>
 
 // Init
 - (id)initWithDriver:(FtpLs *)driver;

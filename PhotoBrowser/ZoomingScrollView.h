@@ -10,15 +10,19 @@
 #import "TappingImageView.h"
 #import "PhotoDelegate.h"
 
-@class Browser;
+@class Browser, CaptionView;
 
 @interface ZoomingScrollView : UIScrollView <UIScrollViewDelegate, TappingImageViewDelegate> {
     Browser *_browser;
     NSMutableArray *_photos;
+    
+    CaptionView *_captionView;
+    
     NSMutableArray *_imageViews;
 //    UIActivityIndicatorView *_spinner;
 }
 
+@property (nonatomic, retain) CaptionView *captionView;
 @property (nonatomic, retain) NSMutableArray *photos;
 
 - (id)initWithBrowser:(Browser *)browser;

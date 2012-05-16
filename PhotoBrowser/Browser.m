@@ -526,7 +526,7 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 	for (ZoomingScrollView *page in _visiblePages) {
         NSUInteger index = PAGE_INDEX(page);
         page.frame = [self frameForPageAtIndex:index];
-//        page.captionView.frame = [self frameForCaptionView:page.captionView atIndex:index];
+        page.captionView.frame = [self frameForCaptionView:page.captionView atIndex:index];
 
         [page setMaxMinZoomScalesForCurrentBounds];
 	}
@@ -656,19 +656,15 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
     return photo;
 }
 
-//- (MWCaptionView *)captionViewForPhotoAtIndex:(NSUInteger)index {
-//    MWCaptionView *captionView = nil;
-//    if ([_delegate respondsToSelector:@selector(photoBrowser:captionViewForPhotoAtIndex:)]) {
-//        captionView = [_delegate photoBrowser:self captionViewForPhotoAtIndex:index];
-//    } else {
-//        id <MWPhoto> photo = [self photoAtIndex:index];
-//        if ([photo respondsToSelector:@selector(caption)]) {
-//            if ([photo caption]) captionView = [[[MWCaptionView alloc] initWithPhoto:photo] autorelease];
-//        }
-//    }
-//    captionView.alpha = [self areControlsHidden] ? 0 : 1; // Initial alpha
-//    return captionView;
-//}
+- (CaptionView *)captionViewForPhotoAtIndex:(NSUInteger)index {
+    CaptionView *captionView = nil;
+    id <PhotoDelegate> photo = [self photoAtIndex:index];
+    if ([photo respondsToSelector:@selector(caption)]) {
+        if ([photo caption]) captionView = [[[CaptionView alloc] initWithPhoto:photo] autorelease];
+    }
+    captionView.alpha = [self areControlsHidden] ? 0 : 1; // Initial alpha
+    return captionView;
+}
 
 - (UIImage *)imageForPhoto:(id<PhotoDelegate>)photo {
 //    NSLog(@"imageForPhoto");
@@ -778,10 +774,12 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 			
             
             // Add caption
-//            MWCaptionView *captionView = [self captionViewForPhotoAtIndex:index];
-//            captionView.frame = [self frameForCaptionView:captionView atIndex:index];
-//            [_pagingScrollView addSubview:captionView];
-//            page.captionView = captionView;
+            if(self.photosPerPage == 1) {
+                CaptionView *captionView = [self captionViewForPhotoAtIndex:index];
+                captionView.frame = [self frameForCaptionView:captionView atIndex:index];
+                [_pagingScrollView addSubview:captionView];
+                page.captionView = captionView;
+            }
             
 		}
 	}
@@ -959,13 +957,13 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 	return CGRectMake(0, self.view.bounds.size.height - height, self.view.bounds.size.width, height);
 }
 
-//- (CGRect)frameForCaptionView:(MWCaptionView *)captionView atIndex:(NSUInteger)index {
-//    CGRect pageFrame = [self frameForPageAtIndex:index];
-//    captionView.frame = CGRectMake(0, 0, pageFrame.size.width, 44); // set initial frame
-//    CGSize captionSize = [captionView sizeThatFits:CGSizeMake(pageFrame.size.width, 0)];
-//    CGRect captionFrame = CGRectMake(pageFrame.origin.x, pageFrame.size.height - captionSize.height - (_toolbar.superview?_toolbar.frame.size.height:0), pageFrame.size.width, captionSize.height);
-//    return captionFrame;
-//}
+- (CGRect)frameForCaptionView:(CaptionView *)captionView atIndex:(NSUInteger)index {
+    CGRect pageFrame = [self frameForPageAtIndex:index];
+    captionView.frame = CGRectMake(0, 0, pageFrame.size.width, 44); // set initial frame
+    CGSize captionSize = [captionView sizeThatFits:CGSizeMake(pageFrame.size.width, 0)];
+    CGRect captionFrame = CGRectMake(pageFrame.origin.x, pageFrame.size.height - captionSize.height - (_toolbar.superview?_toolbar.frame.size.height:0), pageFrame.size.width, captionSize.height);
+    return captionFrame;
+}
 
 #pragma mark - UIScrollView Delegate
 
@@ -1077,11 +1075,11 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
         
     }
     
-//    // Captions
-//    NSMutableSet *captionViews = [[[NSMutableSet alloc] initWithCapacity:_visiblePages.count] autorelease];
-//    for (ZoomingScrollView *page in _visiblePages) {
-//        if (page.captionView) [captionViews addObject:page.captionView];
-//    }
+    // Captions
+    NSMutableSet *captionViews = [[[NSMutableSet alloc] initWithCapacity:_visiblePages.count] autorelease];
+    for (ZoomingScrollView *page in _visiblePages) {
+        if (page.captionView) [captionViews addObject:page.captionView];
+    }
 	
 	// Animate
     if (animated) {
@@ -1091,7 +1089,7 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
     CGFloat alpha = hidden ? 0 : 1;
 	[self.navigationController.navigationBar setAlpha:alpha];
 	[_toolbar setAlpha:alpha];
-//    for (UIView *v in captionViews) v.alpha = alpha;
+    for (UIView *v in captionViews) v.alpha = alpha;
 	if (animated) [UIView commitAnimations];
 	
 	// Control hiding timer

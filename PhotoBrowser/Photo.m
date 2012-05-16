@@ -165,6 +165,10 @@
         NSData *data = [NSData dataWithContentsOfFile:_photoPath options:NSDataReadingUncached error:&error];
         if(!error) {
             self.underlyingImage = [[[UIImage alloc] initWithData:data] autorelease];
+            CGSize iSize = [self.underlyingImage size];
+            NSString *filename = [self.driver.url path];
+            self.caption = [NSString stringWithFormat:@"Name: %@  Size: %0.fx%0.f", [filename lastPathComponent], 
+                            iSize.height, iSize.width];
         } else {
             self.underlyingImage = nil;
             NSLog(@"Photo from file error: %@", error);

@@ -31,6 +31,8 @@
 		01800D86152EE7BF0044CEE0 /* UIBarButtonItemArrowRight.png in Resources */ = {isa = PBXBuildFile; fileRef = 01800D81152EE7BF0044CEE0 /* UIBarButtonItemArrowRight.png */; };
 		01800D87152EE7BF0044CEE0 /* UIBarButtonItemArrowRight@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 01800D82152EE7BF0044CEE0 /* UIBarButtonItemArrowRight@2x.png */; };
 		018AF61015459C0500820E79 /* UIImageExtras.m in Sources */ = {isa = PBXBuildFile; fileRef = 018AF60E15459BF500820E79 /* UIImageExtras.m */; };
+		019DED0515639D000008F616 /* EntryLs.m in Sources */ = {isa = PBXBuildFile; fileRef = 019DED0415639D000008F616 /* EntryLs.m */; };
+		019DED091563B7530008F616 /* CaptionView.m in Sources */ = {isa = PBXBuildFile; fileRef = 019DED081563B7520008F616 /* CaptionView.m */; };
 		01AB923B155545FC009E5E12 /* DirectoryList.m in Sources */ = {isa = PBXBuildFile; fileRef = 01AB923A155545FC009E5E12 /* DirectoryList.m */; };
 		01DF222E1536FAD10089B7F2 /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 01DF222D1536FAD00089B7F2 /* CFNetwork.framework */; };
 /* End PBXBuildFile section */
@@ -77,6 +79,10 @@
 		01800D82152EE7BF0044CEE0 /* UIBarButtonItemArrowRight@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "UIBarButtonItemArrowRight@2x.png"; sourceTree = "<group>"; };
 		018AF60D15459BF500820E79 /* UIImageExtras.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UIImageExtras.h; sourceTree = "<group>"; };
 		018AF60E15459BF500820E79 /* UIImageExtras.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UIImageExtras.m; sourceTree = "<group>"; };
+		019DED0315639D000008F616 /* EntryLs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EntryLs.h; sourceTree = "<group>"; };
+		019DED0415639D000008F616 /* EntryLs.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EntryLs.m; sourceTree = "<group>"; };
+		019DED071563B7520008F616 /* CaptionView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CaptionView.h; sourceTree = "<group>"; };
+		019DED081563B7520008F616 /* CaptionView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CaptionView.m; sourceTree = "<group>"; };
 		01AB9239155545FC009E5E12 /* DirectoryList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DirectoryList.h; sourceTree = "<group>"; };
 		01AB923A155545FC009E5E12 /* DirectoryList.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DirectoryList.m; sourceTree = "<group>"; };
 		01DF222D1536FAD00089B7F2 /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = System/Library/Frameworks/CFNetwork.framework; sourceTree = SDKROOT; };
@@ -153,6 +159,8 @@
 				016E9934156290AA00561C9E /* LoadingDelegate.h */,
 				0173693F155E3AB500A3C800 /* BaseLs.h */,
 				01736940155E3AB500A3C800 /* BaseLs.m */,
+				019DED0315639D000008F616 /* EntryLs.h */,
+				019DED0415639D000008F616 /* EntryLs.m */,
 				017913EA1552640F00878E0C /* FtpLs.h */,
 				017913EB1552640F00878E0C /* FtpLs.m */,
 				017119A21561406600D963DC /* FtpDownloader.h */,
@@ -163,6 +171,8 @@
 				017914141552C03500878E0C /* LoginView.m */,
 				017252FB1536BAFE00775BA8 /* Photo.h */,
 				017252FC1536BAFE00775BA8 /* Photo.m */,
+				019DED071563B7520008F616 /* CaptionView.h */,
+				019DED081563B7520008F616 /* CaptionView.m */,
 				01761E3F1546D60300EF8749 /* TappingImageView.h */,
 				01761E401546D60400EF8749 /* TappingImageView.m */,
 				01761E411546D60400EF8749 /* ZoomingScrollView.h */,
@@ -269,6 +279,8 @@
 				01AB923B155545FC009E5E12 /* DirectoryList.m in Sources */,
 				01736941155E3AB600A3C800 /* BaseLs.m in Sources */,
 				017119A41561406700D963DC /* FtpDownloader.m in Sources */,
+				019DED0515639D000008F616 /* EntryLs.m in Sources */,
+				019DED091563B7530008F616 /* CaptionView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

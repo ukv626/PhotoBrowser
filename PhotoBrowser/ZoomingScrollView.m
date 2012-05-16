@@ -36,6 +36,7 @@
 
 @synthesize browser = _browser;
 @synthesize photos = _photos;
+@synthesize captionView = _captionView;
 
 - (id)initWithBrowser:(Browser *)browser {
     if((self = [super init])) {
@@ -111,7 +112,10 @@
     [self displayImages];
 }
 
-- (void)prepareForReuse {   
+- (void)prepareForReuse {
+    [_captionView removeFromSuperview];
+    self.captionView = nil;
+    
 //    for (id p in _photos) { 
 //        if (p != [NSNull null]) [p unloadUnderlyingImage]; 
 //    } // Release photos
@@ -127,6 +131,7 @@
     if(img) {
         TappingImageView *imageView = [_imageViews objectAtIndex:index];
         imageView.image = img;
+        [self.captionView setupCaptionText:photo.caption];
 //        [_spinner stopAnimating];
     } 
 }

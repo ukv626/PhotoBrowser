@@ -20,4 +20,6 @@
 
 //- (id)copyWithZone:(NSZone *)zone;
 
+- (void)startReceive;
+
 @end

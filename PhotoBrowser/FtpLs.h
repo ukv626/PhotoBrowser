@@ -9,6 +9,8 @@
 #import <Foundation/Foundation.h>
 #import "BaseLs.h"
 
+@class EntryLs;
+
 @protocol LoadingDelegate;
 
 @interface FtpLs : BaseLs <NSStreamDelegate>
@@ -17,11 +19,13 @@
 @property (nonatomic, readonly) NSMutableArray *listEntries;
 
 - (id)initWithURL:(NSURL *)url;
-- (BOOL)isImageFile:(NSDictionary *)entry;
-- (BOOL)isDirectory:(NSDictionary *)entry;
+- (BOOL)isImageFile:(NSString *)filename;
+//- (BOOL)isDirectory:(NSDictionary *)entry;
 - (void)createDirectory:(NSString *)path;
 
 
 //- (id)copyWithZone:(NSZone *)zone;
+
+- (void)startReceive;
 
 @end

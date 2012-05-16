@@ -9,6 +9,7 @@
 #import <UIKit/UIKit.h>
 #import "PhotoDelegate.h"
 #import "Photo.h"
+#import "CaptionView.h"
 
 #define SYSTEM_VERSION_EQUAL_TO(v)                  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedSame)
 #define SYSTEM_VERSION_GREATER_THAN(v)              ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedDescending)
