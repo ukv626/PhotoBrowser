@@ -15,10 +15,12 @@
 
 @interface FtpDownloader () {  
     id<LoadingDelegate> _delegate;
+    id<LoadingDelegate> _delegateProgress;
     NSInputStream *_networkStream;
     NSOutputStream *_fileStream;
+    
+//    NSUInteger _fileSize;
 }
-
 @property (nonatomic, readonly) BOOL isReceiving;
 @property (nonatomic, retain) NSInputStream *networkStream;
 @property (nonatomic, retain) NSOutputStream *fileStream;
@@ -28,6 +30,7 @@
 @implementation FtpDownloader
 
 @synthesize delegate = _delegate;
+@synthesize delegateProgress = _delegateProgress;
 @synthesize fileStream = _fileStream;
 @synthesize networkStream = _networkStream;
 
@@ -46,6 +49,8 @@
 - (void)startReceive {
     //    NSLog(@"%s", __PRETTY_FUNCTION__);
     NSLog(@"%s: %@ [%@]", __PRETTY_FUNCTION__, self.url, self.username);
+    
+//    _fileSize = 0;
     
     assert(self.networkStream == nil);
     assert(self.fileStream == nil);
@@ -150,7 +155,7 @@
             
         case NSStreamEventHasBytesAvailable: {
             NSUInteger bytesRead;
-            uint8_t buffer[32768];
+            uint8_t buffer[1024*1024];//32768*2];
             
             // Pull some data of the network
             bytesRead = [self.networkStream read:buffer maxLength:sizeof(buffer)];
@@ -160,8 +165,7 @@
                 [self _stopReceiveWithStatus:nil];
                 
                 // downloaded, so notificate
-                [self.delegate handleLoadingDidEndNotification];
-//s                [[NSNotificationCenter defaultCenter] postNotificationName:PHOTO_DOWNLOADING_DID_END_NOTIFICATION object:self];                
+                [self.delegate handleLoadingDidEndNotification:self];                                
             } else {
                 NSInteger bytesWritten;
                 NSInteger bytesWrittensoFar;
@@ -178,6 +182,12 @@
                         bytesWrittensoFar += bytesWritten;
                     }
                 } while (bytesWrittensoFar != bytesRead);
+                
+                // Progress notification
+                if ([_delegateProgress respondsToSelector:@selector(handleLoadingProgressNotification:)]) {
+                    [_delegateProgress handleLoadingProgressNotification:bytesWrittensoFar];
+                }
+                //_fileSize += bytesWrittensoFar;
             }
         } break;
             

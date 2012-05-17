@@ -14,7 +14,8 @@
 
 
 @interface LoginView () {
-    //
+    // Toolbar
+    NSMutableArray *_buttons;
 }
 
 // Private methods
@@ -147,6 +148,20 @@
     [self.view addSubview:self.passwordText];
     
     self.activityIndicator.hidden = YES;
+    
+    // Toolbar
+    _buttons = [[NSMutableArray alloc] init];
+    UIBarButtonItem *addButton = [[UIBarButtonItem alloc] initWithTitle:@"Add" style:UIBarButtonItemStyleBordered
+                                                  target:self action:@selector(addButton_Clicked:)];
+    UIBarButtonItem *listButton = [[UIBarButtonItem alloc] initWithTitle:@"List" style:UIBarButtonItemStyleBordered 
+                                                                  target:self action:@selector(listButton_Clicked:)];
+    [_buttons addObject:addButton];
+    [_buttons addObject:listButton];
+    [addButton release];
+    [listButton release];
+    
+    self.toolbarItems = _buttons;
+    self.navigationController.toolbarHidden = NO;
     [super viewDidLoad];
     
     // Do any additional setup after loading the view.
@@ -214,6 +229,8 @@
 - (void)dealloc {
     NSLog(@"%s", __PRETTY_FUNCTION__);
     
+    [_buttons release];
+    
     [_urlLabel release];
     [_loginLabel release];
     [_urlText release];
@@ -240,5 +257,13 @@
     return bounds;
 }
  */
+
+- (void)addButton_Clicked:(id)sender {
+    NSLog(@"%s", __PRETTY_FUNCTION__);
+}
+
+- (void)listButton_Clicked:(id)sender {
+    NSLog(@"%s", __PRETTY_FUNCTION__);
+}
 
 @end

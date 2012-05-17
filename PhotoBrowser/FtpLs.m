@@ -113,7 +113,7 @@
     [self.listEntries addObjectsFromArray:sortedEntries];
 
     // Notificate delegate
-    [self.delegate handleLoadingDidEndNotification];
+    [self.delegate handleLoadingDidEndNotification:self];
 }
 
 - (BOOL)isReceiving {

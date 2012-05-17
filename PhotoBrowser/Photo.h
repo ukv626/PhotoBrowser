@@ -13,6 +13,7 @@
 
 @interface Photo : NSObject <PhotoDelegate, LoadingDelegate >
 
+@property (assign) id<LoadingDelegate> delegate;
 @property (nonatomic, retain) FtpDownloader* driver;
 @property (nonatomic, copy) NSString *photoPath;
 @property (nonatomic, assign) NSUInteger photoNumber;
@@ -30,6 +31,6 @@
 - (id)initWithDriver:(FtpDownloader *)driver;
 
 //
-- (void)handleLoadingDidEndNotification;
+- (void)handleLoadingDidEndNotification:(id)sender;
 
 @end

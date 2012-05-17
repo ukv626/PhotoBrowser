@@ -10,17 +10,34 @@
 #include <sys/dirent.h>
 
 #import "Browser.h"
+#import "FtpLs.h"
 #import "FtpDownloader.h"
+#import "DirectoryDownloader.h"
 #import "EntryLs.h"
 
 
 @interface DirectoryList () {
     FtpLs *_driver;
     
+    // ProgressView 
+    UIProgressView *_progressView;
+    double _totalFilesSize;
+    double _downloadedFilesSize;
+    
+    // Toolbar
+    NSMutableArray *_buttons;
+    UIBarButtonItem *_backButton;
+    UIBarButtonItem *_downloadButton;
+    
+    // URLs Stack
+    NSMutableArray *_urls;
+    
     NSMutableArray *_filteredListEntries;
     IBOutlet UISearchBar *_searchBar;
     BOOL _searching;
     BOOL _letUserSelectRow;
+    
+    DirectoryDownloader *_dirDownloader;
         
     UIActivityIndicatorView *_activityIndicator;
 }
@@ -38,13 +55,11 @@
 - (void)_receiveDidStart {
     //[self.tableView reloadData];
     [_activityIndicator startAnimating];
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleDirLoadingDidEndNotification:) name:DIRLIST_LOADING_DID_END_NOTIFICATION object:nil];
+    [_driver startReceive];
 }
 
 - (void)_updateStatus {
-    [self.tableView reloadRowsAtIndexPaths:[NSArray arrayWithObject:[NSIndexPath indexPathForRow:0 inSection:0]] withRowAnimation:UITableViewRowAnimationNone];
-    
+//    [self.tableView reloadRowsAtIndexPaths:[NSArray arrayWithObject:[NSIndexPath indexPathForRow:0 inSection:0]] withRowAnimation:UITableViewRowAnimationNone];
 }
 
 
@@ -52,12 +67,91 @@
     [_activityIndicator stopAnimating];
 }
 
-#pragma mark * Core transfer code
+- (void)handleLoadingDidEndNotification:(id)sender {
+    NSLog(@"%s %@", __PRETTY_FUNCTION__, sender);
+    
+    if([sender class] == [FtpLs class]) {
+        // Notification from FtpLs
+        self.title = [_driver.url lastPathComponent];
+        if([self.title length] == 0) {
+            self.title = [_driver.url host];
+        }
+        
+        if ([_urls count] > 1) {
+            // Enable the Back button
+            _backButton.enabled = YES;
+        } else {
+            _backButton.enabled = NO;
+        }
+        
+        [self.tableView reloadData];    
+        [self _receiveDidStop];
+    } else if ([sender class] == [DirectoryDownloader class]) {
+        // Notification from DirectoryDownloader
+        NSLog(@"All items downloaded!!");
+        
+        _downloadButton.enabled = YES;
+        [_progressView release];
+        _progressView = nil;
+        self.navigationItem.titleView = nil;
+        [self.navigationItem setHidesBackButton:NO animated:YES];
+        
+        if(_dirDownloader != nil) {
+            [_dirDownloader release];
+            _dirDownloader = nil;
+        }
+    } 
+}
 
-// This is code that actually does the networking.
+- (void)handleLoadingProgressNotification:(NSUInteger)value {
+    // Notification from FtpDownloader
+    _downloadedFilesSize += value / (1024.0 * 1024.0);
+//    NSLog(@"downloaded: %.2f/%.2f", _downloadedFilesSize, _totalFilesSize);
+    _progressView.progress = _downloadedFilesSize / _totalFilesSize;
+}
 
-// Properties
+- (void)backButton_Clicked:(id)sender {
+    NSLog(@"%s", __PRETTY_FUNCTION__);
+    
+    // Pop url
+    [_urls removeObject:_driver.url];
+    
+    assert([_urls count] >= 1);
+    _driver.url = [_urls objectAtIndex:[_urls count] - 1];
+    [_driver startReceive];
+}
 
+- (void)sortButton_Clicked:(id)sender {
+    NSLog(@"%s", __PRETTY_FUNCTION__);
+    
+}
+
+- (void)downloadButton_Clicked:(id)sender {
+    NSLog(@"%s", __PRETTY_FUNCTION__);
+    
+        
+    _dirDownloader = [[DirectoryDownloader alloc] initWithDriver:_driver];
+    if(_dirDownloader != nil) {
+        _dirDownloader.delegate = self;
+        [_driver createDirectory:[NSString stringWithFormat:@"%@/%@", [_driver.url host],[_driver.url path]]];
+        
+        _downloadButton.enabled = NO;
+        _downloadedFilesSize = 0.0;
+        _totalFilesSize = 0.0;
+        for (EntryLs *entry in _driver.listEntries) {
+            if(![entry isDir]) {
+                _totalFilesSize += [entry size] / (1024.0 * 1024.0);
+            }
+        }
+        
+        _progressView = [[UIProgressView alloc] initWithFrame:CGRectMake(0.0, 0.0, 100.0, 20.0)];
+        _progressView.progressViewStyle = UIProgressViewStyleBar;
+        self.navigationItem.titleView = _progressView;
+        [self.navigationItem setHidesBackButton:YES animated:YES];
+        
+        [_dirDownloader startReceive];
+    }
+}
 
 #pragma mark - Table view data source and delegate
 
@@ -221,19 +315,13 @@ static NSDateFormatter *sDateFormatter;
     if(cell.accessoryType == UITableViewCellAccessoryDisclosureIndicator) {                
         
         NSString *entryName = cell.textLabel.text;
-            
-        FtpLs *newDriver = [[FtpLs alloc] initWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"%@/%@/", [_driver.url absoluteString], [entryName stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]]]];
-        newDriver.username = _driver.username;
-        newDriver.password = _driver.password;
-                                                      
         
-        DirectoryList *dirList = [[DirectoryList alloc] initWithDriver:newDriver];
-        [newDriver release];
+        _driver.url = [NSURL URLWithString:[NSString stringWithFormat:@"%@/%@/", [_driver.url absoluteString], [entryName stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]]];
         
-        [self.navigationController pushViewController:dirList animated:YES];
+        // Push url
+        [_urls addObject:_driver.url];
         
-        // Release
-        [dirList release];         
+        [self _receiveDidStart];  
     } else if([_driver isImageFile:cell.textLabel.text]) {
         NSLog(@"listEntries:%d", [_driver.listEntries count]);        
         
@@ -284,13 +372,7 @@ static NSDateFormatter *sDateFormatter;
 }
 
 
-- (void)handleLoadingDidEndNotification {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
-    [self.tableView reloadData];
-    
-    [self _receiveDidStop];
-//    [[NSNotificationCenter defaultCenter] removeObserver:self];
-}
+
 
 
 #pragma mark * View controller boilerplate
@@ -303,17 +385,16 @@ static NSDateFormatter *sDateFormatter;
         // Custom initialization
         _driver = [driver retain];
         _driver.delegate = self;
+        
+        _urls = [[NSMutableArray alloc] init];
+        // Push url
+        [_urls addObject:_driver.url];
     }
     return self;
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-
-    self.title = [_driver.url lastPathComponent];
-    if([self.title length] == 0) {
-        self.title = [_driver.url host];
-    }
 
     if(_activityIndicator == nil) {
         _activityIndicator = [[UIActivityIndicatorView alloc]initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
@@ -329,7 +410,26 @@ static NSDateFormatter *sDateFormatter;
     }            
     
     assert(_activityIndicator != nil);
-
+    
+    // Toolbar
+    _buttons = [[NSMutableArray alloc] init];
+    _backButton = [[UIBarButtonItem alloc] initWithTitle:@"Back" style:UIBarButtonItemStyleBordered 
+                                                                target:self action:@selector(backButton_Clicked:)];
+    _backButton.enabled = NO;
+    UIBarButtonItem *sortButton = [[UIBarButtonItem alloc] initWithTitle:@"Sort" style:UIBarButtonItemStyleBordered 
+                                                                target:self action:@selector(sortButton_Clicked:)];
+    _downloadButton = [[UIBarButtonItem alloc] initWithTitle:@"Down" style:UIBarButtonItemStyleBordered 
+                                                                  target:self action:@selector(downloadButton_Clicked:)];
+    
+    
+    [_buttons addObject:_backButton];
+    [_buttons addObject:sortButton];
+    [_buttons addObject:_downloadButton];
+    [sortButton release];
+    
+    self.toolbarItems = _buttons;
+    
+    
     // Search Bar
     _filteredListEntries = [[NSMutableArray alloc] init];
     _searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(0, 0, 320, 30)];
@@ -344,8 +444,7 @@ static NSDateFormatter *sDateFormatter;
     
     //_activityIndicator.hidden = YES;
     
-    [self _receiveDidStart];    
-    [_driver startReceive];    
+    [self _receiveDidStart];       
     
     // Uncomment the following line to preserve selection between presentations.
     // self.clearsSelectionOnViewWillAppear = NO;
@@ -360,7 +459,7 @@ static NSDateFormatter *sDateFormatter;
     // e.g. self.myOutlet = nil;
     [_activityIndicator release], _activityIndicator = nil;
     [_searchBar release], _searchBar = nil;    
-
+    
     [super viewDidUnload];
 }
 
@@ -368,9 +467,15 @@ static NSDateFormatter *sDateFormatter;
     NSLog(@"%s", __PRETTY_FUNCTION__);
     
     [_driver release];
-    [_activityIndicator release];
+   
+    [_buttons release];
+    [_backButton release];
+    [_downloadButton release];
+    
     [_searchBar release];
     [_filteredListEntries release];
+    
+    [_activityIndicator release];
     
     [super dealloc];
 }

@@ -170,11 +170,11 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
         _didSavePreviousStateOfNavBar = NO;
         
         
-        // Listen for Photo notifications
-        [[NSNotificationCenter defaultCenter] addObserver:self
-                                                 selector:@selector(handlePhotoLoadingDidEndNotification:)
-                                                     name:PHOTO_LOADING_DID_END_NOTIFICATION
-                                                   object:nil];
+//        // Listen for Photo notifications
+//        [[NSNotificationCenter defaultCenter] addObserver:self
+//                                                 selector:@selector(handlePhotoLoadingDidEndNotification:)
+//                                                     name:PHOTO_LOADING_DID_END_NOTIFICATION
+//                                                   object:nil];
          
     }
     return self;
@@ -185,7 +185,11 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 - (id)initWithPhotos:(NSArray *)photosArray photosPerPage:(NSUInteger)photosPerPage {
 	if ((self = [self init])) {
 		self.photos = photosArray;
-        NSLog(@"Browser: photos.retainCount=%d", [self.photos retainCount]);
+        
+        for (Photo *photo in self.photos) {
+            photo.delegate = self;
+        }
+        //NSLog(@"Browser: photos.retainCount=%d", [self.photos retainCount]);
         _photosPerPage = photosPerPage;
 	}
 	return self;
@@ -195,7 +199,7 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 - (void)dealloc {
     NSLog(@"%s", __PRETTY_FUNCTION__);
     
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
+//    [[NSNotificationCenter defaultCenter] removeObserver:self];
     [_previousNavBarTintColor release];
     [_navigationBarBackgroundImageDefault release];
     [_navigationBarBackgroundImageLandscapePhone release];
@@ -710,19 +714,20 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 
 #pragma mark - Loading Notifications
 
-- (void)handlePhotoLoadingDidEndNotification:(NSNotification *)notification {
-    
-    Photo *photo = [notification object];
-    NSLog(@"get notification about: %d %@", photo.photoNumber, photo.photoPath );
-    ZoomingScrollView *page = [self pageDisplayingPhoto:photo];
-    if (page) {
-        if ([photo underlyingImage]) {
-            // Successful load
-            [page displayImageAtIndex:photo.photoNumber];
-            //[self loadAdjacentPhotosIfNecessary:photo];
-        } else {
-            // Failed to load
-            [page displayImageFailure];
+- (void)handleLoadingDidEndNotification:(id)sender {
+    if([sender class] == [Photo class]) {
+        Photo *photo = sender;
+        NSLog(@"get notification about: %d %@", photo.photoNumber, photo.photoPath );
+        ZoomingScrollView *page = [self pageDisplayingPhoto:photo];
+        if (page) {
+            if ([photo underlyingImage]) {
+                // Successful load
+                [page displayImageAtIndex:photo.photoNumber];
+                //[self loadAdjacentPhotosIfNecessary:photo];
+            } else {
+                // Failed to load
+                [page displayImageFailure];
+            }
         }
     }
 }

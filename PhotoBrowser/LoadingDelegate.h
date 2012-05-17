@@ -11,6 +11,9 @@
 @protocol LoadingDelegate <NSObject>
 
 @required
-- (void)handleLoadingDidEndNotification;
+- (void)handleLoadingDidEndNotification:(id)sender;
+
+@optional
+- (void)handleLoadingProgressNotification:(NSUInteger)value;
 
 @end

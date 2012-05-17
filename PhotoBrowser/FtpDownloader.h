@@ -15,6 +15,7 @@
 @interface FtpDownloader : BaseLs <NSStreamDelegate>
 
 @property (assign) id<LoadingDelegate> delegate;
+@property (assign) id<LoadingDelegate> delegateProgress;
 
 - (id)initWithURL:(NSURL *)url;
 

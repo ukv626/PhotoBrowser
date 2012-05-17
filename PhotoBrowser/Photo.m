@@ -12,6 +12,8 @@
 
 // Private
 @interface Photo() {
+    id<LoadingDelegate> _delegate;
+    
     FtpDownloader *_driver;
     
     // Image sources
@@ -38,6 +40,7 @@
 
 @implementation Photo
 
+@synthesize delegate = _delegate;
 @synthesize driver = _driver;
 @synthesize underlyingImage = _underlyingImage, caption = _caption;
 @synthesize photoNumber = _photoNumber;
@@ -112,7 +115,7 @@
     return result;
 }
 
-- (void)handleLoadingDidEndNotification {
+- (void)handleLoadingDidEndNotification:(id)sender {
     NSLog(@"%s", __PRETTY_FUNCTION__);
     [self loadImageFromFileAsync];
 }
@@ -131,7 +134,7 @@
         if([self fileExist]) {
             // Load async from file
             [self performSelectorInBackground:@selector(loadImageFromFileAsync) withObject:nil];
-            [self imageLoadingComplete];
+            //[self imageLoadingComplete];
         } else if(self.driver.url){
             [self.driver startReceive];
             
@@ -200,7 +203,10 @@
     _loadingProgress = NO;
   
     // Notify delegate
-    [[NSNotificationCenter defaultCenter] postNotificationName:PHOTO_LOADING_DID_END_NOTIFICATION object:self];
+    if ([_delegate respondsToSelector:@selector(handleLoadingDidEndNotification:)]) {
+        [_delegate handleLoadingDidEndNotification:self];
+    }
+//    [[NSNotificationCenter defaultCenter] postNotificationName:PHOTO_LOADING_DID_END_NOTIFICATION object:self];
 }
 
 
