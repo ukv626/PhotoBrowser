@@ -1,20 +1,17 @@
 //
-//  FtpDownloader.h
+//  LocalLs.h
 //  PhotoBrowser
 //
-//  Created by ukv on 5/14/12.
+//  Created by ukv on 5/18/12.
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
 //
 
-
 #import <Foundation/Foundation.h>
-#import "BaseDownloader.h"
+#import "BaseLs.h"
 
-@interface FtpDownloader : BaseDownloader <NSStreamDelegate>
+@interface LocalLs : BaseLs
 
 - (id)initWithURL:(NSURL *)url;
-
-//- (id)copyWithZone:(NSZone *)zone;
 
 - (void)startReceive;
 

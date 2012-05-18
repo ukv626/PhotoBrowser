@@ -18,6 +18,8 @@
 		017913EC1552640F00878E0C /* FtpLs.m in Sources */ = {isa = PBXBuildFile; fileRef = 017913EB1552640F00878E0C /* FtpLs.m */; };
 		017914151552C03500878E0C /* LoginView.m in Sources */ = {isa = PBXBuildFile; fileRef = 017914141552C03500878E0C /* LoginView.m */; };
 		0179797C152D7B3B00645399 /* Browser.m in Sources */ = {isa = PBXBuildFile; fileRef = 0179797B152D7B3B00645399 /* Browser.m */; };
+		0179E5C51566290D0043AE52 /* BaseDownloader.m in Sources */ = {isa = PBXBuildFile; fileRef = 0179E5C41566290C0043AE52 /* BaseDownloader.m */; };
+		0179E5D11566338C0043AE52 /* LocalLs.m in Sources */ = {isa = PBXBuildFile; fileRef = 0179E5D01566338B0043AE52 /* LocalLs.m */; };
 		017BA7FD152C7A9E00DF16B2 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 017BA7FC152C7A9E00DF16B2 /* UIKit.framework */; };
 		017BA7FF152C7A9E00DF16B2 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 017BA7FE152C7A9E00DF16B2 /* Foundation.framework */; };
 		017BA801152C7A9E00DF16B2 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 017BA800152C7A9E00DF16B2 /* CoreGraphics.framework */; };
@@ -62,6 +64,10 @@
 		017914141552C03500878E0C /* LoginView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LoginView.m; sourceTree = "<group>"; };
 		0179797A152D7B3B00645399 /* Browser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Browser.h; sourceTree = "<group>"; };
 		0179797B152D7B3B00645399 /* Browser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Browser.m; sourceTree = "<group>"; };
+		0179E5C31566290C0043AE52 /* BaseDownloader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BaseDownloader.h; sourceTree = "<group>"; };
+		0179E5C41566290C0043AE52 /* BaseDownloader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BaseDownloader.m; sourceTree = "<group>"; };
+		0179E5CF1566338B0043AE52 /* LocalLs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LocalLs.h; sourceTree = "<group>"; };
+		0179E5D01566338B0043AE52 /* LocalLs.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LocalLs.m; sourceTree = "<group>"; };
 		017BA7F8152C7A9E00DF16B2 /* PhotoBrowser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PhotoBrowser.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		017BA7FC152C7A9E00DF16B2 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		017BA7FE152C7A9E00DF16B2 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -162,8 +168,12 @@
 				016E9934156290AA00561C9E /* LoadingDelegate.h */,
 				0173693F155E3AB500A3C800 /* BaseLs.h */,
 				01736940155E3AB500A3C800 /* BaseLs.m */,
+				0179E5C31566290C0043AE52 /* BaseDownloader.h */,
+				0179E5C41566290C0043AE52 /* BaseDownloader.m */,
 				019DED0315639D000008F616 /* EntryLs.h */,
 				019DED0415639D000008F616 /* EntryLs.m */,
+				0179E5CF1566338B0043AE52 /* LocalLs.h */,
+				0179E5D01566338B0043AE52 /* LocalLs.m */,
 				017913EA1552640F00878E0C /* FtpLs.h */,
 				017913EB1552640F00878E0C /* FtpLs.m */,
 				017119A21561406600D963DC /* FtpDownloader.h */,
@@ -287,6 +297,8 @@
 				019DED0515639D000008F616 /* EntryLs.m in Sources */,
 				019DED091563B7530008F616 /* CaptionView.m in Sources */,
 				0178C38B1564F818001486EC /* DirectoryDownloader.m in Sources */,
+				0179E5C51566290D0043AE52 /* BaseDownloader.m in Sources */,
+				0179E5D11566338C0043AE52 /* LocalLs.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

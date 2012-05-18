@@ -39,12 +39,13 @@
 @synthesize captionView = _captionView;
 
 - (id)initWithBrowser:(Browser *)browser {
+    NSLog(@"%s", __PRETTY_FUNCTION__);
     if((self = [super init])) {
         // delegate
         self.browser = browser;
         
         _imageViews = [[NSMutableArray alloc] init];
-        //_photos = [[NSMutableArray alloc] init];
+        _photos = [[NSMutableArray alloc] init];
         
         _spacing = browser.photosPerPage  == 1 ? 0 : 5;
                 
@@ -93,7 +94,7 @@
         if (p != [NSNull null]) [p unloadUnderlyingImage]; 
     } 
     
-    [_photos release];
+    //[_photos release];
 }
 
 - (void)setPhotos:(NSMutableArray *)photos {
@@ -355,7 +356,7 @@
     if(_browser.photosPerPage == 1) {
         [self handleDoubleTap:[touch locationInView:imageView]];        
     } else {
-        NSUInteger selectedImage;
+        NSUInteger selectedImage = 0;
         for (NSUInteger i=0; i<[_imageViews count]; i++) {
             TappingImageView *iView = [_imageViews objectAtIndex:i];
             if(CGRectContainsPoint(iView.frame, [touch locationInView:self])) {

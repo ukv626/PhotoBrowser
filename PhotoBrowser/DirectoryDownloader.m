@@ -7,14 +7,14 @@
 //
 
 #import "DirectoryDownloader.h"
-#import "FtpLs.h"
+#import "BaseLs.h"
 #import "EntryLs.h"
 #import "FtpDownloader.h"
 
 @interface DirectoryDownloader() {
     id<LoadingDelegate> _delegate;
     
-    FtpLs *_driver;
+    BaseLs *_driver;
     NSMutableArray *_files;
     NSUInteger _downloaded;
 }
@@ -24,7 +24,7 @@
 
 @synthesize delegate = _delegate;
 
-- (id)initWithDriver:(FtpLs *)driver {
+- (id)initWithDriver:(BaseLs *)driver {
     NSLog(@"%s", __PRETTY_FUNCTION__);
     
     if((self = [super init])) {

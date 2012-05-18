@@ -8,13 +8,13 @@
 
 #import <UIKit/UIKit.h>
 
-@class FtpLs;
+@class BaseLs;
 #import "LoadingDelegate.h"
 
 @interface DirectoryList : UITableViewController <NSStreamDelegate, LoadingDelegate, UISearchBarDelegate>
 
 // Init
-- (id)initWithDriver:(FtpLs *)driver;
+- (id)initWithDriver:(BaseLs *)driver;
 
 //
 - (void)handleLoadingDidEndNotification:(id)sender;

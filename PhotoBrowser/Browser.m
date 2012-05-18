@@ -199,6 +199,9 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 - (void)dealloc {
     NSLog(@"%s", __PRETTY_FUNCTION__);
     
+    [self releaseAllUnderlyingPhotos];
+    [_photos release];
+    
 //    [[NSNotificationCenter defaultCenter] removeObserver:self];
     [_previousNavBarTintColor release];
     [_navigationBarBackgroundImageDefault release];
@@ -212,11 +215,11 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 	[_nextButton release];
     [_actionButton release];
     [_zoomOutButton release];
-    [self releaseAllUnderlyingPhotos];
+    
     
     
 //    [[SDImageCache sharedImageCache] clearMemory]; // clear memory
-    [_photos release];
+    
     [_progressHUD release];
     [super dealloc];
 }
@@ -715,7 +718,7 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 #pragma mark - Loading Notifications
 
 - (void)handleLoadingDidEndNotification:(id)sender {
-    if([sender class] == [Photo class]) {
+    if([[sender class] isSubclassOfClass:[Photo class]]) {
         Photo *photo = sender;
         NSLog(@"get notification about: %d %@", photo.photoNumber, photo.photoPath );
         ZoomingScrollView *page = [self pageDisplayingPhoto:photo];
@@ -826,15 +829,27 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 	page.frame = [self frameForPageAtIndex:index];
     page.tag = PAGE_INDEX_TAG_OFFSET + index;
     
-    NSMutableArray *pagePhotos = [[NSMutableArray alloc] init];
+    [page.photos removeAllObjects];
+    //NSMutableArray *pagePhotos = [[NSMutableArray alloc] init];
     for (NSUInteger i=0; i<_photosPerPage; i++) {
         id<PhotoDelegate> photo = [self photoAtIndex:index*_photosPerPage + i];
         if(photo) {
-            [pagePhotos addObject:photo];
-            [photo release];
+            NSLog(@"configurePage: photo.retainCount=%d", [photo retainCount]);
+            [page.photos addObject:photo];
+            NSLog(@"configurePage: photo.retainCount=%d", [photo retainCount]);
+            //[pagePhotos addObject:photo];
+            
+            //NSLog(@"configurePage: photo.retainCount=%d", [photo retainCount]);
+            
+            //[photo release]; //qwe??
         }
     }
-    page.photos = pagePhotos;
+    [page displayImages];
+    NSLog(@"configurePage: photo.retainCount=%d", [[page.photos objectAtIndex:0] retainCount]);
+//    NSLog(@"configurePage: photo.retainCount=%d", [[pagePhotos objectAtIndex:0] retainCount]);
+//    page.photos = pagePhotos;
+//    [pagePhotos release];
+//    NSLog(@"configurePage: photo.retainCount=%d", [[page.photos objectAtIndex:0] retainCount]);
 }
 
 - (ZoomingScrollView *)dequeueRecycledPage {

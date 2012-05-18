@@ -10,6 +10,7 @@
 #import "Browser.h"
 //#import "Photo.h"
 #import "DirectoryList.h"
+#import "LocalLs.h"
 #import "FtpLs.h"
 
 
@@ -25,8 +26,25 @@
 @implementation LoginView
 
 
+- (IBAction)localButton_Clicked:(id)sender {
+    NSLog(@"%s", __PRETTY_FUNCTION__);
+    
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *dir = [[paths objectAtIndex:0] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]; //[NSString stringWithFormat:@"/Downloads/ukv"];
 
-- (IBAction)connectAction:(id)sender {
+    LocalLs *localLs = [[LocalLs alloc] initWithURL:[NSURL URLWithString:dir]];
+
+    DirectoryList *dirList = [[DirectoryList alloc] initWithDriver:localLs];
+    
+    [localLs release];
+    [self.navigationController pushViewController:dirList animated:YES];
+    
+    // Release
+    [dirList release];
+}
+
+
+- (IBAction)connectButton_Clicked:(id)sender {
     NSLog(@"%s", __PRETTY_FUNCTION__);
     
     FtpLs *ftpLs = [[FtpLs alloc] initWithURL:[NSURL URLWithString:self.urlText.text]];
@@ -92,6 +110,7 @@
 @synthesize usernameText = _usernameText;
 @synthesize passwordText = _passwordText;
 @synthesize activityIndicator = _activityIndicator;
+@synthesize localButton = _localButton;
 @synthesize connectButton = _connectButton;
 
 - (void)viewDidLoad
@@ -137,7 +156,10 @@
     self.passwordText.secureTextEntry = YES;
     self.passwordText.text = @"njgktcc";
     
-    self.connectButton = [[UIBarButtonItem alloc] initWithTitle:@"Connect" style:UIBarButtonItemStylePlain target:self action:@selector(connectAction:)];
+    self.connectButton = [[UIBarButtonItem alloc] initWithTitle:@"Local" style:UIBarButtonItemStylePlain target:self action:@selector(localButton_Clicked:)];
+    self.navigationItem.leftBarButtonItem = self.connectButton;
+    
+    self.connectButton = [[UIBarButtonItem alloc] initWithTitle:@"Connect" style:UIBarButtonItemStylePlain target:self action:@selector(connectButton_Clicked:)];
     self.navigationItem.rightBarButtonItem = self.connectButton;
     
     [self.view addSubview:self.urlLabel];
@@ -190,6 +212,7 @@
     self.usernameText = nil;
     self.passwordText = nil;
     self.activityIndicator = nil;
+    self.localButton = nil;
     self.connectButton = nil;
     
 }
@@ -237,6 +260,7 @@
     [_usernameText release];
     [_passwordText release];
     [_activityIndicator release];
+    [_localButton release];
     [_connectButton release];
     
     [super dealloc];

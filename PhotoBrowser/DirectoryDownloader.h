@@ -9,14 +9,14 @@
 #import <Foundation/Foundation.h>
 #import "LoadingDelegate.h"
 
-@class FtpLs;
+@class BaseLs;
 
 @interface DirectoryDownloader : NSObject<LoadingDelegate>
 
 @property (assign) id<LoadingDelegate> delegate;
 
 // Init
-- (id)initWithDriver:(FtpLs *)driver;
+- (id)initWithDriver:(BaseLs *)driver;
 
 //
 - (void)handleLoadingDidEndNotification:(id)sender;

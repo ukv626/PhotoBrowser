@@ -12,10 +12,7 @@
 #import <CFNetwork/CFNetwork.h>
 
 @interface FtpLs () {
-    id<LoadingDelegate> _delegate;
-    NSMutableArray *listEntries;
     NSMutableData *_listData;
-    
     NSInputStream *_networkStream;        
 }
 
@@ -27,8 +24,7 @@
 
 @implementation FtpLs
 
-@synthesize delegate = _delegate;
-@synthesize listEntries = _listEntries;
+
 @synthesize networkStream = _networkStream;
 @synthesize listData = _listData;
 
@@ -37,63 +33,15 @@
     NSLog(@"%s", __PRETTY_FUNCTION__);
 
     if((self = [super initWithURL:url])) {
-        _listEntries = [[NSMutableArray alloc] init];
+        //
     }
     
     return self;
 }
 
-- (BOOL)isImageFile:(NSString *)filename {
-    BOOL result = NO;
-    
-    NSString *extension;    
-    
-    if (filename != nil) {
-        extension = [filename pathExtension];
-        if (extension != nil) {
-            result = ([extension caseInsensitiveCompare:@"gif"] == NSOrderedSame)
-            || ([extension caseInsensitiveCompare:@"png"] == NSOrderedSame)
-            || ([extension caseInsensitiveCompare:@"jpg"] == NSOrderedSame)
-            || ([extension caseInsensitiveCompare:@"jpeg"] == NSOrderedSame);
-        }
-    }
-    
-    return result;
+- (BOOL)isDownloadable {
+    return true;
 }
-
-/*
-- (BOOL)isDirectory:(NSDictionary *)entry {
-    BOOL result = NO;
-    
-    assert(entry != nil);
-    
-    NSNumber *typeNum = [entry objectForKey:(id) kCFFTPResourceType];
-    int type = typeNum != nil ? [typeNum intValue] : 0;
-    
-    if(type == 4)
-        result = YES;
-    
-    return result;
-}
-*/
-
-- (void)createDirectory:(NSString *)dirName {
-    NSString *path;
-    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-    path = [[paths objectAtIndex:0] stringByAppendingPathComponent:dirName];
-    NSError *error;
-    
-    //    NSLog(@"%@", path);
-    if(![[NSFileManager defaultManager] fileExistsAtPath:path]) {
-        if(![[NSFileManager defaultManager] createDirectoryAtPath:path 
-                                      withIntermediateDirectories:YES attributes:nil error:&error]) {
-            NSLog(@"Create directory error: %@", error);
-            
-        }
-    }
-    
-}
-
 
 
 - (void)_addListEntries:(NSArray *)newEntries {
@@ -101,16 +49,10 @@
     
     assert(self.listEntries != nil);
         
-    NSArray *sortedEntries;
-    sortedEntries = [newEntries sortedArrayUsingComparator:^NSComparisonResult(id obj1, id obj2) {
-        if([obj1 isKindOfClass:[EntryLs class]] && [obj2 isKindOfClass:[EntryLs class]]) {
-                return [obj1 isDir] < [obj2 isDir];
-        }
-            
-        return (NSComparisonResult)NSOrderedSame;
-    }];
 
-    [self.listEntries addObjectsFromArray:sortedEntries];
+
+    [self.listEntries addObjectsFromArray:newEntries];
+    [self sortByName];
 
     // Notificate delegate
     [self.delegate handleLoadingDidEndNotification:self];
@@ -131,7 +73,7 @@
     CFReadStreamRef ftpStream;
     
     assert(self.networkStream == nil);
-    success = (self.url != nil);
+    assert(self.url != nil);
     
 //    _listEntries = [NSMutableArray array];
     self.listData = [NSMutableData data];
@@ -233,10 +175,10 @@
                                                          self.listData.length - offset, &thisEntry);
         if (bytesConsumed > 0) {
             if(thisEntry != NULL) {
-                EntryLs *entryToAdd;
+                
                 // add only directories and image files
 //                if(([self isDirectory:(NSDictionary *)thisEntry] || [self isImageFile:(NSDictionary *)thisEntry])) {
-                    entryToAdd = [[EntryLs alloc] initWithDictionaryEntry:[self _entryByReencodingNameInEntry:(NSDictionary *)thisEntry encoding:NSUTF8StringEncoding]];
+                    EntryLs *entryToAdd = [[EntryLs alloc] initWithDictionaryEntry:[self _entryByReencodingNameInEntry:(NSDictionary *)thisEntry encoding:NSUTF8StringEncoding]];
                     
                     [newEntries addObject:entryToAdd];
                     [entryToAdd release];
@@ -324,7 +266,7 @@
     NSLog(@"%s", __PRETTY_FUNCTION__);
     
     [self _stopReceiveWithStatus:@"Stopped"];
-    [_listEntries release];
+   
     
     [super dealloc];
 }

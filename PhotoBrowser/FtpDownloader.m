@@ -13,26 +13,9 @@
 
 #import <CFNetwork/CFNetwork.h>
 
-@interface FtpDownloader () {  
-    id<LoadingDelegate> _delegate;
-    id<LoadingDelegate> _delegateProgress;
-    NSInputStream *_networkStream;
-    NSOutputStream *_fileStream;
-    
-//    NSUInteger _fileSize;
-}
-@property (nonatomic, readonly) BOOL isReceiving;
-@property (nonatomic, retain) NSInputStream *networkStream;
-@property (nonatomic, retain) NSOutputStream *fileStream;
-
-@end
-
 @implementation FtpDownloader
 
-@synthesize delegate = _delegate;
-@synthesize delegateProgress = _delegateProgress;
-@synthesize fileStream = _fileStream;
-@synthesize networkStream = _networkStream;
+
 
 - (id)initWithURL:(NSURL *)url {
     NSLog(@"%s", __PRETTY_FUNCTION__);
@@ -41,9 +24,7 @@
 }
 
 
-- (BOOL)isReceiving {
-    return (self.networkStream != nil);
-}
+
 
 
 - (void)startReceive {
@@ -165,7 +146,9 @@
                 [self _stopReceiveWithStatus:nil];
                 
                 // downloaded, so notificate
-                [self.delegate handleLoadingDidEndNotification:self];                                
+                if([self.delegate respondsToSelector:@selector(handleLoadingDidEndNotification:)]) {
+                    [self.delegate handleLoadingDidEndNotification:self];                               
+                }
             } else {
                 NSInteger bytesWritten;
                 NSInteger bytesWrittensoFar;
@@ -184,8 +167,8 @@
                 } while (bytesWrittensoFar != bytesRead);
                 
                 // Progress notification
-                if ([_delegateProgress respondsToSelector:@selector(handleLoadingProgressNotification:)]) {
-                    [_delegateProgress handleLoadingProgressNotification:bytesWrittensoFar];
+                if ([self.delegateProgress respondsToSelector:@selector(handleLoadingProgressNotification:)]) {
+                    [self.delegateProgress handleLoadingProgressNotification:bytesWrittensoFar];
                 }
                 //_fileSize += bytesWrittensoFar;
             }
@@ -216,8 +199,7 @@
     NSLog(@"%s", __PRETTY_FUNCTION__);
     
     [self _stopReceiveWithStatus:@"Stopped"];
-    [self.fileStream release];
-    [self.networkStream release];
+
     
     [super dealloc];
 }

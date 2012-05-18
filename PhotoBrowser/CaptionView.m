@@ -67,6 +67,7 @@ static const CGFloat labelPadding = 10;
 }
 
 - (void)dealloc {
+    NSLog(@"%s", __PRETTY_FUNCTION__);
     [_label release];
     [_photo release];
     

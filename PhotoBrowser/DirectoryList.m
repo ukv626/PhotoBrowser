@@ -10,14 +10,14 @@
 #include <sys/dirent.h>
 
 #import "Browser.h"
-#import "FtpLs.h"
+#import "BaseLs.h"
 #import "FtpDownloader.h"
 #import "DirectoryDownloader.h"
 #import "EntryLs.h"
 
 
 @interface DirectoryList () {
-    FtpLs *_driver;
+    BaseLs *_driver;
     
     // ProgressView 
     UIProgressView *_progressView;
@@ -70,8 +70,8 @@
 - (void)handleLoadingDidEndNotification:(id)sender {
     NSLog(@"%s %@", __PRETTY_FUNCTION__, sender);
     
-    if([sender class] == [FtpLs class]) {
-        // Notification from FtpLs
+    if([[sender class] isSubclassOfClass:[BaseLs class]]) {
+        // Notification from BaseLs
         self.title = [_driver.url lastPathComponent];
         if([self.title length] == 0) {
             self.title = [_driver.url host];
@@ -128,8 +128,10 @@
 
 - (void)downloadButton_Clicked:(id)sender {
     NSLog(@"%s", __PRETTY_FUNCTION__);
+    if (![_driver isDownloadable]) {
+        return;
+    }
     
-        
     _dirDownloader = [[DirectoryDownloader alloc] initWithDriver:_driver];
     if(_dirDownloader != nil) {
         _dirDownloader.delegate = self;
@@ -200,7 +202,7 @@
     } else if (fileSize < (1024.0 * 1024.0 * 1024.0 * 0.1)) {
         result = [self _stringForNumber:fileSize / (1024.0 * 1024.0) asUnits:@"MB"];
     } else {
-        result = [self _stringForNumber:fileSize / (1024.0 * 1024.0 * 1024.0) asUnits:@"MB"];
+        result = [self _stringForNumber:fileSize / (1024.0 * 1024.0 * 1024.0) asUnits:@"GB"];
     }
     
     return result;
@@ -236,8 +238,9 @@ static NSDateFormatter *sDateFormatter;
         sDateFormatter = [[NSDateFormatter alloc] init];
         assert(sDateFormatter != nil);
         
-        sDateFormatter.dateStyle = NSDateFormatterShortStyle;
-        sDateFormatter.timeStyle = NSDateFormatterShortStyle;
+        [sDateFormatter setDateFormat:@"yyyy-MM-dd HH:mm"];
+//        sDateFormatter.dateStyle = NSDateFormatterShortStyle;
+//        sDateFormatter.timeStyle = NSDateFormatterShortStyle;
     }
     NSString *dateStr = [sDateFormatter stringFromDate:[listEntry date]];
     
@@ -324,8 +327,9 @@ static NSDateFormatter *sDateFormatter;
         [self _receiveDidStart];  
     } else if([_driver isImageFile:cell.textLabel.text]) {
         NSLog(@"listEntries:%d", [_driver.listEntries count]);        
-        
-        [_driver createDirectory:[NSString stringWithFormat:@"%@/%@", [_driver.url host],[_driver.url path]]];
+        if ([_driver isDownloadable]) {
+            [_driver createDirectory:[NSString stringWithFormat:@"%@/%@", [_driver.url host],[_driver.url path]]];
+        }
         
         NSUInteger pageIndex;
         NSUInteger i = 0;
@@ -377,7 +381,7 @@ static NSDateFormatter *sDateFormatter;
 
 #pragma mark * View controller boilerplate
 
-- (id)initWithDriver:(FtpLs *)driver {
+- (id)initWithDriver:(BaseLs *)driver {
     NSLog(@"%s", __PRETTY_FUNCTION__);
     
     self = [super initWithStyle:UITableViewStylePlain];

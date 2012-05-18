@@ -81,9 +81,15 @@
         self.driver = driver; //[driver retain];
         self.driver.delegate = self;
         
-        NSString *filename = [NSString stringWithFormat:@"%@/%@", [self.driver.url host],[self.driver.url path]];
-        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-        self.photoPath = [[paths objectAtIndex:0] stringByAppendingPathComponent:filename];
+        NSString *host = [self.driver.url host];
+        if (host == nil) {
+            // if Local url
+            self.photoPath = [self.driver.url path];
+        } else {
+            NSString *filename = [NSString stringWithFormat:@"%@/%@", [self.driver.url host],[self.driver.url path]];
+            NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+            self.photoPath = [[paths objectAtIndex:0] stringByAppendingPathComponent:filename];
+        }
     }
     return self;
 }
@@ -150,7 +156,7 @@
 - (void)unloadUnderlyingImage {    
     _loadingProgress = NO;
     if(self.underlyingImage && _photoPath) {
-        NSLog(@"%s: %@", __PRETTY_FUNCTION__, _photoPath);
+        NSLog(@"%s: %@ [%d]", __PRETTY_FUNCTION__, [_photoPath lastPathComponent], [self retainCount]);
         self.underlyingImage = nil;
     }       
 }

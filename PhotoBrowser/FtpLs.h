@@ -9,22 +9,16 @@
 #import <Foundation/Foundation.h>
 #import "BaseLs.h"
 
-@class EntryLs;
+//@class EntryLs;
 
-@protocol LoadingDelegate;
 
 @interface FtpLs : BaseLs <NSStreamDelegate>
 
-@property (assign) id<LoadingDelegate> delegate;
-@property (nonatomic, readonly) NSMutableArray *listEntries;
 
 - (id)initWithURL:(NSURL *)url;
-- (BOOL)isImageFile:(NSString *)filename;
-//- (BOOL)isDirectory:(NSDictionary *)entry;
-- (void)createDirectory:(NSString *)path;
-
 
 //- (id)copyWithZone:(NSZone *)zone;
+- (BOOL)isDownloadable;
 
 - (void)startReceive;
 
