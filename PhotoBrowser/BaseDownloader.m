@@ -56,6 +56,14 @@
     return (self.networkStream != nil);
 }
 
+- (NSString *)pathToDownload {
+    NSString *path = [NSString stringWithFormat:@"%@/%@", _url.host,_url.path];
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    
+    return [[paths objectAtIndex:0] stringByAppendingPathComponent:path];
+}
+
+
 - (void)startReceive {
     //
 }

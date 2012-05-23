@@ -11,8 +11,6 @@
 
 @interface LocalLs : BaseLs
 
-- (id)initWithURL:(NSURL *)url;
-
 - (void)startReceive;
 
 @end

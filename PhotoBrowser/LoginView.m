@@ -25,84 +25,6 @@
 
 @implementation LoginView
 
-
-- (IBAction)localButton_Clicked:(id)sender {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
-    
-    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-    NSString *dir = [[paths objectAtIndex:0] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]; //[NSString stringWithFormat:@"/Downloads/ukv"];
-
-    LocalLs *localLs = [[LocalLs alloc] initWithURL:[NSURL URLWithString:dir]];
-
-    DirectoryList *dirList = [[DirectoryList alloc] initWithDriver:localLs];
-    
-    [localLs release];
-    [self.navigationController pushViewController:dirList animated:YES];
-    
-    // Release
-    [dirList release];
-}
-
-
-- (IBAction)connectButton_Clicked:(id)sender {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
-    
-    FtpLs *ftpLs = [[FtpLs alloc] initWithURL:[NSURL URLWithString:self.urlText.text]];
-    ftpLs.username = self.usernameText.text;
-    ftpLs.password = self.passwordText.text;
-    
-    DirectoryList *dirList = [[DirectoryList alloc] initWithDriver:ftpLs];
-    
-    [ftpLs release];
-    [self.navigationController pushViewController:dirList animated:YES];
-    
-    // Release
-    [dirList release];
-}
-
-/*
-- (void)textFieldDidEndEditing:(UITextField *)textField {
-    NSString *defaultsKey;
-    NSString *newValue;
-    NSString *oldValue;
-    
-    if(textField == self.urlText) {
-        defaultsKey =@"URLText";
-    } else if(textField == self.usernameText) {
-        defaultsKey = @"Username";
-    } else if(textField == self.passwordText) {
-        defaultsKey = @"Password";
-    } else {
-        assert(NO);
-        defaultsKey = nil;
-    }
-    
-    newValue = textField.text;
-    oldValue = [[NSUserDefaults standardUserDefaults] stringForKey:defaultsKey];
-    
-    // Save the value if it's changed
-    assert(newValue != nil);
-    assert(oldValue != nil);
-    
-    if(![newValue isEqual:oldValue]) {
-        [[NSUserDefaults standardUserDefaults] setObject:newValue forKey:defaultsKey];
-    }
-}
- */
-
-
-- (BOOL)textFieldShouldReturn:(UITextField *)textField {
-    #pragma unused(textField)
-    
-    assert( (textField == self.urlText) || (textField == self.usernameText) || (textField == self.passwordText) );
-    [textField resignFirstResponder];
-    
-    return NO;
-}
-
-
-#pragma mark * View controller boilerplate
-
 @synthesize urlLabel = _urlLabel;
 @synthesize loginLabel = _loginLabel;
 
@@ -113,68 +35,69 @@
 @synthesize localButton = _localButton;
 @synthesize connectButton = _connectButton;
 
-- (void)viewDidLoad
-{
+
+#pragma mark * View controller boilerplate
+
+- (void)loadView {
     NSLog(@"%s", __PRETTY_FUNCTION__);
+    [super loadView];
     
-    CGRect bounds = [[UIScreen mainScreen] applicationFrame];
-    self.view = [[UIView alloc] initWithFrame:bounds];
     self.view.backgroundColor = [UIColor blueColor];
     
     self.title = @"FTPhoto";
 
     self.urlLabel = [[UILabel alloc] init];
+    
+    _urlLabel.backgroundColor = [UIColor blueColor];
+    _urlLabel.text = @"Connect to FTP Server";
+    
+    _urlText = [[UITextField alloc] init];
+    _urlText.delegate = self;
+    _urlText.borderStyle = UITextBorderStyleRoundedRect;
+    _urlText.clearButtonMode = UITextFieldViewModeWhileEditing;
+    _urlText.text = @"ftp://127.0.0.1/Downloads/";
+    //    self.urlText.text = @"ftp://ftp.itandem.ru";
+    _urlText.keyboardType = UIKeyboardTypeURL;
+    _urlText.returnKeyType = UIReturnKeyDone;
+   
+    _loginLabel = [[UILabel alloc] init];
+    _loginLabel.backgroundColor = [UIColor blueColor];
+    _loginLabel.text = @"Login Details";
+    
+    _usernameText = [[UITextField alloc] init];
+    _usernameText.delegate = self;
+    _usernameText.borderStyle = UITextBorderStyleRoundedRect;
+    _usernameText.placeholder = @"Username";
+    _usernameText.clearButtonMode = UITextFieldViewModeWhileEditing;
+    _usernameText.text = @"ukv";
+    
+    _passwordText = [[UITextField alloc] init];
+    _passwordText.delegate = self;
+    _passwordText.borderStyle = UITextBorderStyleRoundedRect;
+    _passwordText.placeholder = @"Password";
+    _passwordText.clearButtonMode = UITextFieldViewModeWhileEditing;
+    _passwordText.secureTextEntry = YES;
+    _passwordText.text = @"njgktcc";
+    
+    [self.view addSubview:_urlLabel];
+    [self.view addSubview:_urlText];
+    
+    [self.view addSubview:_loginLabel];
+    [self.view addSubview:_usernameText];
+    [self.view addSubview:_passwordText];
+    
+    _localButton = [[UIBarButtonItem alloc] initWithTitle:@"Local" style:UIBarButtonItemStylePlain target:self action:@selector(localButton_Clicked:)];
+    self.navigationItem.leftBarButtonItem = _localButton;
+    
+    _connectButton = [[UIBarButtonItem alloc] initWithTitle:@"Connect" style:UIBarButtonItemStylePlain target:self action:@selector(connectButton_Clicked:)];
+    self.navigationItem.rightBarButtonItem = _connectButton;
 
-    self.urlLabel.backgroundColor = [UIColor blueColor];
-    self.urlLabel.text = @"Connect to FTP Server";
-    
-    self.urlText = [[UITextField alloc] init];
-    self.urlText.delegate = self;
-    self.urlText.borderStyle = UITextBorderStyleRoundedRect;
-    self.urlText.clearButtonMode = UITextFieldViewModeWhileEditing;
-    self.urlText.text = @"ftp://127.0.0.1/Downloads/";
-//    self.urlText.text = @"ftp://ftp.itandem.ru";
-    self.urlText.keyboardType = UIKeyboardTypeURL;
-    self.urlText.returnKeyType = UIReturnKeyDone;
-    
-    self.loginLabel = [[UILabel alloc] init];
-    self.loginLabel.backgroundColor = [UIColor blueColor];
-    self.loginLabel.text = @"Login Details";
-    
-    self.usernameText = [[UITextField alloc] init];
-    self.usernameText.delegate = self;
-    self.usernameText.borderStyle = UITextBorderStyleRoundedRect;
-    self.usernameText.placeholder = @"Username";
-    self.usernameText.clearButtonMode = UITextFieldViewModeWhileEditing;
-    self.usernameText.text = @"ukv";
-    
-    self.passwordText = [[UITextField alloc] init];
-    self.passwordText.delegate = self;
-    self.passwordText.borderStyle = UITextBorderStyleRoundedRect;
-    self.passwordText.placeholder = @"Password";
-    self.passwordText.clearButtonMode = UITextFieldViewModeWhileEditing;
-    self.passwordText.secureTextEntry = YES;
-    self.passwordText.text = @"njgktcc";
-    
-    self.connectButton = [[UIBarButtonItem alloc] initWithTitle:@"Local" style:UIBarButtonItemStylePlain target:self action:@selector(localButton_Clicked:)];
-    self.navigationItem.leftBarButtonItem = self.connectButton;
-    
-    self.connectButton = [[UIBarButtonItem alloc] initWithTitle:@"Connect" style:UIBarButtonItemStylePlain target:self action:@selector(connectButton_Clicked:)];
-    self.navigationItem.rightBarButtonItem = self.connectButton;
-    
-    [self.view addSubview:self.urlLabel];
-    [self.view addSubview:self.urlText];
-    
-    [self.view addSubview:self.loginLabel];
-    [self.view addSubview:self.usernameText];
-    [self.view addSubview:self.passwordText];
-    
     self.activityIndicator.hidden = YES;
     
     // Toolbar
     _buttons = [[NSMutableArray alloc] init];
     UIBarButtonItem *addButton = [[UIBarButtonItem alloc] initWithTitle:@"Add" style:UIBarButtonItemStyleBordered
-                                                  target:self action:@selector(addButton_Clicked:)];
+                                                                 target:self action:@selector(addButton_Clicked:)];
     UIBarButtonItem *listButton = [[UIBarButtonItem alloc] initWithTitle:@"List" style:UIBarButtonItemStyleBordered 
                                                                   target:self action:@selector(listButton_Clicked:)];
     [_buttons addObject:addButton];
@@ -184,16 +107,12 @@
     
     self.toolbarItems = _buttons;
     self.navigationController.toolbarHidden = NO;
+}
+
+- (void)viewDidLoad
+{
     [super viewDidLoad];
-    
-    // Do any additional setup after loading the view.
-    /*
-    assert(self.urlText != nil);
-    assert(self.usernameText != nil);
-    assert(self.passwordText != nil);
-    assert(self.activityIndicator != nil);
-    assert(self.connectButton != nil);
-     */
+    // Do any additional setup after loading the view.    
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -288,6 +207,102 @@
 
 - (void)listButton_Clicked:(id)sender {
     NSLog(@"%s", __PRETTY_FUNCTION__);
+}
+
+- (IBAction)localButton_Clicked:(id)sender {
+    NSLog(@"%s", __PRETTY_FUNCTION__);
+    
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *dir = [paths objectAtIndex:0];// stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]; //[NSString stringWithFormat:@"/Downloads/ukv"];
+    
+    LocalLs *localLs = [[LocalLs alloc] initWithURL:[NSURL fileURLWithPath:dir]];
+    
+    DirectoryList *dirList = [[DirectoryList alloc] initWithDriver:localLs];
+    
+    [localLs release];
+    [self.navigationController pushViewController:dirList animated:YES];
+    
+    // Release
+    [dirList release];
+}
+
+
+- (IBAction)connectButton_Clicked:(id)sender {
+    NSLog(@"%s", __PRETTY_FUNCTION__);
+    BOOL success = NO;
+    NSString *errorStr;
+    NSURL *url = [NSURL URLWithString:self.urlText.text];
+    // check url
+    if (url && url.scheme && url.host) {
+        if ([url.scheme isEqualToString:@"ftp"]) {
+            success = YES;
+            FtpLs *ftpLs = [[FtpLs alloc] initWithURL:url];
+            ftpLs.username = self.usernameText.text;
+            ftpLs.password = self.passwordText.text;
+    
+            DirectoryList *dirList = [[DirectoryList alloc] initWithDriver:ftpLs];
+    
+            [ftpLs release];
+            [self.navigationController pushViewController:dirList animated:YES];
+    
+            // Release
+            [dirList release];
+        } else {
+            errorStr = [NSString stringWithFormat:@"Unknown protocol: %@", url.scheme];
+        }
+    } else {
+        errorStr = @"Invalid URL";
+    }
+    
+    if (!success) {
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:errorStr delegate:self cancelButtonTitle:nil otherButtonTitles:@"OK", nil];
+        [alert show];
+    }
+}
+
+/*
+ - (void)textFieldDidEndEditing:(UITextField *)textField {
+ NSString *defaultsKey;
+ NSString *newValue;
+ NSString *oldValue;
+ 
+ if(textField == self.urlText) {
+ defaultsKey =@"URLText";
+ } else if(textField == self.usernameText) {
+ defaultsKey = @"Username";
+ } else if(textField == self.passwordText) {
+ defaultsKey = @"Password";
+ } else {
+ assert(NO);
+ defaultsKey = nil;
+ }
+ 
+ newValue = textField.text;
+ oldValue = [[NSUserDefaults standardUserDefaults] stringForKey:defaultsKey];
+ 
+ // Save the value if it's changed
+ assert(newValue != nil);
+ assert(oldValue != nil);
+ 
+ if(![newValue isEqual:oldValue]) {
+ [[NSUserDefaults standardUserDefaults] setObject:newValue forKey:defaultsKey];
+ }
+ }
+ */
+
+
+- (BOOL)textFieldShouldReturn:(UITextField *)textField {
+#pragma unused(textField)
+    
+    assert( (textField == self.urlText) || (textField == self.usernameText) || (textField == self.passwordText) );
+    [textField resignFirstResponder];
+    
+    return NO;
+}
+
+// UIAlertViewDelegate
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    [alertView release];
 }
 
 @end

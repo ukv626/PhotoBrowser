@@ -45,6 +45,10 @@
     [super dealloc];
 }
 
+- (void)handleErrorNotification:(id)sender {
+    NSLog(@"%s %@", __PRETTY_FUNCTION__, sender);
+}
+
 - (void)handleLoadingDidEndNotification:(id)sender {
     NSLog(@"%s [%d/%d]", __PRETTY_FUNCTION__, _downloaded, [_files count]);
     ++_downloaded;

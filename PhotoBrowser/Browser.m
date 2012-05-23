@@ -167,15 +167,7 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
         _visiblePages = [[NSMutableSet alloc] init];
         _recycledPages = [[NSMutableSet alloc] init];        
         _displayActionButton = YES;
-        _didSavePreviousStateOfNavBar = NO;
-        
-        
-//        // Listen for Photo notifications
-//        [[NSNotificationCenter defaultCenter] addObserver:self
-//                                                 selector:@selector(handlePhotoLoadingDidEndNotification:)
-//                                                     name:PHOTO_LOADING_DID_END_NOTIFICATION
-//                                                   object:nil];
-         
+        _didSavePreviousStateOfNavBar = NO;         
     }
     return self;
 }
@@ -189,7 +181,6 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
         for (Photo *photo in self.photos) {
             photo.delegate = self;
         }
-        //NSLog(@"Browser: photos.retainCount=%d", [self.photos retainCount]);
         _photosPerPage = photosPerPage;
 	}
 	return self;
@@ -199,26 +190,22 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 - (void)dealloc {
     NSLog(@"%s", __PRETTY_FUNCTION__);
     
+    [_visiblePages release];
+	[_recycledPages release];
+    [_pagingScrollView release];
     [self releaseAllUnderlyingPhotos];
     [_photos release];
-    
-//    [[NSNotificationCenter defaultCenter] removeObserver:self];
+
     [_previousNavBarTintColor release];
     [_navigationBarBackgroundImageDefault release];
     [_navigationBarBackgroundImageLandscapePhone release];
     [_previousViewControllerBackButton release];
-	[_pagingScrollView release];
-	[_visiblePages release];
-	[_recycledPages release];
+	
 	[_toolbar release];
 	[_previousButton release];
 	[_nextButton release];
     [_actionButton release];
     [_zoomOutButton release];
-    
-    
-    
-//    [[SDImageCache sharedImageCache] clearMemory]; // clear memory
     
     [_progressHUD release];
     [super dealloc];
@@ -269,14 +256,11 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 
 #pragma mark - View Loading
 
-// Implement viewDidLoad to do additional setup after loading the view, typically from a nib.
-- (void)viewDidLoad {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
+- (void)loadView {
+    [super loadView];
     
-//    CGRect frame = [[UIScreen mainScreen] bounds];
-//    NSLog(@"browser.viewDidLoad: %.0f x %.0f", frame.size.width, frame.size.height);
-	
-	// View
+    NSLog(@"%s", __PRETTY_FUNCTION__);
+    // View
 	self.view.backgroundColor = [UIColor blackColor];
 	
 	// Setup paging scrolling view
@@ -307,12 +291,16 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
     _previousButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"UIBarButtonItemArrowLeft.png"] style:UIBarButtonItemStylePlain target:self action:@selector(gotoPreviousPage)];
     _nextButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"UIBarButtonItemArrowRight.png"] style:UIBarButtonItemStylePlain target:self action:@selector(gotoNextPage)];
     _actionButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(actionButtonPressed:)];
+}
+
+// Implement viewDidLoad to do additional setup after loading the view, typically from a nib.
+- (void)viewDidLoad {
+    // Super
+    [super viewDidLoad];
+    NSLog(@"%s", __PRETTY_FUNCTION__);
     
     // Update
     [self reloadData];
-    
-    // Super
-    [super viewDidLoad];
 }
 
 - (void)performLayout {
@@ -338,7 +326,7 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
     UIBarButtonItem *flexSpace = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:self action:nil] autorelease];
     NSMutableArray *items = [[NSMutableArray alloc] init];
     
-    [items addObject:_zoomOutButton];
+    if([_photos count] > 1) [items addObject:_zoomOutButton];
     //[items addObject:flexSpace];
     
     //if (_displayActionButton) [items addObject:fixedLeftSpace];
@@ -589,13 +577,18 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 
 - (void)reload:(NSUInteger)photosPerPage imageIndex:(NSUInteger)imageIndex{
     NSLog(@"%s", __PRETTY_FUNCTION__);
-    // Perform layout
+    
+    // release visible pages
+    for (ZoomingScrollView *page in _visiblePages) {
+        [page removeFromSuperview];
+    }
 
     // release adjucent pages
     if(_currentPageIndex > 0)
         [self releasePageUnderlyingPhotos:_currentPageIndex - 1];
     if(_currentPageIndex < [self numberOfPhotos] - 1)
         [self releasePageUnderlyingPhotos:_currentPageIndex + 1];
+    
     
     // calculate new current page
     if(_photosPerPage > photosPerPage)
@@ -667,7 +660,7 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
     CaptionView *captionView = nil;
     id <PhotoDelegate> photo = [self photoAtIndex:index];
     if ([photo respondsToSelector:@selector(caption)]) {
-        if ([photo caption]) captionView = [[[CaptionView alloc] initWithPhoto:photo] autorelease];
+        captionView = [[[CaptionView alloc] initWithText:[photo caption]] autorelease];
     }
     captionView.alpha = [self areControlsHidden] ? 0 : 1; // Initial alpha
     return captionView;
@@ -716,6 +709,10 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 }
 
 #pragma mark - Loading Notifications
+
+- (void)handleErrorNotification:(id)sender {
+    NSLog(@"%s %@", __PRETTY_FUNCTION__, sender);
+}
 
 - (void)handleLoadingDidEndNotification:(id)sender {
     if([[sender class] isSubclassOfClass:[Photo class]]) {
@@ -829,27 +826,15 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 	page.frame = [self frameForPageAtIndex:index];
     page.tag = PAGE_INDEX_TAG_OFFSET + index;
     
-    [page.photos removeAllObjects];
-    //NSMutableArray *pagePhotos = [[NSMutableArray alloc] init];
+    NSMutableArray *pagePhotos = [[NSMutableArray alloc] init];
     for (NSUInteger i=0; i<_photosPerPage; i++) {
         id<PhotoDelegate> photo = [self photoAtIndex:index*_photosPerPage + i];
         if(photo) {
-            NSLog(@"configurePage: photo.retainCount=%d", [photo retainCount]);
-            [page.photos addObject:photo];
-            NSLog(@"configurePage: photo.retainCount=%d", [photo retainCount]);
-            //[pagePhotos addObject:photo];
-            
-            //NSLog(@"configurePage: photo.retainCount=%d", [photo retainCount]);
-            
-            //[photo release]; //qwe??
+            [pagePhotos addObject:photo];
         }
     }
-    [page displayImages];
-    NSLog(@"configurePage: photo.retainCount=%d", [[page.photos objectAtIndex:0] retainCount]);
-//    NSLog(@"configurePage: photo.retainCount=%d", [[pagePhotos objectAtIndex:0] retainCount]);
-//    page.photos = pagePhotos;
-//    [pagePhotos release];
-//    NSLog(@"configurePage: photo.retainCount=%d", [[page.photos objectAtIndex:0] retainCount]);
+    page.photos = pagePhotos;
+    [pagePhotos release];
 }
 
 - (ZoomingScrollView *)dequeueRecycledPage {

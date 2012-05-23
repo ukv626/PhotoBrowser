@@ -29,16 +29,6 @@
 @synthesize listData = _listData;
 
 
-- (id)initWithURL:(NSURL *)url {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
-
-    if((self = [super initWithURL:url])) {
-        //
-    }
-    
-    return self;
-}
-
 - (BOOL)isDownloadable {
     return true;
 }
@@ -55,7 +45,9 @@
     [self sortByName];
 
     // Notificate delegate
-    [self.delegate handleLoadingDidEndNotification:self];
+    if ([self.delegate respondsToSelector:@selector(handleLoadingDidEndNotification:)]) {
+        [self.delegate handleLoadingDidEndNotification:self];
+    }
 }
 
 - (BOOL)isReceiving {
@@ -81,6 +73,14 @@
     
     // Open a CFFTPStream for the URL
     ftpStream = CFReadStreamCreateWithFTPURL(NULL, (CFURLRef)self.url);
+//    // Connection failed
+//    if (ftpStream == NULL) {
+//        // Notificate delegate
+//        if ([self.delegate respondsToSelector:@selector(handleLoadingDidEndNotification:)]) {
+//            [self.delegate handleLoadingDidEndNotification:self];
+//        }
+//        return;
+//    }
     assert(ftpStream != NULL);
     
     self.networkStream = (NSInputStream *)ftpStream;
@@ -101,9 +101,15 @@
 }
 
 // Shuts down the connection
-- (void)_stopReceiveWithStatus:(NSString *)statusString {    
-    if (self.networkStream != nil) {
+- (void)_stopReceiveWithStatus:(NSString *)statusString { 
+    if (statusString != nil) {
         NSLog(@"%s : %@", __PRETTY_FUNCTION__, statusString);
+        // Notificate delegate
+        if ([self.delegate respondsToSelector:@selector(handleErrorNotification:)]) {
+            [self.delegate handleErrorNotification:self];
+        }
+    }
+    if (self.networkStream != nil) {        
         [self.networkStream removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
         self.networkStream.delegate = nil;
         [self.networkStream close];
@@ -229,8 +235,6 @@
                 [self _stopReceiveWithStatus:@"Network read error"];
             } else if(bytesRead == 0) {
                 [self _stopReceiveWithStatus:nil];
-                // downloaded
-                
             } else {
                 assert(self.listData != nil);
                 
@@ -265,24 +269,11 @@
 - (void)dealloc {
     NSLog(@"%s", __PRETTY_FUNCTION__);
     
-    [self _stopReceiveWithStatus:@"Stopped"];
+    [self _stopReceiveWithStatus:nil];
    
     
     [super dealloc];
 }
 
-/*
-- (id)copyWithZone:(NSZone *)zone {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
-    
-    FtpLs *newCopy = [super copyWithZone: zone];
-    
-    [newCopy setListEntries:self.listEntries];
-    [newCopy setNetworkStream:self.networkStream];
-    [newCopy setListData:self.listData];
-    
-    return newCopy;
-}
-*/
 
 @end

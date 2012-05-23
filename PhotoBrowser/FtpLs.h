@@ -14,10 +14,6 @@
 
 @interface FtpLs : BaseLs <NSStreamDelegate>
 
-
-- (id)initWithURL:(NSURL *)url;
-
-//- (id)copyWithZone:(NSZone *)zone;
 - (BOOL)isDownloadable;
 
 - (void)startReceive;

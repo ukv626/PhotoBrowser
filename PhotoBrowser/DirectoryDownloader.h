@@ -20,6 +20,7 @@
 
 //
 - (void)handleLoadingDidEndNotification:(id)sender;
+- (void)handleErrorNotification:(id)sender;
 
 - (void)startReceive;
 

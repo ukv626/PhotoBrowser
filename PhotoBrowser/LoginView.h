@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 
-@interface LoginView : UIViewController < UITextFieldDelegate> {
+@interface LoginView : UIViewController < UITextFieldDelegate, UIAlertViewDelegate> {
     UILabel *_urlLabel;
     UILabel *_loginLabel;
     

@@ -86,6 +86,7 @@
     [_imageViews release];
     [_photos release];
 //    [_spinner release];
+    [_captionView release];
     [super dealloc];
 }
 
@@ -98,6 +99,7 @@
 }
 
 - (void)setPhotos:(NSMutableArray *)photos {
+    NSLog(@"%s", __PRETTY_FUNCTION__);
     
     // Release images
     for (NSUInteger i=0; i<[_imageViews count]; i++) {
@@ -114,6 +116,7 @@
 }
 
 - (void)prepareForReuse {
+    NSLog(@"%s", __PRETTY_FUNCTION__);
     [_captionView removeFromSuperview];
     self.captionView = nil;
     

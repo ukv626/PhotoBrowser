@@ -12,10 +12,6 @@
 
 @interface FtpDownloader : BaseDownloader <NSStreamDelegate>
 
-- (id)initWithURL:(NSURL *)url;
-
-//- (id)copyWithZone:(NSZone *)zone;
-
 - (void)startReceive;
 
 @end

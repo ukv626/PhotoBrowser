@@ -12,6 +12,7 @@
 
 @required
 - (void)handleLoadingDidEndNotification:(id)sender;
+- (void)handleErrorNotification:(id)sender;
 
 @optional
 - (void)handleLoadingProgressNotification:(NSUInteger)value;

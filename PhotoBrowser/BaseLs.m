@@ -25,7 +25,6 @@
 @implementation BaseLs
 
 @synthesize url = _url;
-//@synthesize path = _path;
 @synthesize username = _username;
 @synthesize password = _password;
 @synthesize delegate = _delegate;
@@ -65,6 +64,30 @@
     return  NO;
 }
 
+- (NSString *)pathToDownload {
+    NSString *result;
+    if ([_url.host isEqualToString:@"localhost"]) { 
+        result = [_url path];
+    }
+    else {
+        NSString *path = [NSString stringWithFormat:@"%@/%@", _url.host,_url.path];
+        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+        result = [[paths objectAtIndex:0] stringByAppendingPathComponent:path];
+    }
+    NSLog(@"PATH2DOWN %@", result);
+    return result;
+}
+
+- (BOOL)fileExist:(NSString *)filePath {
+    BOOL result = NO;
+    
+    if([[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
+        result = YES;
+    }
+    
+    return result;
+}
+
 - (BOOL)isImageFile:(NSString *)filename {
     BOOL result = NO;
     
@@ -83,9 +106,8 @@
     return result;
 }
 
-- (void)createDirectory:(NSString *)dirName {
-    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-    NSString *path = [[paths objectAtIndex:0] stringByAppendingPathComponent:dirName];
+- (void)createDirectory {
+    NSString *path = [self pathToDownload];
     NSError *error;
     
     //    NSLog(@"%@", path);

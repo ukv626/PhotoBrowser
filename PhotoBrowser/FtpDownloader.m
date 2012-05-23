@@ -8,41 +8,31 @@
 
 
 #import "FtpDownloader.h"
-#import "Photo.h"
 #import "LoadingDelegate.h"
+#import "Photo.h"
 
 #import <CFNetwork/CFNetwork.h>
 
 @implementation FtpDownloader
 
 
-
-- (id)initWithURL:(NSURL *)url {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
+- (void)dealloc {
+    //    NSLog(@"%s", __PRETTY_FUNCTION__);    
+    [self _stopReceiveWithStatus:@"Stopped"];
     
-    return [super initWithURL:url];
+    [super dealloc];
 }
 
-
-
-
-
 - (void)startReceive {
-    //    NSLog(@"%s", __PRETTY_FUNCTION__);
-    NSLog(@"%s: %@ [%@]", __PRETTY_FUNCTION__, self.url, self.username);
+    NSLog(@"%s", __PRETTY_FUNCTION__);
     
 //    _fileSize = 0;
     
     assert(self.networkStream == nil);
     assert(self.fileStream == nil);
 
-    NSLog(@"write to: ");
-    NSString *filename = [NSString stringWithFormat:@"%@/%@", [self.url host],[self.url path]];
-    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-    NSString *filePath = [[paths objectAtIndex:0] stringByAppendingPathComponent:filename];
-    self.fileStream = [NSOutputStream outputStreamToFileAtPath:filePath append:NO];
+    self.fileStream = [NSOutputStream outputStreamToFileAtPath:[self pathToDownload] append:NO];
     [self.fileStream open];        
-
     
     BOOL success;
     CFReadStreamRef ftpStream;
@@ -192,29 +182,6 @@
         } break;
     }
 }
-    
 
-
-- (void)dealloc {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
-    
-    [self _stopReceiveWithStatus:@"Stopped"];
-
-    
-    [super dealloc];
-}
-
-/*
-- (id)copyWithZone:(NSZone *)zone {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
-    
-    FtpDownloader *newCopy = [super copyWithZone: zone];
-    
-    [newCopy setFileStream:self.fileStream];
-    [newCopy setNetworkStream:self.networkStream];
-    
-    return newCopy;
-}
-*/
 
 @end

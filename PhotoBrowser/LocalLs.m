@@ -12,15 +12,6 @@
 
 @implementation LocalLs
 
-- (id)initWithURL:(NSURL *)url {
-    NSLog(@"%s [%@]", __PRETTY_FUNCTION__, url);
-    
-    if((self = [super initWithURL:url])) {
-        //
-    }
-    
-    return self;
-}
 
 - (void)dealloc {
     NSLog(@"%s", __PRETTY_FUNCTION__);

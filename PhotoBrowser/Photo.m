@@ -19,7 +19,6 @@
     // Image sources
     NSUInteger _photoNumber;
     NSString *_photoPath;
-//    NSURL *_photoURL;
     
     // Image
     UIImage *_underlyingImage;
@@ -31,7 +30,6 @@
 
 // Properties
 @property (nonatomic, retain) UIImage *underlyingImage;
-//@property (nonatomic, copy) NSURL *photoURL;
 
 // Methods
 - (void)imageDidFinishLoadingSoDecompress;
@@ -73,32 +71,22 @@
     return  self;
 }
 
-- (id)initWithDriver:(FtpDownloader *)driver {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
+- (id)initWithDriver:(FtpDownloader *)driver:(NSString *)photoPath {
+//    NSLog(@"%s", __PRETTY_FUNCTION__);
     
     if((self = [super init])) {
         // Custom initialization
         self.driver = driver; //[driver retain];
         self.driver.delegate = self;
-        
-        NSString *host = [self.driver.url host];
-        if (host == nil) {
-            // if Local url
-            self.photoPath = [self.driver.url path];
-        } else {
-            NSString *filename = [NSString stringWithFormat:@"%@/%@", [self.driver.url host],[self.driver.url path]];
-            NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-            self.photoPath = [[paths objectAtIndex:0] stringByAppendingPathComponent:filename];
-        }
+        self.photoPath = photoPath;
     }
     return self;
 }
 
 - (void)dealloc {
-    NSLog(@"%s [%@]", __PRETTY_FUNCTION__, self.photoPath);
+//    NSLog(@"%s [%@]", __PRETTY_FUNCTION__, [self.photoPath lastPathComponent]);
     [_driver release];
     [_photoPath release];
-//    [_photoURL release];
     [_underlyingImage release];
     
     [super dealloc];
@@ -119,6 +107,10 @@
     }
     
     return result;
+}
+
+- (void)handleErrorNotification:(id)sender {
+    NSLog(@"%s %@", __PRETTY_FUNCTION__, sender);
 }
 
 - (void)handleLoadingDidEndNotification:(id)sender {

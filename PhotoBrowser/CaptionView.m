@@ -20,15 +20,31 @@ static const CGFloat labelPadding = 10;
 
 @implementation CaptionView
 
-- (id)initWithPhoto:(id<PhotoDelegate>)photo {
+- (id)initWithText:(NSString *)text {
+    NSLog(@"%s", __PRETTY_FUNCTION__);
     self = [super initWithFrame:CGRectMake(0, 0, 320, 33)]; //Random initial frame
     if (self) {
         // Initialization code
-        _photo = [photo retain];
         self.opaque = NO;
         self.backgroundColor = [UIColor colorWithWhite:0 alpha:0.6];
         self.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleTopMargin|UIViewAutoresizingFlexibleLeftMargin|UIViewAutoresizingFlexibleRightMargin;
-        [self setupCaption];
+
+        _label = [[UILabel alloc] initWithFrame:CGRectMake(labelPadding, 0, 
+                                                           self.bounds.size.width - labelPadding*2, 
+                                                           self.bounds.size.height)];
+        _label.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
+        _label.opaque = NO;
+        _label.backgroundColor = [UIColor clearColor];
+        _label.textAlignment = UITextAlignmentCenter;
+        _label.lineBreakMode = UILineBreakModeWordWrap;
+        _label.numberOfLines = 3;    
+        _label.textColor = [UIColor whiteColor];
+        _label.shadowColor = [UIColor blackColor];
+        _label.shadowOffset = CGSizeMake(1.0, 1.0);
+        _label.font = [UIFont systemFontOfSize:17];
+        _label.text = text;
+        
+        [self addSubview:_label];
     }
     return self;
 }
@@ -42,34 +58,14 @@ static const CGFloat labelPadding = 10;
 }
 
 
-- (void)setupCaption {
-    _label = [[UILabel alloc] initWithFrame:CGRectMake(labelPadding, 0, 
-                                                       self.bounds.size.width - labelPadding*2, 
-                                                       self.bounds.size.height)];
-    _label.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
-    _label.opaque = NO;
-    _label.backgroundColor = [UIColor clearColor];
-    _label.textAlignment = UITextAlignmentCenter;
-    _label.lineBreakMode = UILineBreakModeWordWrap;
-    _label.numberOfLines = 3;    
-    _label.textColor = [UIColor whiteColor];
-    _label.shadowColor = [UIColor blackColor];
-    _label.shadowOffset = CGSizeMake(1.0, 1.0);
-    _label.font = [UIFont systemFontOfSize:17];
-    if ([_photo respondsToSelector:@selector(caption)]) {
-        _label.text = [_photo caption] ? [_photo caption] : @"";
-    }
-    [self addSubview:_label];
-}
-
 - (void)setupCaptionText:(NSString *)text {
+    NSLog(@"%s", __PRETTY_FUNCTION__);
     _label.text = text;
 }
 
 - (void)dealloc {
     NSLog(@"%s", __PRETTY_FUNCTION__);
     [_label release];
-    [_photo release];
     
     [super dealloc];
 }

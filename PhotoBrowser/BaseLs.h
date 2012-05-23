@@ -13,7 +13,6 @@
 @interface BaseLs : NSObject
 
 @property (nonatomic, copy) NSURL *url;
-//@property (nonatomic, copy) NSString *path;
 @property (nonatomic, copy) NSString *username;
 @property (nonatomic, copy) NSString *password;
 
@@ -21,14 +20,14 @@
 @property (nonatomic, readonly) NSMutableArray *listEntries;
 
 - (id)initWithURL:(NSURL *)url;
-//- (id)initWithPath:(NSString *)path;
-//- (id)copyWithZone:(NSZone *)zone;
 
 - (void)sortByName;
 
 - (BOOL)isDownloadable;
+- (NSString *)pathToDownload;
+- (BOOL)fileExist:(NSString *)filePath;
 - (BOOL)isImageFile:(NSString *)filename;
-- (void)createDirectory:(NSString *)path;
+- (void)createDirectory;
 
 - (void)startReceive;
 

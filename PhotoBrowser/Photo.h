@@ -28,9 +28,10 @@
 - (id)initWithImage:(UIImage *)image;
 - (id)initWithFilePath:(NSString *)path;
 //- (id)initWithURL:(NSURL *)url;
-- (id)initWithDriver:(FtpDownloader *)driver;
+- (id)initWithDriver:(FtpDownloader *)driver:(NSString *)photoPath;
 
 //
 - (void)handleLoadingDidEndNotification:(id)sender;
+- (void)handleErrorNotification:(id)sender;
 
 @end

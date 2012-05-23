@@ -12,9 +12,8 @@
 @interface CaptionView : UIView
 
 // Init
-- (id)initWithPhoto:(id<PhotoDelegate>)photo;
+- (id)initWithText:(NSString *)text;
 
-- (void)setupCaption;
 - (void)setupCaptionText:(NSString *)text;
 
 - (CGSize)sizeThatFits:(CGSize)size;

@@ -24,6 +24,7 @@
 
 - (id)initWithURL:(NSURL *)url;
 
+- (NSString *)pathToDownload;
 - (void)startReceive;
 
 @end

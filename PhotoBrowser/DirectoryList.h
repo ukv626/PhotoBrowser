@@ -11,12 +11,14 @@
 @class BaseLs;
 #import "LoadingDelegate.h"
 
-@interface DirectoryList : UITableViewController <NSStreamDelegate, LoadingDelegate, UISearchBarDelegate>
+@interface DirectoryList : UITableViewController <LoadingDelegate, UISearchBarDelegate, 
+                                    UIDocumentInteractionControllerDelegate,UIAlertViewDelegate>
 
 // Init
 - (id)initWithDriver:(BaseLs *)driver;
 
 //
 - (void)handleLoadingDidEndNotification:(id)sender;
+- (void)handleErrorNotification:(id)sender;
 
 @end
