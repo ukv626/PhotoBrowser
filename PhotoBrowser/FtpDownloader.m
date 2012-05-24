@@ -17,8 +17,10 @@
 
 
 - (void)dealloc {
-    //    NSLog(@"%s", __PRETTY_FUNCTION__);    
-    [self _stopReceiveWithStatus:@"Stopped"];
+    NSLog(@"%s", __PRETTY_FUNCTION__);    
+    if ([self isReceiving]) {
+        [self _stopReceiveWithStatus:@"Stopped"];
+    }
     
     [super dealloc];
 }
@@ -61,9 +63,13 @@
 }
 
 // Shuts down the connection
-- (void)_stopReceiveWithStatus:(NSString *)statusString {    
-    if (self.networkStream != nil) {
+- (void)_stopReceiveWithStatus:(NSString *)statusString {
+    if (statusString != nil) {
         NSLog(@"%s : %@", __PRETTY_FUNCTION__, statusString);
+    }
+
+    if (self.networkStream != nil) {
+        
         [self.networkStream removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
         self.networkStream.delegate = nil;
         [self.networkStream close];

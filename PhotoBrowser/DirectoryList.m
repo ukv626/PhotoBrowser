@@ -70,6 +70,7 @@
 
 - (void)dealloc {
     NSLog(@"%s", __PRETTY_FUNCTION__);
+    [self _receiveDidStop];
     
     [_driver release];
     
@@ -91,11 +92,6 @@
 #pragma mark * View controller boilerplate
 - (void)loadView {
     [super loadView];
-    
-    self.title = [_driver.url lastPathComponent];
-    if([self.title length] == 0) {
-        self.title = [_driver.url host];
-    }
     
     _activityIndicator = [[UIActivityIndicatorView alloc]initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
     [self.view addSubview:_activityIndicator];
@@ -181,7 +177,11 @@
 
 - (void)_receiveDidStart {
     //[self.tableView reloadData];
+    UIApplication *app = [UIApplication sharedApplication];
+    app.networkActivityIndicatorVisible = YES;
+    
     [_activityIndicator startAnimating];
+    
     [_driver startReceive];
 }
 
@@ -191,6 +191,9 @@
 
 
 - (void)_receiveDidStop {
+    UIApplication *app = [UIApplication sharedApplication];
+    app.networkActivityIndicatorVisible = NO;
+    
     [_activityIndicator stopAnimating];
 }
 
@@ -208,6 +211,12 @@
     
     if([[sender class] isSubclassOfClass:[BaseLs class]]) {
         // Notification from BaseLs
+
+        self.title = [_driver.url lastPathComponent];
+        if(([self.title length] == 0) || ([self.title isEqualToString:@"/"]))  {
+            self.title = [_driver.url host];
+        }
+        
         if ([_driver isDownloadable]) {
             _downloadButton.enabled = YES;
         }
@@ -525,18 +534,15 @@ static NSDateFormatter *sDateFormatter;
     
     
     if(cell.accessoryType == UITableViewCellAccessoryDisclosureIndicator) {                
-//        NSString *path = [[[_driver.url absoluteString] stringByAppendingPathComponent:cell.textLabel.text] stringByAppendingString:@"/"];
-        _driver.url = [NSURL URLWithString:[NSString stringWithFormat:@"%@/%@/", [_driver.url absoluteString], 
+        _driver.url = [NSURL URLWithString:[NSString stringWithFormat:@"%@%@/", [_driver.url absoluteString], 
                                            [cell.textLabel.text stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]]];
-        //_driver.url = [NSURL URLWithString:path];
-        NSLog(@"URL %@", [_driver.url absoluteString]);
+
         // Push url
         [_urls addObject:_driver.url];
         [self _receiveDidStart];  
     } else {
         NSString *filePath = [[_driver pathToDownload] stringByAppendingPathComponent:cell.textLabel.text];
         // file already downloaded
-        NSLog(@"FILEPATH: %@", filePath);
         if ([_driver fileExist:filePath]) {
             NSLog(@"ALREADY DOWNLOADED");
             if([_driver isImageFile:filePath]) {
@@ -654,6 +660,7 @@ static NSDateFormatter *sDateFormatter;
 // UIAlertViewDelegate
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
     [alertView release];
+    [self.navigationController popViewControllerAnimated:YES];
 }
 
 @end

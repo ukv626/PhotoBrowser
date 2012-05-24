@@ -74,7 +74,6 @@
         NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
         result = [[paths objectAtIndex:0] stringByAppendingPathComponent:path];
     }
-    NSLog(@"PATH2DOWN %@", result);
     return result;
 }
 

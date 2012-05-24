@@ -32,4 +32,6 @@
 - (IBAction)localButton_Clicked:(id)sender;
 - (IBAction)connectButton_Clicked:(id)sender;
 
+- (void)setTextFields:(NSString *)urlStr username:(NSString *)username password:(NSString *)password;
+- (NSString *)connectionsFilePath;
 @end

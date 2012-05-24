@@ -12,6 +12,7 @@
 #import "DirectoryList.h"
 #import "LocalLs.h"
 #import "FtpLs.h"
+#import "ConnectionsList.h"
 
 
 @interface LoginView () {
@@ -37,6 +38,23 @@
 
 
 #pragma mark * View controller boilerplate
+
+- (void)dealloc {
+    NSLog(@"%s", __PRETTY_FUNCTION__);
+    
+    [_buttons release];
+    
+    [_urlLabel release];
+    [_loginLabel release];
+    [_urlText release];
+    [_usernameText release];
+    [_passwordText release];
+    [_activityIndicator release];
+    [_localButton release];
+    [_connectButton release];
+    
+    [super dealloc];
+}
 
 - (void)loadView {
     NSLog(@"%s", __PRETTY_FUNCTION__);
@@ -69,6 +87,7 @@
     _usernameText.borderStyle = UITextBorderStyleRoundedRect;
     _usernameText.placeholder = @"Username";
     _usernameText.clearButtonMode = UITextFieldViewModeWhileEditing;
+    _usernameText.autocapitalizationType = UITextAutocapitalizationTypeNone;
     _usernameText.text = @"ukv";
     
     _passwordText = [[UITextField alloc] init];
@@ -118,6 +137,8 @@
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     
+    [self.navigationController setToolbarHidden:NO animated:YES];
+    
 //    self.usernameText.text = @"usename"; //[[NSUserDefaults standardUserDefaults] stringForKey:@"Username"];
 //    self.passwordText.text = @"password"; //[[NSUserDefaults standardUserDefaults] stringForKey:@"Password"];
 }
@@ -166,25 +187,6 @@
     //self.view.frame = [self frameForMainView];
 }
 
-
-
-- (void)dealloc {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
-    
-    [_buttons release];
-    
-    [_urlLabel release];
-    [_loginLabel release];
-    [_urlText release];
-    [_usernameText release];
-    [_passwordText release];
-    [_activityIndicator release];
-    [_localButton release];
-    [_connectButton release];
-    
-    [super dealloc];
-}
-
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
 {
     return YES; //(interfaceOrientation == UIInterfaceOrientationPortrait);
@@ -201,12 +203,49 @@
 }
  */
 
+// --------------
+- (NSString *)connectionsFilePath {
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *result = [[paths objectAtIndex:0] stringByAppendingPathComponent:@"connections.plist"]; 
+    
+    return result;
+}
+
+- (void)setTextFields:(NSString *)url username:(NSString *)username password:(NSString *)password {
+    _urlText.text = url;
+    _usernameText.text = username;
+    _passwordText.text = password;
+}
+
 - (void)addButton_Clicked:(id)sender {
     NSLog(@"%s", __PRETTY_FUNCTION__);
+    
+    NSMutableDictionary *dictionary = [[NSMutableDictionary alloc] initWithContentsOfFile:[self connectionsFilePath]];
+
+    NSDictionary *innerDict = [dictionary objectForKey:_urlText.text];
+    if (innerDict) {
+        [innerDict setValue:_usernameText.text forKey:@"username"];
+        [innerDict setValue:_passwordText.text forKey:@"password"];
+    } else {
+        innerDict = [NSDictionary dictionaryWithObjects:
+                     [NSArray arrayWithObjects:_usernameText.text, _passwordText.text, nil] 
+                                                forKeys:[NSArray arrayWithObjects:@"username", @"password", nil]];
+    }
+    [dictionary setObject:innerDict forKey:_urlText.text];
+    [dictionary writeToFile:[self connectionsFilePath] atomically:YES];
+    [dictionary release];
 }
 
 - (void)listButton_Clicked:(id)sender {
     NSLog(@"%s", __PRETTY_FUNCTION__);
+    
+    ConnectionsList *list = [[ConnectionsList alloc] initWithStyle:UITableViewStylePlain];
+    list.delegate = self;
+    
+    [self.navigationController pushViewController:list animated:YES];
+    
+    // Release
+    [list release];
 }
 
 - (IBAction)localButton_Clicked:(id)sender {

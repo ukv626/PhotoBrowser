@@ -15,8 +15,7 @@
     id<LoadingDelegate> _delegate;
     
     BaseLs *_driver;
-    NSMutableArray *_files;
-    NSUInteger _downloaded;
+    NSMutableArray *_fileDrivers;
 }
 @end
 
@@ -31,8 +30,7 @@
         // Custom initialization
         _driver = [driver retain];
         
-        _files = [[NSMutableArray alloc] init];
-        _downloaded = 0;
+        _fileDrivers = [[NSMutableArray alloc] init];
     }
     return self;
 }
@@ -40,7 +38,7 @@
 - (void)dealloc {
     NSLog(@"%s", __PRETTY_FUNCTION__);
     [_driver release];
-    [_files release];
+    [_fileDrivers release];
     
     [super dealloc];
 }
@@ -50,11 +48,13 @@
 }
 
 - (void)handleLoadingDidEndNotification:(id)sender {
-    NSLog(@"%s [%d/%d]", __PRETTY_FUNCTION__, _downloaded, [_files count]);
-    ++_downloaded;
-    if([_delegate respondsToSelector:@selector(handleLoadingDidEndNotification:)]) {
-        if (_downloaded == [_files count]) {
-            // Notificate DirectoryList about all files downloaded
+    NSLog(@"%s", __PRETTY_FUNCTION__);
+    
+    [_fileDrivers removeObject:sender];
+    
+    // Notificate DirectoryList about all files downloaded
+    if ([_fileDrivers count] == 0) {
+        if([_delegate respondsToSelector:@selector(handleLoadingDidEndNotification:)]) {
             [_delegate handleLoadingDidEndNotification:self];
         }
     }
@@ -74,7 +74,7 @@
             driver.password = _driver.password;
             driver.delegate = self;
             driver.delegateProgress = _delegate;
-            [_files addObject:driver];
+            [_fileDrivers addObject:driver];
             [driver startReceive];
             [driver release];
         }

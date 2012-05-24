@@ -28,6 +28,14 @@
 @synthesize networkStream = _networkStream;
 @synthesize listData = _listData;
 
+- (void)dealloc {
+    NSLog(@"%s", __PRETTY_FUNCTION__);
+    if ([self isReceiving]) {
+        [self _stopReceiveWithStatus:nil];
+    }
+    
+    [super dealloc];
+}
 
 - (BOOL)isDownloadable {
     return true;
@@ -39,15 +47,8 @@
     
     assert(self.listEntries != nil);
         
-
-
     [self.listEntries addObjectsFromArray:newEntries];
     [self sortByName];
-
-    // Notificate delegate
-    if ([self.delegate respondsToSelector:@selector(handleLoadingDidEndNotification:)]) {
-        [self.delegate handleLoadingDidEndNotification:self];
-    }
 }
 
 - (BOOL)isReceiving {
@@ -234,7 +235,13 @@
             if (bytesRead == -1) {
                 [self _stopReceiveWithStatus:@"Network read error"];
             } else if(bytesRead == 0) {
+                // downloaded
                 [self _stopReceiveWithStatus:nil];
+                
+                // Notificate delegate
+                if ([self.delegate respondsToSelector:@selector(handleLoadingDidEndNotification:)]) {
+                    [self.delegate handleLoadingDidEndNotification:self];
+                }
             } else {
                 assert(self.listData != nil);
                 
@@ -266,14 +273,7 @@
 }
 
 
-- (void)dealloc {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
-    
-    [self _stopReceiveWithStatus:nil];
-   
-    
-    [super dealloc];
-}
+
 
 
 @end

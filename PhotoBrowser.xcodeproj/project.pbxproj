@@ -38,6 +38,7 @@
 		019DED091563B7530008F616 /* CaptionView.m in Sources */ = {isa = PBXBuildFile; fileRef = 019DED081563B7520008F616 /* CaptionView.m */; };
 		01AB923B155545FC009E5E12 /* DirectoryList.m in Sources */ = {isa = PBXBuildFile; fileRef = 01AB923A155545FC009E5E12 /* DirectoryList.m */; };
 		01DF222E1536FAD10089B7F2 /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 01DF222D1536FAD00089B7F2 /* CFNetwork.framework */; };
+		01FC27E0156E23CC00C5549C /* ConnectionsList.m in Sources */ = {isa = PBXBuildFile; fileRef = 01FC27DF156E23CC00C5549C /* ConnectionsList.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -95,6 +96,8 @@
 		01AB9239155545FC009E5E12 /* DirectoryList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DirectoryList.h; sourceTree = "<group>"; };
 		01AB923A155545FC009E5E12 /* DirectoryList.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DirectoryList.m; sourceTree = "<group>"; };
 		01DF222D1536FAD00089B7F2 /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = System/Library/Frameworks/CFNetwork.framework; sourceTree = SDKROOT; };
+		01FC27DE156E23CC00C5549C /* ConnectionsList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConnectionsList.h; sourceTree = "<group>"; };
+		01FC27DF156E23CC00C5549C /* ConnectionsList.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConnectionsList.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -184,6 +187,8 @@
 				01AB923A155545FC009E5E12 /* DirectoryList.m */,
 				017914131552C03500878E0C /* LoginView.h */,
 				017914141552C03500878E0C /* LoginView.m */,
+				01FC27DE156E23CC00C5549C /* ConnectionsList.h */,
+				01FC27DF156E23CC00C5549C /* ConnectionsList.m */,
 				017252FB1536BAFE00775BA8 /* Photo.h */,
 				017252FC1536BAFE00775BA8 /* Photo.m */,
 				019DED071563B7520008F616 /* CaptionView.h */,
@@ -299,6 +304,7 @@
 				0178C38B1564F818001486EC /* DirectoryDownloader.m in Sources */,
 				0179E5C51566290D0043AE52 /* BaseDownloader.m in Sources */,
 				0179E5D11566338C0043AE52 /* LocalLs.m in Sources */,
+				01FC27E0156E23CC00C5549C /* ConnectionsList.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
