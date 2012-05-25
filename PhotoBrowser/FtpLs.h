@@ -16,6 +16,9 @@
 
 - (BOOL)isDownloadable;
 
+- (BaseLs *)createLsDriverWithURL:(NSURL *)url;
+- (BaseDownloader *)createDownloaderDriverWithURL:(NSURL *)url;
+
 - (void)startReceive;
 
 @end

@@ -8,6 +8,7 @@
 
 #import "BaseLs.h"
 #import "EntryLs.h"
+#import "BaseDownloader.h"
 
 @interface BaseLs() {
     NSURL *_url;
@@ -118,6 +119,15 @@
         }
     }
     
+}
+
+- (BaseLs *)createLsDriverWithURL:(NSURL *)url {
+    return nil;
+}
+
+- (BaseDownloader *)createDownloaderDriverWithURL:(NSURL *)url {
+    NSLog(@"%s", __PRETTY_FUNCTION__);
+    return  nil;
 }
 
 - (void)startReceive {

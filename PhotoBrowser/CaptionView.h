@@ -12,7 +12,7 @@
 @interface CaptionView : UIView
 
 // Init
-- (id)initWithText:(NSString *)text;
+- (id)initWithPhoto:(id<PhotoDelegate>)photo;
 
 - (void)setupCaptionText:(NSString *)text;
 

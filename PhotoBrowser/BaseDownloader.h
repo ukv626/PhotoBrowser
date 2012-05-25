@@ -16,11 +16,13 @@
 @property (nonatomic, copy) NSString *password;
 
 @property (assign) id<LoadingDelegate> delegate;
-@property (assign) id<LoadingDelegate> delegateProgress;
 
 @property (nonatomic, readonly) BOOL isReceiving;
 @property (nonatomic, retain) NSInputStream *networkStream;
 @property (nonatomic, retain) NSOutputStream *fileStream;
+
+@property (nonatomic, assign) NSUInteger totalFileSize;
+@property (nonatomic, assign) NSUInteger downloadedFileSize;
 
 - (id)initWithURL:(NSURL *)url;
 

@@ -659,7 +659,7 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
     CaptionView *captionView = nil;
     id <PhotoDelegate> photo = [self photoAtIndex:index];
     if ([photo respondsToSelector:@selector(caption)]) {
-        captionView = [[[CaptionView alloc] initWithText:[photo caption]] autorelease];
+        captionView = [[[CaptionView alloc] initWithPhoto:photo] autorelease];
     }
     captionView.alpha = [self areControlsHidden] ? 0 : 1; // Initial alpha
     return captionView;

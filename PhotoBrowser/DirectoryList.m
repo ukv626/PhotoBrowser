@@ -11,7 +11,7 @@
 
 #import "Browser.h"
 #import "BaseLs.h"
-#import "FtpDownloader.h"
+#import "BaseDownloader.h"
 #import "DirectoryDownloader.h"
 #import "EntryLs.h"
 
@@ -23,8 +23,8 @@
     
     // ProgressView 
     UIProgressView *_progressView;
-    double _totalFilesSize;
-    double _downloadedFilesSize;
+//    double _totalFilesSize;
+//    double _downloadedFilesSize;
     
     // Toolbar
     NSMutableArray *_buttons;
@@ -39,8 +39,8 @@
     BOOL _searching;
     BOOL _letUserSelectRow;
     
+    BaseDownloader *_fileDownloader;
     DirectoryDownloader *_dirDownloader;
-    FtpDownloader *_fileDownloader;
         
     UIActivityIndicatorView *_activityIndicator;
 }
@@ -206,6 +206,11 @@
     [alert show];
 }
 
+- (void)handleLoadingProgressNotification:(double)value {
+    // Notification from DirectoryDownloader or BaseDownloader
+    _progressView.progress = value;
+}
+
 - (void)handleLoadingDidEndNotification:(id)sender {
     NSLog(@"%s %@", __PRETTY_FUNCTION__, sender);
     
@@ -262,12 +267,7 @@
     }
 }
 
-- (void)handleLoadingProgressNotification:(NSUInteger)value {
-    // Notification from FtpDownloader
-    _downloadedFilesSize += value / (1024.0 * 1024.0);
-//    NSLog(@"downloaded: %.2f/%.2f", _downloadedFilesSize, _totalFilesSize);
-    _progressView.progress = _downloadedFilesSize / _totalFilesSize;
-}
+
 
 - (void)backButton_Clicked:(id)sender {
     NSLog(@"%s", __PRETTY_FUNCTION__);
@@ -297,13 +297,6 @@
         [_driver createDirectory];
         
         _downloadButton.enabled = NO;
-        _downloadedFilesSize = 0.0;
-        _totalFilesSize = 0.0;
-        for (EntryLs *entry in _driver.listEntries) {
-            if(![entry isDir]) {
-                _totalFilesSize += [entry size] / (1024.0 * 1024.0);
-            }
-        }
         
         self.navigationItem.titleView = _progressView;
         [self.navigationItem setHidesBackButton:YES animated:NO];
@@ -323,14 +316,11 @@
 
             if([filename isEqualToString:currentFilename]) pageIndex = i;
             
-            FtpDownloader *downloadDriver = [[FtpDownloader alloc] initWithURL:[NSURL URLWithString:fileURL]];
-            downloadDriver.username = _driver.username;
-            downloadDriver.password = _driver.password;
+            BaseDownloader *downloadDriver = [_driver createDownloaderDriverWithURL:[NSURL URLWithString:fileURL]];
             
             NSString *photoPath = [[_driver pathToDownload] stringByAppendingPathComponent:filename];
             Photo *photo = [[Photo alloc] initWithDriver:downloadDriver :photoPath];
             photo.caption = filename;
-            [downloadDriver release];
             
             [photos addObject:photo];
             [photo release];
@@ -555,16 +545,13 @@ static NSDateFormatter *sDateFormatter;
             if ([_driver isDownloadable]) {
                 [_driver createDirectory];
             }
-
-            EntryLs *entry = [_driver.listEntries objectAtIndex:indexPath.row];
-            _totalFilesSize = [entry size] / (1024.0 * 1024.0);
         
             NSString *fileURL = [[_driver.url absoluteString] stringByAppendingString:[cell.textLabel.text stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
-            _fileDownloader = [[FtpDownloader alloc] initWithURL:[NSURL URLWithString:fileURL]];
-            _fileDownloader.username = _driver.username;
-            _fileDownloader.password = _driver.password;
+            _fileDownloader = [[_driver createDownloaderDriverWithURL:[NSURL URLWithString:fileURL]] retain];
             _fileDownloader.delegate = self;
-            _fileDownloader.delegateProgress = self;
+            
+            EntryLs *entry = [_driver.listEntries objectAtIndex:indexPath.row];
+            _fileDownloader.totalFileSize = [entry size];
                 
             self.navigationItem.titleView = _progressView;
             [self.navigationItem setHidesBackButton:YES animated:YES];

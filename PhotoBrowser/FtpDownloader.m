@@ -17,9 +17,9 @@
 
 
 - (void)dealloc {
-    NSLog(@"%s", __PRETTY_FUNCTION__);    
+//    NSLog(@"%s", __PRETTY_FUNCTION__);    
     if ([self isReceiving]) {
-        [self _stopReceiveWithStatus:@"Stopped"];
+        [self _stopReceiveWithStatus:nil];
     }
     
     [super dealloc];
@@ -66,6 +66,10 @@
 - (void)_stopReceiveWithStatus:(NSString *)statusString {
     if (statusString != nil) {
         NSLog(@"%s : %@", __PRETTY_FUNCTION__, statusString);
+        // error, so notificate
+        if([self.delegate respondsToSelector:@selector(handleLoadingDidEndNotification:)]) {
+            [self.delegate handleLoadingDidEndNotification:self];
+        }
     }
 
     if (self.networkStream != nil) {
@@ -163,9 +167,16 @@
                 } while (bytesWrittensoFar != bytesRead);
                 
                 // Progress notification
-                if ([self.delegateProgress respondsToSelector:@selector(handleLoadingProgressNotification:)]) {
-                    [self.delegateProgress handleLoadingProgressNotification:bytesWrittensoFar];
-                }
+                if ([self.delegate respondsToSelector:@selector(handleLoadingProgressNotification:)]) {
+                    if(!self.totalFileSize) {
+                        [self.delegate handleLoadingProgressNotification:(double)bytesWrittensoFar];
+                    }
+                    else {
+                        self.downloadedFileSize += (double)bytesWrittensoFar;
+                        [self.delegate handleLoadingProgressNotification:
+                              (double)self.downloadedFileSize / (double)self.totalFileSize];
+                    }
+                }                                            
                 //_fileSize += bytesWrittensoFar;
             }
         } break;

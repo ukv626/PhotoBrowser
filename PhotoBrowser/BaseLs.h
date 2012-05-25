@@ -9,6 +9,7 @@
 #import <Foundation/Foundation.h>
 
 @protocol LoadingDelegate;
+@class BaseDownloader;
 
 @interface BaseLs : NSObject
 
@@ -29,6 +30,8 @@
 - (BOOL)isImageFile:(NSString *)filename;
 - (void)createDirectory;
 
+- (BaseLs *)createLsDriverWithURL:(NSURL *)url;
+- (BaseDownloader *)createDownloaderDriverWithURL:(NSURL *)url;
 - (void)startReceive;
 
 

@@ -9,12 +9,12 @@
 #import <Foundation/Foundation.h>
 #import "PhotoDelegate.h"
 #import "LoadingDelegate.h"
-#import "FtpDownloader.h"
+#import "BaseDownloader.h"
 
 @interface Photo : NSObject <PhotoDelegate, LoadingDelegate >
 
 @property (assign) id<LoadingDelegate> delegate;
-@property (nonatomic, retain) FtpDownloader* driver;
+@property (nonatomic, retain) BaseDownloader* driver;
 @property (nonatomic, copy) NSString *photoPath;
 @property (nonatomic, assign) NSUInteger photoNumber;
 @property (nonatomic, copy) NSString *caption;
@@ -28,7 +28,7 @@
 - (id)initWithImage:(UIImage *)image;
 - (id)initWithFilePath:(NSString *)path;
 //- (id)initWithURL:(NSURL *)url;
-- (id)initWithDriver:(FtpDownloader *)driver:(NSString *)photoPath;
+- (id)initWithDriver:(BaseDownloader *)driver:(NSString *)photoPath;
 
 //
 - (void)handleLoadingDidEndNotification:(id)sender;

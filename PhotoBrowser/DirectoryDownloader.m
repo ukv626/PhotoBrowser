@@ -9,13 +9,18 @@
 #import "DirectoryDownloader.h"
 #import "BaseLs.h"
 #import "EntryLs.h"
-#import "FtpDownloader.h"
+#import "BaseDownloader.h"
+#import "FtpLs.h"
 
 @interface DirectoryDownloader() {
     id<LoadingDelegate> _delegate;
     
     BaseLs *_driver;
     NSMutableArray *_fileDrivers;
+    NSMutableArray *_newdirDrivers;
+
+    double _totalFilesSize;
+    double _downloadedFilesSize;
 }
 @end
 
@@ -31,6 +36,7 @@
         _driver = [driver retain];
         
         _fileDrivers = [[NSMutableArray alloc] init];
+        _newdirDrivers = [[NSMutableArray alloc] init];
     }
     return self;
 }
@@ -39,6 +45,7 @@
     NSLog(@"%s", __PRETTY_FUNCTION__);
     [_driver release];
     [_fileDrivers release];
+    [_newdirDrivers release];
     
     [super dealloc];
 }
@@ -47,37 +54,76 @@
     NSLog(@"%s %@", __PRETTY_FUNCTION__, sender);
 }
 
+- (void)handleLoadingProgressNotification:(double)value {
+    // Notification from FtpDownloader
+    _downloadedFilesSize += value / (1024.0 * 1024.0);
+ 
+    // Notificate DirectoryList
+    if ([_delegate respondsToSelector:@selector(handleLoadingProgressNotification:)]) {
+        [_delegate handleLoadingProgressNotification:_downloadedFilesSize / _totalFilesSize];
+    }
+}
+
 - (void)handleLoadingDidEndNotification:(id)sender {
+    if([[sender class] isSubclassOfClass:[BaseLs class]]) {
+        // Notification from BasLs
+        // get file from this directory
+        [self addFileDrivers:sender];
+        [_newdirDrivers removeObject:sender];
+        
+        // просмотрены все директории - начинаем скачивание
+        if (![_newdirDrivers count]) {
+            [self downloadAllFiles];
+        }
+    } else if ([[sender class] isSubclassOfClass:[BaseDownloader class]]) {
+        [_fileDrivers removeObject:sender];
+    
+        // All files downloaded - Notificate DirectoryList
+        if (![_fileDrivers count]) {
+            if([_delegate respondsToSelector:@selector(handleLoadingDidEndNotification:)]) {
+                [_delegate handleLoadingDidEndNotification:self];
+            }
+        }
+    } }
+
+- (void)downloadAllFiles {
     NSLog(@"%s", __PRETTY_FUNCTION__);
-    
-    [_fileDrivers removeObject:sender];
-    
-    // Notificate DirectoryList about all files downloaded
-    if ([_fileDrivers count] == 0) {
-        if([_delegate respondsToSelector:@selector(handleLoadingDidEndNotification:)]) {
-            [_delegate handleLoadingDidEndNotification:self];
+    for (BaseDownloader *driver in _fileDrivers) {
+        [driver startReceive];
+    }
+}
+
+- (void)addFileDrivers:(BaseLs *)driverLs {
+    for (EntryLs *entry in driverLs.listEntries) {
+        NSString *entryURL = [[driverLs.url absoluteString] stringByAppendingString:[[entry text] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+        if([entry isDir]) {
+            BaseLs *driver = [_driver createLsDriverWithURL:[NSURL URLWithString:[entryURL stringByAppendingString:@"/"]]];
+            driver.delegate = self;
+            [_newdirDrivers addObject:driver];
+            [driver createDirectory];
+            [driver startReceive];
+        } else {
+            BaseDownloader *driver = [_driver createDownloaderDriverWithURL:[NSURL URLWithString:entryURL]];
+            driver.delegate = self;
+            [_fileDrivers addObject:driver];
+            
+            _totalFilesSize += [entry size] / (1024.0 * 1024.0);
         }
     }
 }
+                  
 
 
 - (void)startReceive {
     NSLog(@"%s", __PRETTY_FUNCTION__);
     
-    for (EntryLs *entry in _driver.listEntries) {
-        if(![entry isDir]) {
-            NSString *filename = [entry text];
-            NSString *fileURL = [[_driver.url absoluteString] stringByAppendingString:[filename stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
-            
-            FtpDownloader *driver = [[FtpDownloader alloc] initWithURL:[NSURL URLWithString:fileURL]];
-            driver.username = _driver.username;
-            driver.password = _driver.password;
-            driver.delegate = self;
-            driver.delegateProgress = _delegate;
-            [_fileDrivers addObject:driver];
-            [driver startReceive];
-            [driver release];
-        }
+    _downloadedFilesSize = 0.0;
+    _totalFilesSize = 0.0;
+    
+    [self addFileDrivers:_driver];
+    
+    if ([_newdirDrivers count] == 0) {
+        [self downloadAllFiles];
     }
 }
 

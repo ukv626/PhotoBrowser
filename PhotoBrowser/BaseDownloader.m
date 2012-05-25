@@ -14,10 +14,12 @@
     NSString *_password;
     
     id<LoadingDelegate> _delegate;
-    id<LoadingDelegate> _delegateProgress;
     
     NSInputStream *_networkStream;
     NSOutputStream *_fileStream;
+    
+    NSUInteger _totalFileSize;
+    NSUInteger _downloadedFileSize;
 }
 
 @end
@@ -29,14 +31,19 @@
 @synthesize password = _password;
 
 @synthesize delegate = _delegate;
-@synthesize delegateProgress = _delegateProgress;
 
 @synthesize fileStream = _fileStream;
 @synthesize networkStream = _networkStream;
 
+@synthesize totalFileSize = _totalFileSize;
+@synthesize downloadedFileSize = _downloadedFileSize;
+
 - (id)initWithURL:(NSURL *)url {
     if((self = [super init])) {
         self.url = url;
+        
+        _totalFileSize = 0;
+        _downloadedFileSize = 0;
     }
     
     return self;

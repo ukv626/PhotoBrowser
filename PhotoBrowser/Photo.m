@@ -14,7 +14,7 @@
 @interface Photo() {
     id<LoadingDelegate> _delegate;
     
-    FtpDownloader *_driver;
+    BaseDownloader *_driver;
     
     // Image sources
     NSUInteger _photoNumber;
@@ -71,7 +71,7 @@
     return  self;
 }
 
-- (id)initWithDriver:(FtpDownloader *)driver:(NSString *)photoPath {
+- (id)initWithDriver:(BaseDownloader *)driver:(NSString *)photoPath {
 //    NSLog(@"%s", __PRETTY_FUNCTION__);
     
     if((self = [super init])) {
@@ -167,8 +167,7 @@
         if(!error) {
             self.underlyingImage = [[[UIImage alloc] initWithData:data] autorelease];
             CGSize iSize = [self.underlyingImage size];
-            NSString *filename = [self.driver.url path];
-            self.caption = [NSString stringWithFormat:@"Name: %@  Size: %0.fx%0.f", [filename lastPathComponent], 
+            self.caption = [NSString stringWithFormat:@"Name: %@  Size: %0.fx%0.f", [_photoPath lastPathComponent], 
                             iSize.height, iSize.width];
         } else {
             self.underlyingImage = nil;

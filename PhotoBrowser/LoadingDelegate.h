@@ -15,6 +15,6 @@
 - (void)handleErrorNotification:(id)sender;
 
 @optional
-- (void)handleLoadingProgressNotification:(NSUInteger)value;
+- (void)handleLoadingProgressNotification:(double)value;
 
 @end

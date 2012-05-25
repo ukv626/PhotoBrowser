@@ -7,6 +7,7 @@
 //
 
 #import "FtpLs.h"
+#import "FtpDownloader.h"
 #import "LoadingDelegate.h"
 #import "EntryLs.h"
 #import <CFNetwork/CFNetwork.h>
@@ -55,6 +56,20 @@
     return (self.networkStream != nil);
 }
 
+- (BaseLs *)createLsDriverWithURL:(NSURL *)url {
+    FtpLs *driver = [[[FtpLs alloc] initWithURL:url] autorelease];
+    driver.username = self.username;
+    driver.password = self.password;
+    return driver;
+}
+
+- (BaseDownloader *)createDownloaderDriverWithURL:(NSURL *)url {
+    FtpDownloader *driver = [[[FtpDownloader alloc] initWithURL:url] autorelease];
+    driver.username = self.username;
+    driver.password = self.password;
+    
+    return driver;
+}
 
 - (void)startReceive {
 //    NSLog(@"%s", __PRETTY_FUNCTION__);

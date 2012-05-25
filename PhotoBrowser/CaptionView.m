@@ -20,11 +20,13 @@ static const CGFloat labelPadding = 10;
 
 @implementation CaptionView
 
-- (id)initWithText:(NSString *)text {
+- (id)initWithPhoto:(id<PhotoDelegate>)photo {
     NSLog(@"%s", __PRETTY_FUNCTION__);
     self = [super initWithFrame:CGRectMake(0, 0, 320, 33)]; //Random initial frame
     if (self) {
         // Initialization code
+        _photo = [photo retain];
+        
         self.opaque = NO;
         self.backgroundColor = [UIColor colorWithWhite:0 alpha:0.6];
         self.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleTopMargin|UIViewAutoresizingFlexibleLeftMargin|UIViewAutoresizingFlexibleRightMargin;
@@ -42,10 +44,13 @@ static const CGFloat labelPadding = 10;
         _label.shadowColor = [UIColor blackColor];
         _label.shadowOffset = CGSizeMake(1.0, 1.0);
         _label.font = [UIFont systemFontOfSize:17];
-        _label.text = text;
+        if ([_photo respondsToSelector:@selector(caption)]) {
+            _label.text = [_photo caption] ? [_photo caption] : @""; //ukv       bad access
+        }
         
         [self addSubview:_label];
     }
+    NSLog(@"before return");
     return self;
 }
 
@@ -66,6 +71,7 @@ static const CGFloat labelPadding = 10;
 - (void)dealloc {
     NSLog(@"%s", __PRETTY_FUNCTION__);
     [_label release];
+    [_photo release];
     
     [super dealloc];
 }
