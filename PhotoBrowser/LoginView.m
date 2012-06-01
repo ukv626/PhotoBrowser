@@ -10,8 +10,7 @@
 #import "Browser.h"
 //#import "Photo.h"
 #import "DirectoryList.h"
-#import "LocalLs.h"
-#import "FtpLs.h"
+#import "FtpDriver.h"
 #import "ConnectionsList.h"
 
 
@@ -63,13 +62,19 @@
     self.view.backgroundColor = [UIColor blueColor];
     
     self.title = @"FTPhoto";
+    
+    CGRect bounds = self.view.bounds;
+    float offsetX = 20;
+    float offsetY = 20;
 
-    self.urlLabel = [[UILabel alloc] init];
+    self.urlLabel = [[UILabel alloc] initWithFrame:CGRectMake(offsetX, offsetY, bounds.size.width - 2*offsetX, 30)];
+    offsetY += self.urlLabel.frame.size.height;
     
     _urlLabel.backgroundColor = [UIColor blueColor];
     _urlLabel.text = @"Connect to FTP Server";
     
-    _urlText = [[UITextField alloc] init];
+    _urlText = [[UITextField alloc] initWithFrame:CGRectMake(offsetX, offsetY, bounds.size.width - 2*offsetX, 30)];
+    _urlText.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     _urlText.delegate = self;
     _urlText.borderStyle = UITextBorderStyleRoundedRect;
     _urlText.clearButtonMode = UITextFieldViewModeWhileEditing;
@@ -77,12 +82,16 @@
     //    self.urlText.text = @"ftp://ftp.itandem.ru";
     _urlText.keyboardType = UIKeyboardTypeURL;
     _urlText.returnKeyType = UIReturnKeyDone;
+    _urlText.placeholder = @"ftp://127.0.0.1/Downloads/";
    
-    _loginLabel = [[UILabel alloc] init];
+    offsetY += self.urlText.frame.size.height + 20;
+    _loginLabel = [[UILabel alloc] initWithFrame:CGRectMake(offsetX, offsetY, bounds.size.width - 2*offsetX, 30)];
     _loginLabel.backgroundColor = [UIColor blueColor];
     _loginLabel.text = @"Login Details";
     
-    _usernameText = [[UITextField alloc] init];
+    offsetY += self.loginLabel.frame.size.height;
+    _usernameText = [[UITextField alloc] initWithFrame:CGRectMake(offsetX, offsetY, bounds.size.width - 2*offsetX, 30)];
+    _usernameText.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     _usernameText.delegate = self;
     _usernameText.borderStyle = UITextBorderStyleRoundedRect;
     _usernameText.placeholder = @"Username";
@@ -90,7 +99,9 @@
     _usernameText.autocapitalizationType = UITextAutocapitalizationTypeNone;
     _usernameText.text = @"ukv";
     
-    _passwordText = [[UITextField alloc] init];
+    offsetY += self.usernameText.frame.size.height + 5;
+    _passwordText = [[UITextField alloc] initWithFrame:CGRectMake(offsetX, offsetY, bounds.size.width - 2*offsetX, 30)];
+    _passwordText.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     _passwordText.delegate = self;
     _passwordText.borderStyle = UITextBorderStyleRoundedRect;
     _passwordText.placeholder = @"Password";
@@ -157,6 +168,7 @@
     
 }
 
+/*
 - (void)viewWillLayoutSubviews {
     NSLog(@"%s", __PRETTY_FUNCTION__);
     
@@ -186,6 +198,7 @@
     
     //self.view.frame = [self frameForMainView];
 }
+*/
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
 {
@@ -254,11 +267,11 @@
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     NSString *dir = [paths objectAtIndex:0];// stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]; //[NSString stringWithFormat:@"/Downloads/ukv"];
     
-    LocalLs *localLs = [[LocalLs alloc] initWithURL:[NSURL fileURLWithPath:dir]];
+    BaseDriver *localDriver = [[BaseDriver alloc] initWithURL:[NSURL fileURLWithPath:dir]];
     
-    DirectoryList *dirList = [[DirectoryList alloc] initWithDriver:localLs];
+    DirectoryList *dirList = [[DirectoryList alloc] initWithDriver:localDriver];
     
-    [localLs release];
+    [localDriver release];
     [self.navigationController pushViewController:dirList animated:YES];
     
     // Release
@@ -275,13 +288,13 @@
     if (url && url.scheme && url.host) {
         if ([url.scheme isEqualToString:@"ftp"]) {
             success = YES;
-            FtpLs *ftpLs = [[FtpLs alloc] initWithURL:url];
-            ftpLs.username = self.usernameText.text;
-            ftpLs.password = self.passwordText.text;
+            FtpDriver *ftpDriver = [[FtpDriver alloc] initWithURL:url];
+            ftpDriver.username = self.usernameText.text;
+            ftpDriver.password = self.passwordText.text;
     
-            DirectoryList *dirList = [[DirectoryList alloc] initWithDriver:ftpLs];
+            DirectoryList *dirList = [[DirectoryList alloc] initWithDriver:ftpDriver];
     
-            [ftpLs release];
+            [ftpDriver release];
             [self.navigationController pushViewController:dirList animated:YES];
     
             // Release

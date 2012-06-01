@@ -52,4 +52,15 @@
     return self;
 }
 
+- (id)initWithText:(NSString *)text IsDirectory:(BOOL)isDir Date:(NSDate *)date Size:(unsigned long long)size {
+    if ((self = [super init])) {
+        self.text = text;
+        self.isDir = isDir;
+        self.date = date;
+        self.size = size;
+    }
+    
+    return self;
+}
+
 @end

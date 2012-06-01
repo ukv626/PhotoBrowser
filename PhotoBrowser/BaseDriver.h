@@ -1,17 +1,16 @@
 //
-//  BaseLs.h
+//  BaseDriver.h
 //  PhotoBrowser
 //
-//  Created by ukv on 5/12/12.
+//  Created by ukv on 6/1/12.
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
 
 @protocol LoadingDelegate;
-@class BaseDownloader;
 
-@interface BaseLs : NSObject
+@interface BaseDriver : NSObject
 
 @property (nonatomic, copy) NSURL *url;
 @property (nonatomic, copy) NSString *username;
@@ -21,8 +20,7 @@
 @property (nonatomic, readonly) NSMutableArray *listEntries;
 
 - (id)initWithURL:(NSURL *)url;
-
-- (void)sortByName;
+- (id)clone;
 
 - (BOOL)isDownloadable;
 - (NSString *)pathToDownload;
@@ -30,9 +28,11 @@
 - (BOOL)isImageFile:(NSString *)filename;
 - (void)createDirectory;
 
-- (BaseLs *)createLsDriverWithURL:(NSURL *)url;
-- (BaseDownloader *)createDownloaderDriverWithURL:(NSURL *)url;
-- (void)startReceive;
-
+- (BOOL)connect;
+- (BOOL)changeDir:(NSString *)relativeDirPath;
+- (void)sortByName;
+- (void)directoryList;
+- (void)downloadFile:(NSString *)filename;
+- (void)downloadDirectory;
 
 @end

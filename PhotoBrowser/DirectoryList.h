@@ -8,17 +8,19 @@
 
 #import <UIKit/UIKit.h>
 
-@class BaseLs;
+@class BaseDriver;
 #import "LoadingDelegate.h"
 
-@interface DirectoryList : UITableViewController <LoadingDelegate, UISearchBarDelegate, 
+@interface DirectoryList : UITableViewController <LoadingDelegate, UISearchBarDelegate, UIActionSheetDelegate,
                                     UIDocumentInteractionControllerDelegate,UIAlertViewDelegate>
 
 // Init
-- (id)initWithDriver:(BaseLs *)driver;
+- (id)initWithDriver:(BaseDriver *)driver;
 
 //
 - (void)handleLoadingDidEndNotification:(id)sender;
 - (void)handleErrorNotification:(id)sender;
+
+- (void)handleDirectoryLoadingDidEndNotification;
 
 @end

@@ -12,8 +12,6 @@
 //#import "Photo.h"
 #import "MBProgressHUD.h"
 //#import "SDImageCache.h"
-#import "FtpLs.h"
-
 
 
 #define PADDING                 10
@@ -1163,7 +1161,6 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
             if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
                 [_actionsSheet showFromBarButtonItem:sender animated:YES];
             } else {
-                NSLog(@"showInView");
                 [_actionsSheet showInView:self.view];
             }
             

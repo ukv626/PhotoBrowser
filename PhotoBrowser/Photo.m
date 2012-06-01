@@ -14,7 +14,7 @@
 @interface Photo() {
     id<LoadingDelegate> _delegate;
     
-    BaseDownloader *_driver;
+    BaseDriver *_driver;
     
     // Image sources
     NSUInteger _photoNumber;
@@ -71,7 +71,7 @@
     return  self;
 }
 
-- (id)initWithDriver:(BaseDownloader *)driver:(NSString *)photoPath {
+- (id)initWithDriver:(BaseDriver *)driver PhotoPath:(NSString *)photoPath {
 //    NSLog(@"%s", __PRETTY_FUNCTION__);
     
     if((self = [super init])) {
@@ -134,8 +134,8 @@
             [self performSelectorInBackground:@selector(loadImageFromFileAsync) withObject:nil];
             //[self imageLoadingComplete];
         } else if(self.driver.url){
-            [self.driver startReceive];
-            
+            [_driver performSelectorInBackground:@selector(downloadFile:) withObject:[self.photoPath lastPathComponent]];
+//            [_driver downloadFile:[self.photoPath lastPathComponent]];
         } else {
             // Failed - no source
             self.underlyingImage = nil;

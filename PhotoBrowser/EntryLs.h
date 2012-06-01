@@ -16,5 +16,6 @@
 @property (nonatomic, assign) BOOL isDir;
 
 - (id)initWithDictionaryEntry:(NSDictionary *)entry;
+- (id)initWithText:(NSString *)text IsDirectory:(BOOL)isDir Date:(NSDate *)date Size:(unsigned long long)size;
 
 @end

@@ -1,29 +1,27 @@
 //
-//  BaseLs.m
+//  BaseDriver.m
 //  PhotoBrowser
 //
-//  Created by ukv on 5/12/12.
+//  Created by ukv on 6/1/12.
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
 //
 
-#import "BaseLs.h"
+#import "BaseDriver.h"
 #import "EntryLs.h"
-#import "BaseDownloader.h"
+#import "LoadingDelegate.h"
 
-@interface BaseLs() {
+@interface BaseDriver() {
     NSURL *_url;
-//    NSString *_path;
     NSString *_username;
     NSString *_password;
     
     id<LoadingDelegate> _delegate;
-    
-    NSMutableArray *listEntries;
+    NSMutableArray *_listEntries;
 }
 
 @end
 
-@implementation BaseLs
+@implementation BaseDriver
 
 @synthesize url = _url;
 @synthesize username = _username;
@@ -31,32 +29,24 @@
 @synthesize delegate = _delegate;
 @synthesize listEntries = _listEntries;
 
-
 - (id)initWithURL:(NSURL *)url {
     if((self = [super init])) {
         self.url = url;
-//        self.path = [url absoluteString];
         _listEntries = [[NSMutableArray alloc] init];
     }
     
     return self;
 }
 
-
-//- (id)initWithPath:(NSString *)path {
-//    if((self = [super init])) {
-//        self.path = path;
-//        _listEntries = [[NSMutableArray alloc] init];
-//    }
-//    
-//    return self;
-//}
+- (id)clone {
+    return nil;
+}
 
 - (void)dealloc {
-    [self.username release];
-    [self.password release];
-    
-    [self.listEntries release];
+//    NSLog(@"%s", __PRETTY_FUNCTION__);
+    [_username release];
+    [_password release];
+    [_listEntries release];
     
     [super dealloc];
 }
@@ -121,19 +111,6 @@
     
 }
 
-- (BaseLs *)createLsDriverWithURL:(NSURL *)url {
-    return nil;
-}
-
-- (BaseDownloader *)createDownloaderDriverWithURL:(NSURL *)url {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
-    return  nil;
-}
-
-- (void)startReceive {
-    //
-}
-
 - (void)sortByName {
     NSMutableArray *files = [[NSMutableArray alloc] init];
     NSMutableArray *dirs = [[NSMutableArray alloc] init];
@@ -147,12 +124,12 @@
     }
     
     NSArray *sortedFiles = [files sortedArrayUsingComparator:^NSComparisonResult(EntryLs *obj1, EntryLs *obj2) {
-            return [obj1.text compare:obj2.text];
-        }];
+        return [obj1.text compare:obj2.text];
+    }];
     
     NSArray *sortedDirs = [dirs sortedArrayUsingComparator:^NSComparisonResult(EntryLs *obj1, EntryLs *obj2) {
-            return [obj1.text compare:obj2.text];
-        }];
+        return [obj1.text compare:obj2.text];
+    }];
     
     [files release];
     [dirs release];
@@ -162,17 +139,64 @@
     [self.listEntries addObjectsFromArray:sortedFiles];
 }
 
-/*
-- (id)copyWithZone:(NSZone *)zone {
-//    NSLog(@"%s", __PRETTY_FUNCTION__);
-    
-    BaseLs *newCopy = [[[self class] allocWithZone: zone] init];
-    [newCopy setUrl:self.url];
-    [newCopy setUsername:self.username];
-    [newCopy setPassword:self.password];
-    
-    return newCopy;
-}
-*/
 
+// ---------
+- (BOOL)connect {
+    return NO;
+}
+
+- (BOOL)changeDir:(NSString *)relativeDirPath {
+    return NO;
+}
+
+- (void)directoryList {
+    [self.listEntries removeAllObjects];
+    
+    NSArray *properties = [NSArray arrayWithObjects: NSURLLocalizedNameKey,
+                           NSURLCreationDateKey, NSURLLocalizedTypeDescriptionKey, nil];
+    
+    NSArray *dirContents = [[NSFileManager defaultManager] contentsOfDirectoryAtURL:self.url includingPropertiesForKeys:properties options:(NSDirectoryEnumerationSkipsPackageDescendants | NSDirectoryEnumerationSkipsHiddenFiles) error:nil];
+    
+    
+    NSDictionary *attribs;
+    
+    for (NSURL *entry in dirContents) {
+        EntryLs *entryToAdd = [[EntryLs alloc] init];
+        entryToAdd.text = [entry lastPathComponent];
+        
+        attribs = [[NSFileManager defaultManager] attributesOfItemAtPath:[entry path]  error:nil];
+        if ([attribs objectForKey:(id)NSFileType] == NSFileTypeDirectory) {
+            entryToAdd.isDir = YES;
+        } else {
+            entryToAdd.isDir = NO;
+        }
+        
+        entryToAdd.date = [attribs objectForKey:(id)NSFileModificationDate];        
+        NSNumber *size;
+        size = [attribs objectForKey:(id)NSFileSize];
+        if(size != nil) {
+            entryToAdd.size = [size unsignedLongLongValue];
+            
+        }
+        
+        [self.listEntries addObject:entryToAdd];
+        [entryToAdd release];
+    }
+    //[properties release];
+    //[dirContents release];
+    [self sortByName];
+    
+    // Notificate delegate
+    if([self.delegate respondsToSelector:@selector(handleLoadingDidEndNotification:)]) {
+        [self.delegate handleLoadingDidEndNotification:self];
+    }
+}
+
+- (void)downloadFile:(NSString *)filename {
+    //
+}
+
+- (void)downloadDirectory {
+    //
+}
 @end

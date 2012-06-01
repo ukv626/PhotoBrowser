@@ -15,6 +15,7 @@
 - (void)handleErrorNotification:(id)sender;
 
 @optional
+- (void)handleDirectoryLoadingDidEndNotification;
 - (void)handleLoadingProgressNotification:(double)value;
 
 @end
