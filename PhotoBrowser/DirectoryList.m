@@ -292,7 +292,7 @@
     _directoryDownloader = [[_driver clone] retain];
     _directoryDownloader.delegate = self;
     
-    [_directoryDownloader performSelectorInBackground:@selector(downloadDirectory) withObject:nil];
+    [_directoryDownloader downloadDirectory];
 }
 
 - (void)showBrowser:(NSString *)currentFilename {
@@ -306,10 +306,10 @@
 
             if([filename isEqualToString:currentFilename]) pageIndex = i;
             
-            BaseDriver *downloadDriver = [_driver clone]; //[NSURL URLWithString:fileURL]];
+            //BaseDriver *downloadDriver = [_driver clone]; //[NSURL URLWithString:fileURL]];
             
             NSString *photoPath = [[_driver pathToDownload] stringByAppendingPathComponent:filename];
-            Photo *photo = [[Photo alloc] initWithDriver:downloadDriver PhotoPath:photoPath];
+            Photo *photo = [[Photo alloc] initWithDriver:_driver PhotoPath:photoPath];
             photo.caption = filename;
             
             [photos addObject:photo];

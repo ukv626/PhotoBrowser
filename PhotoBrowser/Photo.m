@@ -77,7 +77,7 @@
     if((self = [super init])) {
         // Custom initialization
         self.driver = driver; //[driver retain];
-        self.driver.delegate = self;
+        //self.driver.delegate = self;
         self.photoPath = photoPath;
     }
     return self;
@@ -134,7 +134,7 @@
             [self performSelectorInBackground:@selector(loadImageFromFileAsync) withObject:nil];
             //[self imageLoadingComplete];
         } else if(self.driver.url){
-            [_driver performSelectorInBackground:@selector(downloadFile:) withObject:[self.photoPath lastPathComponent]];
+            [self performSelectorInBackground:@selector(downloadFileAsync) withObject:nil];
 //            [_driver downloadFile:[self.photoPath lastPathComponent]];
         } else {
             // Failed - no source
@@ -178,6 +178,23 @@
     }
     @finally {
         [self performSelectorOnMainThread:@selector(imageDidFinishLoadingSoDecompress) withObject:nil waitUntilDone:NO];
+        [pool drain];        
+    }
+}
+
+// Called in background
+// Download image in background
+- (void)downloadFileAsync {
+    NSLog(@"%s", __PRETTY_FUNCTION__);
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    @try {
+        BaseDriver *downloadDriver = [_driver clone];
+        [downloadDriver downloadFile:[_photoPath lastPathComponent]];
+    }
+    @catch (NSException *exception) {        
+    }
+    @finally {
+        [self handleLoadingDidEndNotification:nil];
         [pool drain];        
     }
 }

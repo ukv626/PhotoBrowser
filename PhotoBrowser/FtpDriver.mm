@@ -11,9 +11,13 @@
 #import "EntryLs.h"
 
 #import "CkoFtp2.h"
+#import "XMLReader.h"
 
 @interface FtpDriver() {
     CkoFtp2 *_driver;
+    
+    unsigned long long _totalDirectorySize;
+//    NSLock *_lock;
 }
 
 - (BOOL)connect;
@@ -26,6 +30,7 @@
 - (id)initWithURL:(NSURL *)url {
     if ((self = [super initWithURL:url])) {
         _driver = [[CkoFtp2 alloc] init];
+//        _lock = [[NSLock alloc] init];
     }
     
     return self;
@@ -39,6 +44,7 @@
 }
 
 - (void)dealloc {
+    NSLog(@"%s", __PRETTY_FUNCTION__);
     [_driver Disconnect];
     [_driver release];
     
@@ -74,6 +80,7 @@
 }
 
 - (void)directoryList {
+    NSLog(@"%s", __PRETTY_FUNCTION__);
     [self.listEntries removeAllObjects];
     
     BOOL success = YES;
@@ -112,6 +119,7 @@
 }
 
 - (void)downloadFile:(NSString *)filename {
+//    [_lock lock];
     NSLog(@"BEGIN %s [%@]", __PRETTY_FUNCTION__, filename);
     
     BOOL success = YES;
@@ -120,15 +128,20 @@
         success = [self connect];
     }
     
+    [_driver GetFile:filename localFilename:[[self pathToDownload] stringByAppendingPathComponent:filename]];
+    /*
     if (success && [_driver GetFile:filename localFilename:[[self pathToDownload] stringByAppendingPathComponent:filename]]) {
         if([self.delegate respondsToSelector:@selector(handleLoadingDidEndNotification:)]) {
-            [self.delegate handleLoadingDidEndNotification:self];                                                                          
+            [self.delegate  handleLoadingDidEndNotification:self];                                                                          
         }
     } else {
         if ([self.delegate respondsToSelector:@selector(handleErrorNotification:)]) {
             [self.delegate handleErrorNotification:self];
         }
     }
+     */
+    NSLog(@"END");
+//    [_lock unlock];
 }
 
 - (void)downloadDirectory {
@@ -137,6 +150,28 @@
         success = [self connect];
     }
     
+    if (success) {
+        [_driver setDirListingCharset:@"utf-8"];
+        NSString *xmlStr = [_driver DirTreeXml];
+        
+        NSError *parseError = nil;
+        NSArray *files = [XMLReader arrayForXMLString:xmlStr error:&parseError];
+
+        NSString *currentDir = [_driver GetCurrentRemoteDir];
+        _totalDirectorySize = 0;
+        for (NSString *file in files) {
+            NSString *newDir = [file stringByDeletingLastPathComponent];
+            if (![currentDir isEqualToString:newDir]) {
+                [_driver ChangeRemoteDir:newDir];
+                currentDir = newDir;
+            }
+            NSNumber * fileSize = [_driver GetSizeByName64:[file lastPathComponent]];
+            _totalDirectorySize += [fileSize unsignedLongLongValue];
+        }
+        NSLog(@"TOTAL SIZE = %llu", _totalDirectorySize);
+    }
+    
+    /*
     if(success && [_driver DownloadTree:[self pathToDownload]]) {
         if([self.delegate respondsToSelector:@selector(handleDirectoryLoadingDidEndNotification)]) {
             [self.delegate handleDirectoryLoadingDidEndNotification];
@@ -146,6 +181,7 @@
             [self.delegate handleErrorNotification:self];
         }
     }
+     */
 }
 
 
