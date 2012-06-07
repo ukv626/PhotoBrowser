@@ -9,9 +9,6 @@
 
 
 @interface XMLReader : NSObject <NSXMLParserDelegate>
-{
-
-}
 
 + (NSArray *)arrayForXMLData:(NSData *)data error:(NSError **)error;
 + (NSArray *)arrayForXMLString:(NSString *)string error:(NSError **)errorPointer;

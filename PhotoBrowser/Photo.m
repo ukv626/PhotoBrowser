@@ -32,7 +32,7 @@
 @property (nonatomic, retain) UIImage *underlyingImage;
 
 // Methods
-- (void)imageDidFinishLoadingSoDecompress;
+- (void)imageLoadedSoDecompress;
 - (void)imageLoadingComplete;
 @end
 
@@ -109,12 +109,8 @@
     return result;
 }
 
-- (void)handleErrorNotification:(id)sender {
-    NSLog(@"%s %@", __PRETTY_FUNCTION__, sender);
-}
 
-- (void)handleLoadingDidEndNotification:(id)sender {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
+- (void)fileDownloaded {
     [self loadImageFromFileAsync];
 }
 
@@ -177,7 +173,7 @@
     @catch (NSException *exception) {        
     }
     @finally {
-        [self performSelectorOnMainThread:@selector(imageDidFinishLoadingSoDecompress) withObject:nil waitUntilDone:NO];
+        [self performSelectorOnMainThread:@selector(imageLoadedSoDecompress) withObject:nil waitUntilDone:NO];
         [pool drain];        
     }
 }
@@ -192,15 +188,16 @@
         [downloadDriver downloadFile:[_photoPath lastPathComponent]];
     }
     @catch (NSException *exception) {        
+        //
     }
     @finally {
-        [self handleLoadingDidEndNotification:nil];
+        [self performSelectorOnMainThread:@selector(fileDownloaded) withObject:nil waitUntilDone:NO];  
         [pool drain];        
     }
 }
 
 // Called on main
-- (void)imageDidFinishLoadingSoDecompress {
+- (void)imageLoadedSoDecompress {
     NSAssert([[NSThread currentThread] isMainThread], @"This method must be called on the main thread.");
     if(self.underlyingImage) {
         // Decode image async to avoid lagging when UIKit lazy loads
@@ -220,7 +217,6 @@
     if ([_delegate respondsToSelector:@selector(handleLoadingDidEndNotification:)]) {
         [_delegate handleLoadingDidEndNotification:self];
     }
-//    [[NSNotificationCenter defaultCenter] postNotificationName:PHOTO_LOADING_DID_END_NOTIFICATION object:self];
 }
 
 

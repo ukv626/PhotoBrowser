@@ -15,13 +15,9 @@
 
 @interface FtpDriver() {
     CkoFtp2 *_driver;
-    
-    unsigned long long _totalDirectorySize;
-//    NSLock *_lock;
+    unsigned long long _bytesReceived;
+    BOOL _aborted;
 }
-
-- (BOOL)connect;
-//- (void)_directoryList;
 
 @end
 
@@ -30,7 +26,6 @@
 - (id)initWithURL:(NSURL *)url {
     if ((self = [super initWithURL:url])) {
         _driver = [[CkoFtp2 alloc] init];
-//        _lock = [[NSLock alloc] init];
     }
     
     return self;
@@ -60,18 +55,28 @@
     return success;
 }
 
+ 
 - (BOOL)isDownloadable {
     return YES;
 }
 
 - (BOOL)connect {
     BOOL success = [_driver UnlockComponent:@"qwe"];
-    if (success) {
-        _driver.Hostname = [self.url host];
-        _driver.Username = self.username;
-        _driver.Password = self.password;
+    if (!success) {
+        return NO;
+    }
     
-        if((success = [_driver Connect])) {
+    _driver.Hostname = [self.url host];
+    _driver.Username = self.username;
+    _driver.Password = self.password;
+    
+     if ([self.url.scheme isEqualToString:@"ftps"]) {
+         _driver.AuthTls = YES;
+         _driver.Ssl = NO;
+     }
+    
+    if((success = [_driver Connect])) {
+        if (![[self.url path] isEqualToString:@"/"]) {
             success = [_driver ChangeRemoteDir:[[self.url path] substringFromIndex:1]];
         }
     }
@@ -80,15 +85,15 @@
 }
 
 - (void)directoryList {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
     [self.listEntries removeAllObjects];
     
-    BOOL success = YES;
-    if (!_driver.IsConnected) {
+    BOOL success = _driver.IsConnected;
+    if (!success) {
         success = [self connect];
     }
 
     if (success) {
+        [_driver setListPattern:@"*"];
         int n = [_driver.NumFilesAndDirs intValue];
         if (n > 0) {
             for (int i = 0; i < n; i++) {
@@ -107,81 +112,257 @@
             }
         }
         [self sortByName];
-    
-        if([self.delegate respondsToSelector:@selector(handleLoadingDidEndNotification:)]) {
-            [self.delegate handleLoadingDidEndNotification:self];
-        }
+        [self performSelectorOnMainThread:@selector(notifyAboutFinished:) withObject:self waitUntilDone:NO];
     } else {
-        if ([self.delegate respondsToSelector:@selector(handleErrorNotification:)]) {
-            [self.delegate handleErrorNotification:self];
-        }
+        [self performSelectorOnMainThread:@selector(notifyAboutError:) withObject:self waitUntilDone:NO];
     }
+
 }
 
 - (void)downloadFile:(NSString *)filename {
-//    [_lock lock];
-    NSLog(@"BEGIN %s [%@]", __PRETTY_FUNCTION__, filename);
-    
-    BOOL success = YES;
-    
-    if (!_driver.IsConnected) {
-        success = [self connect];
-    }
-    
-    [_driver GetFile:filename localFilename:[[self pathToDownload] stringByAppendingPathComponent:filename]];
-    /*
-    if (success && [_driver GetFile:filename localFilename:[[self pathToDownload] stringByAppendingPathComponent:filename]]) {
-        if([self.delegate respondsToSelector:@selector(handleLoadingDidEndNotification:)]) {
-            [self.delegate  handleLoadingDidEndNotification:self];                                                                          
-        }
-    } else {
-        if ([self.delegate respondsToSelector:@selector(handleErrorNotification:)]) {
-            [self.delegate handleErrorNotification:self];
-        }
-    }
-     */
-    NSLog(@"END");
-//    [_lock unlock];
-}
-
-- (void)downloadDirectory {
-    BOOL success = YES;
-    if (!_driver.IsConnected) {
+    BOOL success = _driver.IsConnected;
+    if (!success) {
         success = [self connect];
     }
     
     if (success) {
+        [_driver GetFile:filename localFilename:[[self pathToDownload] stringByAppendingPathComponent:filename]];
+    } else {
+        [self performSelectorOnMainThread:@selector(notifyAboutError:) withObject:self waitUntilDone:NO];
+    }
+}
+
+
+- (NSNumber *)lastBytesReceived {
+    return [NSNumber numberWithUnsignedLongLong:_bytesReceived];
+}
+
+- (void)downloadFileAsync:(NSString *)filename {
+    BOOL success =_driver.IsConnected;
+    
+    if (!success) {
+        success = [self connect];
+    }
+    
+    if (!success) {
+        [self performSelectorOnMainThread:@selector(notifyAboutError:) withObject:self waitUntilDone:NO];
+        return;
+    }
+    
+    _aborted = NO;
+    NSString *localFilename = [[self pathToDownload] stringByAppendingPathComponent:filename];
+    success = [_driver AsyncGetFileStart:filename localFilename:localFilename];
+    if (success) {
+        while (_driver.AsyncFinished != YES) {
+            _bytesReceived = [_driver.AsyncBytesReceived64 unsignedLongLongValue];
+            [_driver SleepMs:[NSNumber numberWithInt:500]];
+            
+            [self performSelectorOnMainThread:@selector(notifyAboutProgress:) withObject:self waitUntilDone:NO];
+        }
+        if (!_aborted) {
+            [self performSelectorOnMainThread:@selector(notifyAboutFinished:) withObject:filename waitUntilDone:NO];
+            
+        } else {
+            [[NSFileManager defaultManager] removeItemAtPath:localFilename error:nil];
+            [self performSelectorOnMainThread:@selector(notifyAboutAborted:) withObject:self waitUntilDone:NO];
+        }
+    }
+}
+
+
+- (NSNumber *)directorySize {
+    BOOL success = _driver.IsConnected;
+    if (!success) {
+        success = [self connect];
+    }
+    
+    unsigned long long totalDirectorySize = 0;
+    
+    if (!success) {
+        [self performSelectorOnMainThread:@selector(notifyAboutError:) withObject:self waitUntilDone:NO];
+    } else {
+        [self.listEntries removeAllObjects];
+        
         [_driver setDirListingCharset:@"utf-8"];
         NSString *xmlStr = [_driver DirTreeXml];
         
         NSError *parseError = nil;
         NSArray *files = [XMLReader arrayForXMLString:xmlStr error:&parseError];
-
+        
+        // calculate total directory size
         NSString *currentDir = [_driver GetCurrentRemoteDir];
-        _totalDirectorySize = 0;
-        for (NSString *file in files) {
-            NSString *newDir = [file stringByDeletingLastPathComponent];
+        NSString *originalCurrentDir = currentDir;
+        
+        
+        for (NSString *filepath in files) {
+            NSString *newDir = [originalCurrentDir stringByAppendingPathComponent:[filepath stringByDeletingLastPathComponent]];
             if (![currentDir isEqualToString:newDir]) {
                 [_driver ChangeRemoteDir:newDir];
                 currentDir = newDir;
             }
-            NSNumber * fileSize = [_driver GetSizeByName64:[file lastPathComponent]];
-            _totalDirectorySize += [fileSize unsignedLongLongValue];
+            NSNumber *fileSize = [_driver GetSizeByName64:[filepath lastPathComponent]];
+            totalDirectorySize += [fileSize unsignedLongLongValue];
         }
-        NSLog(@"TOTAL SIZE = %llu", _totalDirectorySize);
+        // restore current dir
+        [_driver ChangeRemoteDir:originalCurrentDir];
+        [self.listEntries addObjectsFromArray:files];
     }
     
-    /*
-    if(success && [_driver DownloadTree:[self pathToDownload]]) {
-        if([self.delegate respondsToSelector:@selector(handleDirectoryLoadingDidEndNotification)]) {
-            [self.delegate handleDirectoryLoadingDidEndNotification];
-        }
-    } else {
-        if ([self.delegate respondsToSelector:@selector(handleErrorNotification:)]) {
-            [self.delegate handleErrorNotification:self];
-        }
+    return [NSNumber numberWithUnsignedLongLong:totalDirectorySize];
+}
+
+- (void)downloadDirectory {
+    BOOL success = _driver.IsConnected;
+    
+    if (!success) {
+        success = [self connect];
     }
-     */
+    
+    if (!success) {
+         [self performSelectorOnMainThread:@selector(notifyAboutError:) withObject:self waitUntilDone:NO];
+    } else {
+        _aborted = NO;
+
+        [self createDirectory:@""];
+        NSString *currentDir = [_driver GetCurrentRemoteDir];
+        NSString *originalCurrentDir = currentDir;
+        
+        unsigned long long totalBytesReceived = 0;
+        
+        for (NSString *filepath in self.listEntries) {
+            NSString *newDir = [originalCurrentDir stringByAppendingPathComponent:[filepath stringByDeletingLastPathComponent]];
+            if (![currentDir isEqualToString:newDir]) {
+                [_driver ChangeRemoteDir:newDir];
+                
+                [self createDirectory:[filepath stringByDeletingLastPathComponent]];
+                currentDir = newDir;
+            }
+
+            NSString *filename = [filepath lastPathComponent];
+            NSString *localFilename = [[self pathToDownload] stringByAppendingPathComponent:filepath];
+
+            BOOL success = [_driver AsyncGetFileStart:filename localFilename:localFilename];
+            if (success) {
+                while (_driver.AsyncFinished != YES) {
+                    _bytesReceived = [_driver.AsyncBytesReceived64 unsignedLongLongValue] + totalBytesReceived;
+                    [_driver SleepMs:[NSNumber numberWithInt:500]];
+                    
+                    [self performSelectorOnMainThread:@selector(notifyAboutProgress:) withObject:self waitUntilDone:NO];
+                }
+                totalBytesReceived += [_driver.AsyncBytesReceived64 unsignedLongLongValue];
+            } else {
+                _aborted = true;
+                break;
+            }
+            
+            if (_aborted) {
+                // remove aborted file
+                [[NSFileManager defaultManager] removeItemAtPath:localFilename error:nil];
+                break;
+            };
+        }
+        
+        if (!_aborted) {
+            [self performSelectorOnMainThread:@selector(notifyAboutFinished:) withObject:self waitUntilDone:NO];
+        } else {
+            [self performSelectorOnMainThread:@selector(notifyAboutAborted:) withObject:self waitUntilDone:NO];
+        }
+
+    }
+}
+
+- (void)notifyAboutProgress:(id)sender {
+    if ([self.delegate respondsToSelector:@selector(handleLoadingProgressNotification:)]) {
+        [self.delegate handleLoadingProgressNotification:sender];
+    }
+}
+
+- (void)notifyAboutAborted:(id)sender {
+    if ([self.delegate respondsToSelector:@selector(handleAbortedNotification:)]) {
+        [self.delegate handleAbortedNotification:sender];
+    }
+}
+
+- (void)notifyAboutFinished:(id)sender {
+    if ([self.delegate respondsToSelector:@selector(handleLoadingDidEndNotification:)]) {
+        [self.delegate handleLoadingDidEndNotification:sender];
+    }
+}
+
+- (void)notifyAboutError:(id)sender {
+    if ([self.delegate respondsToSelector:@selector(handleErrorNotification:)]) {
+        [self.delegate handleErrorNotification:sender];
+    }
+}
+
+- (void)abort {
+    [_driver AsyncAbort];
+    _aborted = YES;
+}
+
+- (NSString *)errorStr {
+    NSString *result;
+    int errorCode = [[_driver ConnectFailReason] intValue];
+    switch (errorCode) {
+        case 1:
+            result = @"Empty hostname";
+            break;
+        case 2:
+            result = @"DNS lookup failed";
+            break;
+        case 3:
+            result = @"DNS timeout";
+            break;
+        case 4:
+            result = @"Aborted by application";
+            break;
+        case 5:
+            result = @"Internal failure";
+            break;
+        case 6:
+            result = @"Connect Timed Out";
+            break;
+        case 7:
+            result = @"Connect Rejected";
+            break;
+            // SSL
+        case 100:
+            result = @"Internal schannel error";
+            break;
+        case 101:
+            result = @"Failed to create credentials";
+            break;
+        case 102:
+            result = @"Failed to send initial message to proxy";
+            break;
+        case 103:
+            result = @"Handshake failed";
+            break;
+        case 104:
+            result = @"Failed to obtain remote certificate";
+            break;
+        case 105:
+            result = @"Failed to verify server certificate";
+            break;
+            // FTP
+        case 200:
+            result = @"Connected, but failed to receive greeting from FTP server";
+            break;
+        case 201:
+            result = @"Failed to do AUTH TLS or AUTH SSL";
+            break;
+            // Protocol/Component
+        case 300:
+            result = @"Asynch op in progress";
+            break;
+        case 301:
+            result = @"Login failure";
+            break;
+        default:
+            result = @"Unknow error!!";
+            break;
+    }
+    return result;
 }
 
 

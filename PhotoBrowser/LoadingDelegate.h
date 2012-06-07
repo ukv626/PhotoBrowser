@@ -10,12 +10,9 @@
 
 @protocol LoadingDelegate <NSObject>
 
-@required
+@optional
 - (void)handleLoadingDidEndNotification:(id)sender;
 - (void)handleErrorNotification:(id)sender;
-
-@optional
-- (void)handleDirectoryLoadingDidEndNotification;
-- (void)handleLoadingProgressNotification:(double)value;
-
+- (void)handleLoadingProgressNotification:(id)sender;
+- (void)handleAbortedNotification:(id)sender;
 @end

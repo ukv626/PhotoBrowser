@@ -1139,6 +1139,7 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
     [self dismissModalViewControllerAnimated:YES];
 }
 
+
 - (void)actionButtonPressed:(id)sender {
     NSLog(@"%s", __PRETTY_FUNCTION__);
     
@@ -1302,7 +1303,7 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 //}
 
 // Pinching
-
+/*
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
     UITouch *touch = [touches anyObject];
     CGPoint location = [touch locationInView:self.view];
@@ -1342,4 +1343,6 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
     [super touchesEnded:touches withEvent:event];
     NSLog(@"Tap ENDED at %f, %f", location.x, location.y);
 }
+*/
+
 @end

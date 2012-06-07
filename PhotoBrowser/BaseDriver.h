@@ -26,13 +26,23 @@
 - (NSString *)pathToDownload;
 - (BOOL)fileExist:(NSString *)filePath;
 - (BOOL)isImageFile:(NSString *)filename;
-- (void)createDirectory;
+- (void)createDirectory:(NSString *)directory;
 
 - (BOOL)connect;
 - (BOOL)changeDir:(NSString *)relativeDirPath;
 - (void)sortByName;
 - (void)directoryList;
 - (void)downloadFile:(NSString *)filename;
+- (void)downloadFileAsync:(NSString *)filename;
+
+- (NSNumber *)directorySize;
+
 - (void)downloadDirectory;
+
+- (NSNumber *)lastBytesReceived;
+
+- (void)abort;
+
+- (NSString *)errorStr;
 
 @end

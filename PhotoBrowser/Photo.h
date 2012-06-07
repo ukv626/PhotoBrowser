@@ -8,10 +8,9 @@
 
 #import <Foundation/Foundation.h>
 #import "PhotoDelegate.h"
-#import "LoadingDelegate.h"
 #import "BaseDriver.h"
 
-@interface Photo : NSObject <PhotoDelegate, LoadingDelegate >
+@interface Photo : NSObject <PhotoDelegate>
 
 @property (assign) id<LoadingDelegate> delegate;
 @property (nonatomic, retain) BaseDriver* driver;
@@ -31,7 +30,7 @@
 - (id)initWithDriver:(BaseDriver *)driver PhotoPath:(NSString *)photoPath;
 
 //
-- (void)handleLoadingDidEndNotification:(id)sender;
-- (void)handleErrorNotification:(id)sender;
+//- (void)handleLoadingDidEndNotification:(id)sender;
+//- (void)handleErrorNotification:(id)sender;
 
 @end

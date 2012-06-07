@@ -56,7 +56,6 @@
 }
 
 - (void)loadView {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
     [super loadView];
     
     self.view.backgroundColor = [UIColor blueColor];
@@ -231,8 +230,6 @@
 }
 
 - (void)addButton_Clicked:(id)sender {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
-    
     NSMutableDictionary *dictionary = [[NSMutableDictionary alloc] initWithContentsOfFile:[self connectionsFilePath]];
 
     NSDictionary *innerDict = [dictionary objectForKey:_urlText.text];
@@ -250,8 +247,6 @@
 }
 
 - (void)listButton_Clicked:(id)sender {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
-    
     ConnectionsList *list = [[ConnectionsList alloc] initWithStyle:UITableViewStylePlain];
     list.delegate = self;
     
@@ -262,10 +257,9 @@
 }
 
 - (IBAction)localButton_Clicked:(id)sender {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
-    
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-    NSString *dir = [paths objectAtIndex:0];// stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]; //[NSString stringWithFormat:@"/Downloads/ukv"];
+    NSString *dir = [[paths objectAtIndex:0] stringByAppendingPathComponent:@"Downloads"];
+    // stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]; //[NSString stringWithFormat:@"/Downloads/ukv"];
     
     BaseDriver *localDriver = [[BaseDriver alloc] initWithURL:[NSURL fileURLWithPath:dir]];
     
@@ -280,13 +274,12 @@
 
 
 - (IBAction)connectButton_Clicked:(id)sender {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
     BOOL success = NO;
     NSString *errorStr;
     NSURL *url = [NSURL URLWithString:self.urlText.text];
     // check url
     if (url && url.scheme && url.host) {
-        if ([url.scheme isEqualToString:@"ftp"]) {
+        if ([url.scheme isEqualToString:@"ftp"] || [url.scheme isEqualToString:@"ftps"]) {
             success = YES;
             FtpDriver *ftpDriver = [[FtpDriver alloc] initWithURL:url];
             ftpDriver.username = self.usernameText.text;

@@ -18,9 +18,8 @@
 - (id)initWithDriver:(BaseDriver *)driver;
 
 //
-- (void)handleLoadingDidEndNotification:(id)sender;
+- (void)handleLoadingProgressNotification:(id)sender;
+- (void)handleAbortedNotification:(id)sender;
 - (void)handleErrorNotification:(id)sender;
-
-- (void)handleDirectoryLoadingDidEndNotification;
-
+- (void)handleLoadingDidEndNotification:(id)sender;
 @end

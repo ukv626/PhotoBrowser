@@ -18,6 +18,16 @@
 - (BOOL)connect;
 - (void)directoryList;
 - (void)downloadFile:(NSString *)filename;
+- (void)downloadFileAsync:(NSString *)filename;
+
+- (NSNumber *)directorySize;
+
 - (void)downloadDirectory;
+
+- (NSNumber *)lastBytesReceived;
+
+- (void)abort;
+
+- (NSString *)errorStr;
 
 @end

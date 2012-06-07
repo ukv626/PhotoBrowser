@@ -61,7 +61,7 @@
         result = [_url path];
     }
     else {
-        NSString *path = [NSString stringWithFormat:@"%@/%@", _url.host,_url.path];
+        NSString *path = [NSString stringWithFormat:@"Downloads/%@/%@", _url.host,_url.path];
         NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
         result = [[paths objectAtIndex:0] stringByAppendingPathComponent:path];
     }
@@ -96,8 +96,8 @@
     return result;
 }
 
-- (void)createDirectory {
-    NSString *path = [self pathToDownload];
+- (void)createDirectory:(NSString *)directory {
+    NSString *path = [[self pathToDownload] stringByAppendingPathComponent:directory];
     NSError *error;
     
     //    NSLog(@"%@", path);
@@ -186,17 +186,42 @@
     //[dirContents release];
     [self sortByName];
     
-    // Notificate delegate
-    if([self.delegate respondsToSelector:@selector(handleLoadingDidEndNotification:)]) {
-        [self.delegate handleLoadingDidEndNotification:self];
-    }
+    [self performSelectorOnMainThread:@selector(notifyAboutFinished:) withObject:self waitUntilDone:NO];
 }
 
 - (void)downloadFile:(NSString *)filename {
     //
 }
 
+- (void)downloadFileAsync:(NSString *)filename {
+    //
+}
+
+
+- (NSNumber *)directorySize {
+    return [NSNumber numberWithInteger:0];
+}
+
 - (void)downloadDirectory {
     //
 }
+
+- (NSNumber *)lastBytesReceived {
+    return [NSNumber numberWithInteger:0];
+}
+
+- (void)abort {
+    //
+}
+
+- (NSString *)errorStr {
+    return @"";
+}
+
+- (void)notifyAboutFinished:(id)sender {
+    if ([self.delegate respondsToSelector:@selector(handleLoadingDidEndNotification:)]) {
+        [self.delegate handleLoadingDidEndNotification:sender];
+    }
+}
+
 @end
