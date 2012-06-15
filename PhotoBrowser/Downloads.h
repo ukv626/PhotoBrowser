@@ -7,7 +7,21 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "LoadingDelegate.h"
+@class BaseDriver;
 
-@interface Downloads : UITableViewController
+@interface Downloads : UITableViewController <LoadingDelegate> {
+    BaseDriver *_driver;
+    NSMutableArray *_files;
+    
+    BOOL _isLoadingInProgress;
+    BOOL _isDirty;
+}
+
+@property (nonatomic, retain) BaseDriver *driver;
+@property (nonatomic, readonly) BOOL isLoadingInProgress;
+
+- (void)addFile:(NSString *)filename;
+- (void)refreshBadge;
 
 @end

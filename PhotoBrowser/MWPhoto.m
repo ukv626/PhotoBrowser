@@ -8,9 +8,12 @@
 
 #import "MWPhoto.h"
 #import "MWPhotoBrowser.h"
+#import "LoadingDelegate.h"
 
 // Private
 @interface MWPhoto () {
+    id<LoadingDelegate> _delegate;
+    BaseDriver *_driver;
 
     // Image Sources
     NSString *_photoPath;
@@ -38,8 +41,9 @@
 @implementation MWPhoto
 
 // Properties
-@synthesize underlyingImage = _underlyingImage, 
-caption = _caption;
+@synthesize underlyingImage = _underlyingImage, caption = _caption;
+@synthesize driver = _driver;
+@synthesize photoPath = _photoPath;
 
 #pragma mark Class Methods
 
@@ -78,9 +82,18 @@ caption = _caption;
 	return self;
 }
 
+- (id)initWithDriver:(BaseDriver *)driver PhotoPath:(NSString *)photoPath {
+    if ((self = [super init])) {
+        self.driver = driver;
+        self.photoPath = photoPath;
+    }
+    
+    return self;
+}
+
 - (void)dealloc {
     [_caption release];
-    [[SDWebImageManager sharedManager] cancelForDelegate:self];
+    [_driver release];
 	[_photoPath release];
 	[_photoURL release];
 	[_underlyingImage release];
@@ -100,21 +113,14 @@ caption = _caption;
         // Image already loaded
         [self imageLoadingComplete];
     } else {
-        if (_photoPath) {
+        if ([_driver fileExist:_photoPath]) {
             // Load async from file
             [self performSelectorInBackground:@selector(loadImageFromFileAsync) withObject:nil];
-        } else if (_photoURL) {
-            // Load async from web (using SDWebImage)
-            SDWebImageManager *manager = [SDWebImageManager sharedManager];
-            UIImage *cachedImage = [manager imageWithURL:_photoURL];
-            if (cachedImage) {
-                // Use the cached image immediatly
-                self.underlyingImage = cachedImage;
-                [self imageDidFinishLoadingSoDecompress];
-            } else {
-                // Start an async download
-                [manager downloadWithURL:_photoURL delegate:self];
-            }
+        } else if (_driver.url) {
+            // Download file async
+            BaseDriver *downloadDriver = [_driver clone];
+            downloadDriver.delegate = self;
+            [downloadDriver downloadFile:[_photoPath lastPathComponent]];
         } else {
             // Failed - no source
             self.underlyingImage = nil;
@@ -126,8 +132,7 @@ caption = _caption;
 // Release if we can get it again from path or url
 - (void)unloadUnderlyingImage {
     _loadingInProgress = NO;
-    [[SDWebImageManager sharedManager] cancelForDelegate:self];
-	if (self.underlyingImage && (_photoPath || _photoURL)) {
+	if (self.underlyingImage && _photoPath) {
 		self.underlyingImage = nil;
 	}
 }
@@ -140,6 +145,7 @@ caption = _caption;
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     @try {
         NSError *error = nil;
+        NSLog(@"%s [%@]", __PRETTY_FUNCTION__, _photoPath);
         NSData *data = [NSData dataWithContentsOfFile:_photoPath options:NSDataReadingUncached error:&error];
         if (!error) {
             self.underlyingImage = [[[UIImage alloc] initWithData:data] autorelease];
@@ -154,26 +160,53 @@ caption = _caption;
     }
 }
 
+
+
+
 // Called on main
 - (void)imageDidFinishLoadingSoDecompress {
     NSAssert([[NSThread currentThread] isMainThread], @"This method must be called on the main thread.");
     if (self.underlyingImage) {
         // Decode image async to avoid lagging when UIKit lazy loads
-        [[SDWebImageDecoder sharedImageDecoder] decodeImage:self.underlyingImage withDelegate:self userInfo:nil];
     } else {
         // Failed
-        [self imageLoadingComplete];
+        
     }
+    
+    [self imageLoadingComplete];
 }
 
 - (void)imageLoadingComplete {
+    NSLog(@"%s", __PRETTY_FUNCTION__);
     NSAssert([[NSThread currentThread] isMainThread], @"This method must be called on the main thread.");
     // Complete so notify
     _loadingInProgress = NO;
-    [[NSNotificationCenter defaultCenter] postNotificationName:MWPHOTO_LOADING_DID_END_NOTIFICATION
-                                                        object:self];
+    
+    [[NSNotificationCenter defaultCenter] postNotificationName:MWPHOTO_LOADING_DID_END_NOTIFICATION object:self];
 }
 
+
+#pragma mark - Loading Delegate
+
+- (void)handleLoadingDidEndNotification:(id)sender {
+    [self performSelectorInBackground:@selector(loadImageFromFileAsync) withObject:nil]; 
+}
+
+- (void)handleErrorNotification:(id)sender {
+    self.underlyingImage = nil;
+    [self imageLoadingComplete]; 
+}
+
+- (void)handleLoadingProgressNotification:(id)sender {
+    //
+}
+
+- (void)handleAbortedNotification:(id)sender {
+    //
+}
+
+
+/*
 #pragma mark - SDWebImage Delegate
 
 // Called on main
@@ -195,5 +228,6 @@ caption = _caption;
     self.underlyingImage = image;
     [self imageLoadingComplete];
 }
+ */
 
 @end

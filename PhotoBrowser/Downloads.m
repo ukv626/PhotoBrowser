@@ -7,6 +7,7 @@
 //
 
 #import "Downloads.h"
+#import "BaseDriver.h"
 
 @interface Downloads ()
 
@@ -14,19 +15,36 @@
 
 @implementation Downloads
 
+@synthesize driver = _driver;
+@synthesize isLoadingInProgress = _isLoadingInProgress;
+
 - (id)initWithStyle:(UITableViewStyle)style
 {
     self = [super initWithStyle:style];
     if (self) {
         // Custom initialization
+        self.tabBarItem = [[UITabBarItem alloc] initWithTabBarSystemItem:UITabBarSystemItemDownloads tag:2];
+        
+        _files = [[NSMutableArray alloc] init];
+        _isLoadingInProgress = NO;
+        _isDirty = NO;
     }
     return self;
+}
+
+- (void)setDriver:(BaseDriver *)driver {
+    if (_driver != driver) {
+        [_driver release];
+        _driver = [driver retain];
+        _driver.delegate = self;
+    }
 }
 
 - (void)viewDidLoad
 {
     [super viewDidLoad];
 
+    self.navigationItem.title = @"Downloads";
     // Uncomment the following line to preserve selection between presentations.
     // self.clearsSelectionOnViewWillAppear = NO;
  
@@ -41,25 +59,33 @@
     // e.g. self.myOutlet = nil;
 }
 
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    
+    [self.navigationController setToolbarHidden:YES animated:YES];
+    
+    if (_isDirty) {
+        [self.tableView reloadData];
+    }
+}
+
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
 {
-    return (interfaceOrientation == UIInterfaceOrientationPortrait);
+    return YES;
 }
 
 #pragma mark - Table view data source
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-#warning Potentially incomplete method implementation.
     // Return the number of sections.
-    return 0;
+    return 1;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-#warning Incomplete method implementation.
     // Return the number of rows in the section.
-    return 0;
+    return _files.count;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -68,6 +94,13 @@
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
     
     // Configure the cell...
+    if(cell == nil) {
+        cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier] autorelease];
+    }
+    
+    NSString *filepath = [_files objectAtIndex:indexPath.row];
+    cell.textLabel.text = [filepath lastPathComponent];
+    cell.detailTextLabel.text = [filepath stringByDeletingLastPathComponent];
     
     return cell;
 }
@@ -111,6 +144,15 @@
 }
 */
 
+- (void)addFile:(NSString *)filename {
+    [_files addObject:filename];
+    _isDirty = YES;
+}
+
+- (void)refreshBadge {
+    self.tabBarItem.badgeValue = [NSString stringWithFormat:@"%d", _files.count];
+}
+
 #pragma mark - Table view delegate
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
@@ -123,6 +165,24 @@
      [self.navigationController pushViewController:detailViewController animated:YES];
      [detailViewController release];
      */
+}
+
+#pragma mark - Loading delegate
+
+- (void)handleLoadingDidEndNotification:(id)sender {
+    //
+}
+
+- (void)handleLoadingProgressNotification:(id)sender {
+    //
+}
+
+- (void)handleErrorNotification:(id)sender {
+    //
+}
+
+- (void)handleAbortedNotification:(id)sender {
+    //
 }
 
 @end

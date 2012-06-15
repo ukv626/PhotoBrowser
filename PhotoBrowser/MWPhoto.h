@@ -8,17 +8,19 @@
 
 #import <Foundation/Foundation.h>
 #import "MWPhotoProtocol.h"
-#import "SDWebImageDecoder.h"
-#import "SDWebImageManager.h"
+#import "BaseDriver.h"
+#import "LoadingDelegate.h"
 
 // This class models a photo/image and it's caption
 // If you want to handle photos, caching, decompression
 // yourself then you can simply ensure your custom data model
 // conforms to MWPhotoProtocol
-@interface MWPhoto : NSObject <MWPhoto, SDWebImageManagerDelegate, SDWebImageDecoderDelegate>
 
-// Properties
-@property (nonatomic, retain) NSString *caption;
+@interface MWPhoto : NSObject <MWPhoto, LoadingDelegate>
+
+@property (nonatomic, retain) BaseDriver* driver;
+@property (nonatomic, copy) NSString *photoPath;
+@property (nonatomic, copy) NSString *caption;
 
 // Class
 + (MWPhoto *)photoWithImage:(UIImage *)image;
@@ -29,6 +31,10 @@
 - (id)initWithImage:(UIImage *)image;
 - (id)initWithFilePath:(NSString *)path;
 - (id)initWithURL:(NSURL *)url;
+- (id)initWithDriver:(BaseDriver *)driver PhotoPath:(NSString *)photoPath;
+
+//
+//- (void)handleLoadingDidEndNotification:(id)sender;
+//- (void)handleErrorNotification:(id)sender;
 
 @end
-

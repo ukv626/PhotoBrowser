@@ -1,4 +1,4 @@
-//
+    //
 //  AppDelegate.m
 //  PhotoBrowser
 //
@@ -7,12 +7,17 @@
 //
 
 #import "AppDelegate.h"
-#import "LoginView.h"
+
+#import "BaseDriver.h"
+#import "ConnectionsList.h"
+#import "DirectoryList.h"
+#import "Downloads.h"
 
 @implementation AppDelegate
 
 @synthesize window = _window;
-@synthesize viewController = _viewController;
+//@synthesize viewController = _viewController;
+@synthesize tabBarController = _tabBarController;
 
 /*
 + (void)initialize
@@ -55,19 +60,52 @@
 - (void)dealloc
 {
     [_window release];
-    [_viewController release];
+    [_tabBarController release];
     [super dealloc];
 }
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    self.window = [[[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]] autorelease];
+    self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     // Override point for customization after application launch.
-          
-    LoginView *loginView = [[[LoginView alloc] init] autorelease];
+    /*
+     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
+     self.viewController = [[[ViewController alloc] initWithNibName:@"ViewController_iPhone" bundle:nil] autorelease];
+     } else {
+     self.viewController = [[[ViewController alloc] initWithNibName:@"ViewController_iPad" bundle:nil] autorelease];
+     }
+     */
+    
+    // Transfers
+    Downloads *downloads = [[Downloads alloc] init];
+    UINavigationController *downloadsNav = [[UINavigationController alloc] initWithRootViewController:downloads];
+    
+    UIViewController *remote = [[UINavigationController alloc] initWithRootViewController:[[ConnectionsList alloc] initWithDownloads:downloads]];
+    
+    // Local
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *dir = [[paths objectAtIndex:0] stringByAppendingPathComponent:@"Downloads"];
+    
+    BaseDriver *localDriver = [[BaseDriver alloc] initWithURL:[NSURL fileURLWithPath:dir]];
+    UIViewController *local = [[UINavigationController alloc] 
+                       initWithRootViewController:[[DirectoryList alloc] initWithDriver:localDriver]];
+    [localDriver release];
+    local.title = @"Local 2";
+    
+    
+    
+    // Settings
+//    UIViewController *settingsController = [[UIViewController alloc] init];
 
-    self.viewController = (UIViewController *)[[[UINavigationController alloc] initWithRootViewController:loginView] autorelease];
-    self.window.rootViewController = self.viewController;
+    self.tabBarController = [[UITabBarController alloc] init];
+    self.tabBarController.viewControllers = [NSArray arrayWithObjects:remote, 
+                                             local, downloadsNav, nil]; //  settingsController, nil];
+    [remote release];
+    [local release];
+    [downloads release];
+//    [settingsController release];
+
+    self.window.rootViewController = self.tabBarController;
     [self.window makeKeyAndVisible];
     return YES;
 }

@@ -7,14 +7,17 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "Browser.h"
+#import "MWPhotoBrowser.h"
 
 @class ViewController;
 
-@interface AppDelegate : UIResponder <UIApplicationDelegate> 
+@interface AppDelegate : UIResponder <UIApplicationDelegate>  {
+    //
+}
 
 @property (strong, nonatomic) UIWindow *window;
 
-@property (strong, nonatomic) UIViewController *viewController;
+//@property (strong, nonatomic) UIViewController *viewController;
+@property (strong, nonatomic) UITabBarController *tabBarController;
 
 @end

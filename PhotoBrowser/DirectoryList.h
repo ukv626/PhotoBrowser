@@ -9,10 +9,17 @@
 #import <UIKit/UIKit.h>
 
 @class BaseDriver;
+@class Downloads;
 #import "LoadingDelegate.h"
+#import "MWPhotoBrowser.h"
 
-@interface DirectoryList : UITableViewController <LoadingDelegate, UISearchBarDelegate, UIActionSheetDelegate,
-                                    UIDocumentInteractionControllerDelegate,UIAlertViewDelegate>
+@interface DirectoryList : UITableViewController <LoadingDelegate, MWPhotoBrowserDelegate, UISearchBarDelegate, UIActionSheetDelegate, UIDocumentInteractionControllerDelegate,UIAlertViewDelegate> {
+    
+    NSMutableArray *_photos;
+    Downloads *_downloads;
+}
+
+@property (nonatomic, assign) Downloads *downloads;
 
 // Init
 - (id)initWithDriver:(BaseDriver *)driver;

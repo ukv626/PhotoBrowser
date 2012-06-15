@@ -19,7 +19,7 @@
 #define MWLog(x, ...)
 #endif
 
-// Delgate
+// Delegate
 @class MWPhotoBrowser;
 @protocol MWPhotoBrowserDelegate <NSObject>
 - (NSUInteger)numberOfPhotosInPhotoBrowser:(MWPhotoBrowser *)photoBrowser;

@@ -8,25 +8,31 @@
 
 #import "ConnectionsList.h"
 #import "LoginView.h"
+#import "FtpDriver.h"
+#import "DirectoryList.h"
 
 @interface ConnectionsList () {
     NSMutableArray *_listEntries;
     NSMutableDictionary *_dictionary;
-    
-    LoginView *_delegate;
 }
+
+- (void)reload;
 
 @end
 
-@implementation ConnectionsList
+@implementation ConnectionsList;
 
-@synthesize delegate = _delegate;
 
-- (id)initWithStyle:(UITableViewStyle)style
+- (id)initWithDownloads:(Downloads *)downloads
 {
-    self = [super initWithStyle:style];
+    self = [super initWithStyle:UITableViewStylePlain];
     if (self) {
-        // Custom initialization                                                                                    
+        // Custom initialization   
+        self.tabBarItem = [[UITabBarItem alloc] initWithTabBarSystemItem:UITabBarSystemItemContacts tag:0];
+        
+        _downloads = downloads;
+        _listEntries = [[NSMutableArray alloc] init];
+        _isDirty = YES;
     }
     return self;
 }
@@ -42,14 +48,11 @@
 - (void)loadView {
     [super loadView];
     
+//    self.view.backgroundColor = [[UIColor alloc] initWithPatternImage:[UIImage imageNamed:@"ravenna.png"]];
+    self.navigationItem.leftBarButtonItem = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd
+                                                                                           target:self action:@selector(addButtonPressed:)] autorelease];
     self.navigationItem.rightBarButtonItem = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemEdit
                                                                                             target:self action:@selector(startEditing)] autorelease];
-    _listEntries = [[NSMutableArray alloc] init];
-    
-    _dictionary = [[NSMutableDictionary alloc] initWithContentsOfFile:[_delegate connectionsFilePath]];
-    for (id key in _dictionary) {
-        [_listEntries addObject:key];
-    }
 }
 
 - (void)viewDidLoad
@@ -74,17 +77,55 @@
     [super viewDidAppear:animated];
     
     [self.navigationController setToolbarHidden:YES animated:YES];
+    
+    if (_isDirty) {
+        [self reload];
+        [self.tableView reloadData];
+    }
 }
 
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
-{
+
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
     return YES;
 }
 
 
+// --------------
+- (NSString *)connectionsFilePath {
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *result = [[paths objectAtIndex:0] stringByAppendingPathComponent:@"connections.plist"]; 
+    
+    return result;
+}
 
+- (void)needToRefresh {
+    _isDirty = YES;
+}
+
+- (void)reload {
+    [_dictionary release];
+    [_listEntries removeAllObjects];
+    
+    _dictionary = [[NSMutableDictionary alloc] initWithContentsOfFile:[self connectionsFilePath]];
+    for (id key in _dictionary) {
+        [_listEntries addObject:key];
+    }
+
+    _isDirty = NO;
+}
 
 // --------------
+- (IBAction)addButtonPressed:(id)sender {
+    //
+    LoginView *login = [[LoginView alloc] init];
+    login.delegate = self;
+    
+    // Pass the selected object to the new view controller.
+    [self.navigationController pushViewController:login animated:YES];
+    [login release];
+
+}
+
 - (void)startEditing {
     [self.tableView setEditing:YES animated:YES];
     
@@ -115,18 +156,41 @@
     return _listEntries.count;
 }
 
+- (void)customActionPressed:(id)sender {
+    NSLog(@"%s", __PRETTY_FUNCTION__);
+    UITableViewCell *owningCell = (UITableViewCell *)[sender superview];
+    NSIndexPath *pathToCell = [self.tableView indexPathForCell:owningCell];
+    
+    NSString *url = [_listEntries objectAtIndex:pathToCell.row];
+    NSDictionary *entry = [_dictionary objectForKey:url];
+    
+    LoginView *login = [[LoginView alloc] init];
+    login.delegate = self;
+    
+    // Pass the selected object to the new view controller.
+    [self.navigationController pushViewController:login animated:YES];
+    [login setTextFields:url username:[entry objectForKey:@"username"] password:[entry objectForKey:@"password"]];
+    [login release];
+}
+
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     static NSString *CellIdentifier = @"Cell";
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
     
     // Configure the cell...
-    // Configure the cell...
     if(cell == nil) {
         cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier] autorelease];
     }
     
     cell.textLabel.text = [_listEntries objectAtIndex:indexPath.row];
+    
+    UIButton *button = [UIButton buttonWithType:UIButtonTypeDetailDisclosure];
+    [button addTarget:self action:@selector(customActionPressed:) forControlEvents:UIControlEventTouchDown];
+    [button setTitle:@"Action" forState:UIControlStateNormal];
+    button.frame = CGRectMake(cell.frame.size.width - 35.0, 5.0, 30.0, cell.frame.size.height - 10.0);
+    button.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin;
+    [cell addSubview:button];
     
     return cell;
 }
@@ -150,7 +214,7 @@
         [_listEntries removeObjectAtIndex:indexPath.row];
         
         [_dictionary removeObjectForKey:cell.textLabel.text];
-        [_dictionary writeToFile:[_delegate connectionsFilePath] atomically:YES];
+        [_dictionary writeToFile:[self connectionsFilePath] atomically:YES];
         [tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationFade];
         
     }   
@@ -180,22 +244,45 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    NSString *url = [_listEntries objectAtIndex:indexPath.row];
-    NSDictionary *entry = [_dictionary objectForKey:url];
+    // Navigation logic may go here. Create and push another view controller.
+    NSString *urlStr = [_listEntries objectAtIndex:indexPath.row];
+    NSDictionary *entry = [_dictionary objectForKey:urlStr];
     
-    if ([_delegate respondsToSelector:@selector(setTextFields:username:password:)]) {
-        [_delegate setTextFields:url username:[entry objectForKey:@"username"] password:[entry objectForKey:@"password"]];
-        [self.navigationController popViewControllerAnimated:YES];
+//    [login setTextFields:url username:[entry objectForKey:@"username"] password:[entry objectForKey:@"password"]];
+    
+    BOOL success = NO;
+    NSString *errorStr;
+    NSURL *url = [NSURL URLWithString:urlStr];
+    // check url
+    if (url && url.scheme && url.host) {
+        if ([url.scheme isEqualToString:@"ftp"] || [url.scheme isEqualToString:@"ftps"]) {
+            success = YES;
+            FtpDriver *ftpDriver = [[FtpDriver alloc] initWithURL:url];
+            ftpDriver.username = [entry objectForKey:@"username"];
+            ftpDriver.password = [entry objectForKey:@"password"];
+            
+            DirectoryList *dirList = [[DirectoryList alloc] initWithDriver:ftpDriver];
+            dirList.downloads = _downloads;
+            [ftpDriver release];
+            [self.navigationController pushViewController:dirList animated:YES];
+            // Release
+            [dirList release];
+        } else {
+            errorStr = [NSString stringWithFormat:@"Unknown protocol: %@", url.scheme];
+        }
+    } else {
+        errorStr = @"Invalid URL";
     }
 
-    // Navigation logic may go here. Create and push another view controller.
-    /*
-     <#DetailViewController#> *detailViewController = [[<#DetailViewController#> alloc] initWithNibName:@"<#Nib name#>" bundle:nil];
-     // ...
-     // Pass the selected object to the new view controller.
-     [self.navigationController pushViewController:detailViewController animated:YES];
-     [detailViewController release];
-     */
+    if (!success) {
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:errorStr delegate:self cancelButtonTitle:nil otherButtonTitles:@"OK", nil];
+        [alert show];
+    }
+}
+
+// UIAlertViewDelegate
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    [alertView release];
 }
 
 @end

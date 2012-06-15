@@ -9,9 +9,10 @@
 #import "DirectoryList.h"
 #include <sys/dirent.h>
 
-#import "Browser.h"
+#import "MWPhotoBrowser.h"
 #import "BaseDriver.h"
 #import "EntryLs.h"
+#import "Downloads.h"
 
 #define REFRESH_HEADER_HEIGHT 52.0f
 
@@ -28,7 +29,7 @@
     unsigned long long _bytesReceivedFromDir;
     
     // Toolbar
-    UIBarButtonItem *_actionButton;
+//    UIBarButtonItem *_actionButton;
     UIBarButtonItem *_abortButton;
     UIActionSheet *_actionsSheet;
     
@@ -60,6 +61,8 @@
 
 @implementation DirectoryList
 
+@synthesize downloads = _downloads;
+
 - (id)initWithDriver:(BaseDriver *)driver {
     NSLog(@"%s", __PRETTY_FUNCTION__);
     
@@ -73,6 +76,16 @@
         // Push url
         [_urls addObject:_driver.url];
         _totalBytesToReceive = 0;
+        
+        _photos = [[NSMutableArray alloc] init];
+        
+        if ([_driver isDownloadable]) {
+            self.title = @"Remote";
+            self.tabBarItem = [[UITabBarItem alloc] initWithTitle:@"Remote" image:nil tag:0];
+        } 
+        else {
+            self.tabBarItem = [[UITabBarItem alloc] initWithTabBarSystemItem:UITabBarSystemItemSearch tag:1];
+        }
     }
     return self;
 }
@@ -86,8 +99,10 @@
     [self _receiveDidStopWithActivityIndicator:YES];
     
     [_driver release];
+    [_urls release];
+    [_photos release];
 //    [_buttons release];
-    [_actionButton release];
+//    [_actionButton release];
     [_abortButton release];
     [_searchBar release];
     [_filteredListEntries release];
@@ -120,9 +135,9 @@
     _abortButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemStop
                                                                   target:self action:@selector(abortButtonPressed:)];
     
-    _actionButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction 
-                                                      target:self action:@selector(actionButtonPressed:)];
-    self.navigationItem.rightBarButtonItem =_actionButton;
+//    _actionButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction 
+//                                                      target:self action:@selector(actionButtonPressed:)];
+//    self.navigationItem.rightBarButtonItem =_actionButton;
 //    _downloadButton.enabled = NO;
     
 //    [_buttons addObject:sortButton];
@@ -237,7 +252,7 @@
     }
     
     if ([_driver isDownloadable]) {
-        _actionButton.enabled = YES;
+//        _actionButton.enabled = YES;
     }
     
     if ([_urls count] > 1) {
@@ -325,7 +340,7 @@
     [_directoryDownloader release];
     _directoryDownloader = nil;
     
-    _actionButton.enabled = YES;
+//    _actionButton.enabled = YES;
     
     _directoryDownloading = NO; 
     self.navigationItem.titleView = nil;
@@ -389,7 +404,7 @@
     _fileDownloading = NO;
     self.navigationItem.titleView = nil;
     [self _receiveDidStopWithActivityIndicator:NO];
-    self.navigationItem.rightBarButtonItem =_actionButton;
+//    self.navigationItem.rightBarButtonItem =_actionButton;
     _bytesReceived = 0;
 }
 
@@ -410,79 +425,61 @@
 
 // -----------------------------------------------------------------------------------------------------
 
-- (void)handleLoadingDidEndNotification:(id)sender {
-    if (sender == _driver) {
-        [self directoryListReceived];
-    } else if (sender == _directoryDownloader) {
-        [self directoryDownloaded];
-    } else if ([[sender class] isSubclassOfClass:[NSString class]]) {
-        [self fileDownloaded:(NSString *)sender];
-    }
+- (void)abortButtonPressed:(id)sender {
+    NSLog(@"%s", __PRETTY_FUNCTION__);
+    [self performSelectorInBackground:@selector(stopFileDownloading) withObject:nil];
 }
 
-- (void)handleLoadingProgressNotification:(id)sender {
-    // Notification from _directoryDownloader
-    if (sender == _directoryDownloader) {
-        _bytesReceivedFromDir = [[_directoryDownloader lastBytesReceived] unsignedLongLongValue];
-    } else if (sender == _fileDownloader) {
-        _bytesReceived = [[_fileDownloader lastBytesReceived] unsignedLongLongValue];
-    }
+- (void)actionButtonPressed:(id)sender {
+    NSLog(@"%s", __PRETTY_FUNCTION__);
+    if (_actionsSheet) {
+        // Dismiss
+        [_actionsSheet dismissWithClickedButtonIndex:_actionsSheet.cancelButtonIndex animated:YES];
+    } else {
+        UITableViewCell *owningCell = (UITableViewCell *)[sender superview];
+        NSIndexPath *pathToCell = [self.tableView indexPathForCell:owningCell];
+        [self.tableView selectRowAtIndexPath:pathToCell animated:NO scrollPosition:UITableViewScrollPositionNone];
+        
+        // Sheet
+        _actionsSheet = [[UIActionSheet alloc] init];
+        _actionsSheet.delegate = self;
+        if ([_driver isDownloadable]) {
+            if (owningCell.accessoryType == UITableViewCellAccessoryNone) {
+                [_actionsSheet addButtonWithTitle:@"Download"];
+            } else {
+                [_actionsSheet addButtonWithTitle:@"Download dir"];
+            }
+        }
+        else {
+            if (owningCell.accessoryType == UITableViewCellAccessoryNone) {
+                [_actionsSheet addButtonWithTitle:@"Delete"];
+            }
+            else {
+                [_actionsSheet addButtonWithTitle:@"Delete dir"];
+            }
+            
+//            _actionsSheet.destructiveButtonIndex = 0;
+        }
+
+        [_actionsSheet addButtonWithTitle:@"Cancel"];
+        [_actionsSheet setCancelButtonIndex:_actionsSheet.numberOfButtons-1];
     
-    _progressView.progress = (double)(_bytesReceived + _bytesReceivedFromDir) / (double)_totalBytesToReceive;
-}
-
-- (void)handleAbortedNotification:(id)sender {
-    if (sender == _directoryDownloader) {
-        // release
-        [_directoryDownloader release];
-        _directoryDownloader = nil;
         
-        _directoryDownloading = NO;
-        self.navigationItem.titleView = nil;
-        [self _receiveDidStopWithActivityIndicator:NO];
-    } else if (sender == _fileDownloader) {
-        // release
-        [_fileDownloader release];
-        _fileDownloader = nil;
-        
-        _fileDownloading = NO;
-        self.navigationItem.titleView = nil;
-        [self _receiveDidStopWithActivityIndicator:NO];
-        self.navigationItem.rightBarButtonItem =_actionButton;
+        _actionsSheet.actionSheetStyle = UIActionSheetStyleBlackTranslucent;
+        if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+            [_actionsSheet showFromBarButtonItem:sender animated:YES];
+        } else {
+            [_actionsSheet showInView:[self.view window]];
+        }            
     }
 }
-
-- (void)handleErrorNotification:(id)sender {
-    NSString *errorMessage = @"";
-    if (sender == _driver) {
-        [self _receiveDidStopWithActivityIndicator:YES];
-        errorMessage = [_driver errorStr];
-    } else if (sender == _directoryDownloader) {
-        errorMessage = [_directoryDownloader errorStr];
-        _directoryDownloading = NO;
-        [self _receiveDidStopWithActivityIndicator:NO];
-        
-        [_directoryDownloader release];
-        _directoryDownloader = nil;
-    } else if (sender == _fileDownloader) {
-        errorMessage = [_fileDownloader errorStr];
-        _fileDownloading = NO;
-        [self _receiveDidStopWithActivityIndicator:NO];
-        
-        [_fileDownloader release];
-        _fileDownloader = nil;
-    }
-    
-    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:errorMessage delegate:self cancelButtonTitle:nil otherButtonTitles:@"OK", nil];
-    [alert show];
-}
-
 
 // -----------------------------------------------------------------------------------------------------
 - (void)showBrowser:(NSString *)currentFilename {
     NSUInteger pageIndex = 0;
     NSUInteger i = 0;
-    NSMutableArray *photos = [[NSMutableArray alloc] init];
+    [_photos removeAllObjects];
+    
     for (EntryLs *entry in _driver.listEntries) { 
         NSString *filename = [entry text];
         if([_driver isImageFile:filename]) {                
@@ -493,19 +490,18 @@
             //BaseDriver *downloadDriver = [_driver clone]; //[NSURL URLWithString:fileURL]];
             
             NSString *photoPath = [[_driver pathToDownload] stringByAppendingPathComponent:filename];
-            Photo *photo = [[Photo alloc] initWithDriver:_driver PhotoPath:photoPath];
+            MWPhoto *photo = [[MWPhoto alloc] initWithDriver:_driver PhotoPath:photoPath];
             photo.caption = filename;
             
-            [photos addObject:photo];
+            [_photos addObject:photo];
             [photo release];
             ++i;
         }
     }
     
-    Browser *browser = [[Browser alloc] initWithPhotos:photos photosPerPage:1];
+    MWPhotoBrowser *browser = [[MWPhotoBrowser alloc] initWithDelegate:self];
     [browser setInitialPageIndex:pageIndex];
     
-    [photos release];
     [self.navigationController pushViewController:browser animated:YES];
     // Release
     [browser release];
@@ -645,6 +641,13 @@ static NSDateFormatter *sDateFormatter;
         }
 //        label.text = sizeStr;
     }
+    
+    UIButton *button = [UIButton buttonWithType:UIButtonTypeDetailDisclosure];
+    [button addTarget:self action:@selector(actionButtonPressed:) forControlEvents:UIControlEventTouchDown];
+    [button setTitle:@"Action" forState:UIControlStateNormal];
+    button.frame = CGRectMake(cell.frame.size.width - 35.0, 5.0, 30.0, cell.frame.size.height - 10.0);
+    button.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin;
+    [cell addSubview:button];
 //    [cell addSubview:label];
 
     return cell;
@@ -827,7 +830,7 @@ static NSDateFormatter *sDateFormatter;
     
     _letUserSelectRow = YES;
     _searching = NO;
-    self.navigationItem.rightBarButtonItem = _actionButton;
+    self.navigationItem.rightBarButtonItem = nil;
     self.tableView.scrollEnabled = YES;
     
     [self.tableView reloadData];
@@ -872,53 +875,83 @@ static NSDateFormatter *sDateFormatter;
 }
 
 
-#pragma mark - Action Sheet Delegate
+#pragma mark - LoadingDelegate
 
-- (void)abortButtonPressed:(id)sender {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
-    [self performSelectorInBackground:@selector(stopFileDownloading) withObject:nil];
-}
+// -----------------------------------------------------------------------------------------------------
 
-- (void)actionButtonPressed:(id)sender {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
-    if (_actionsSheet) {
-        // Dismiss
-        [_actionsSheet dismissWithClickedButtonIndex:_actionsSheet.cancelButtonIndex animated:YES];
-    } else {
-        // Sheet
-        if ([_driver isDownloadable]) {
-            if (!_directoryDownloading) {
-                _actionsSheet = [[[UIActionSheet alloc] initWithTitle:nil delegate:self
-                                                    cancelButtonTitle:NSLocalizedString(@"Cancel", nil) destructiveButtonTitle:nil
-                                                    otherButtonTitles:NSLocalizedString(@"Download directory", nil), 
-                                  NSLocalizedString(@"Delete directory", nil), nil] autorelease];
-            } else {
-                _actionsSheet = [[[UIActionSheet alloc] initWithTitle:nil delegate:self
-                                                    cancelButtonTitle:NSLocalizedString(@"Cancel", nil) destructiveButtonTitle:nil
-                                                    otherButtonTitles:NSLocalizedString(@"Abort downloading directory", nil), 
-                                  NSLocalizedString(@"Delete directory", nil), nil] autorelease];
-            }
-        } else {
-            _actionsSheet = [[[UIActionSheet alloc] initWithTitle:nil delegate:self
-                                                cancelButtonTitle:NSLocalizedString(@"Cancel", nil) 
-                                           destructiveButtonTitle:NSLocalizedString(@"Delete directory", nil)
-                                                otherButtonTitles:nil] autorelease];
-            _actionsSheet.destructiveButtonIndex = 0;
-        }
-        
-        _actionsSheet.actionSheetStyle = UIActionSheetStyleBlackTranslucent;
-        if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
-            [_actionsSheet showFromBarButtonItem:sender animated:YES];
-        } else {
-            [_actionsSheet showInView:self.view];
-        }            
+- (void)handleLoadingDidEndNotification:(id)sender {
+    if (sender == _driver) {
+        [self directoryListReceived];
+    } else if (sender == _directoryDownloader) {
+        [self directoryDownloaded];
+    } else if ([[sender class] isSubclassOfClass:[NSString class]]) {
+        [self fileDownloaded:(NSString *)sender];
     }
 }
+
+- (void)handleLoadingProgressNotification:(id)sender {
+    // Notification from _directoryDownloader
+    if (sender == _directoryDownloader) {
+        _bytesReceivedFromDir = [[_directoryDownloader lastBytesReceived] unsignedLongLongValue];
+    } else if (sender == _fileDownloader) {
+        _bytesReceived = [[_fileDownloader lastBytesReceived] unsignedLongLongValue];
+    }
+    
+    _progressView.progress = (double)(_bytesReceived + _bytesReceivedFromDir) / (double)_totalBytesToReceive;
+}
+
+- (void)handleAbortedNotification:(id)sender {
+    if (sender == _directoryDownloader) {
+        // release
+        [_directoryDownloader release];
+        _directoryDownloader = nil;
+        
+        _directoryDownloading = NO;
+        self.navigationItem.titleView = nil;
+        [self _receiveDidStopWithActivityIndicator:NO];
+    } else if (sender == _fileDownloader) {
+        // release
+        [_fileDownloader release];
+        _fileDownloader = nil;
+        
+        _fileDownloading = NO;
+        self.navigationItem.titleView = nil;
+        [self _receiveDidStopWithActivityIndicator:NO];
+//        self.navigationItem.rightBarButtonItem =_actionButton;
+    }
+}
+
+- (void)handleErrorNotification:(id)sender {
+    NSString *errorMessage = @"";
+    if (sender == _driver) {
+        [self _receiveDidStopWithActivityIndicator:YES];
+        errorMessage = [_driver errorStr];
+    } else if (sender == _directoryDownloader) {
+        errorMessage = [_directoryDownloader errorStr];
+        _directoryDownloading = NO;
+        [self _receiveDidStopWithActivityIndicator:NO];
+        
+        [_directoryDownloader release];
+        _directoryDownloader = nil;
+    } else if (sender == _fileDownloader) {
+        errorMessage = [_fileDownloader errorStr];
+        _fileDownloading = NO;
+        [self _receiveDidStopWithActivityIndicator:NO];
+        
+        [_fileDownloader release];
+        _fileDownloader = nil;
+    }
+    
+    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:errorMessage delegate:self cancelButtonTitle:nil otherButtonTitles:@"OK", nil];
+    [alert show];
+}
+
+#pragma mark - Action Sheet Delegate
 
 - (void)actionSheet:(UIActionSheet *)actionSheet didDismissWithButtonIndex:(NSInteger)buttonIndex {
     if (actionSheet == _actionsSheet) {           
         // Actions 
-        _actionsSheet = nil;
+        NSLog(@"%s [index=%d]", __PRETTY_FUNCTION__, buttonIndex);
         if (buttonIndex != actionSheet.cancelButtonIndex) {
             
             if (buttonIndex == actionSheet.destructiveButtonIndex) {
@@ -926,20 +959,68 @@ static NSDateFormatter *sDateFormatter;
                 [self getDirectoryList];
             }
             
-            if (buttonIndex == actionSheet.firstOtherButtonIndex) { 
+            if (buttonIndex == 0) { 
                 // Start/Stop direcory downloading
                 
-                if (!_directoryDownloading) {
-                    [self getDirectorySize];
-                } else {
-                    [self performSelectorInBackground:@selector(stopDirectoryDownloading) withObject:nil];
+                NSIndexPath *indexPath = [self.tableView indexPathForSelectedRow];
+                UITableViewCell *cell = [self.tableView cellForRowAtIndexPath:indexPath];
+                
+                if ([_driver isDownloadable]) {
+                    if (cell.accessoryType == UITableViewCellAccessoryNone) {
+                        NSLog(@"Download file %@", cell.textLabel.text);
+                        NSString *filepath = [[_driver.url absoluteString] stringByAppendingPathComponent:cell.textLabel.text];
+                        [_downloads addFile:filepath];
+                    } else {
+                        NSNumber *result = [NSNumber numberWithInteger:0];
+                        BaseDriver *directoryDownloader = [_driver clone];
+                        directoryDownloader.url = [_driver.url URLByAppendingPathComponent:cell.textLabel.text];
+                        //directoryDownloader.delegate = self;
+                        result = [directoryDownloader directorySize];
+                        
+                        NSString *path = [_driver.url absoluteString];
+                        for (NSString *entry in directoryDownloader.listEntries) {
+                            [_downloads addFile:[path stringByAppendingPathComponent:entry]];
+                        }
+                        
+                        // refresh "Downloads" badge
+                        [_downloads refreshBadge];
+                    }
                 }
-                return;
+                else {
+                    if (cell.accessoryType == UITableViewCellAccessoryNone) {
+                        NSLog(@"Delete file file %@", cell.textLabel.text);
+                    }
+                    else {
+                        NSLog(@"Delete dir %@", cell.textLabel.text);
+                    }
+                    
+                    //            _actionsSheet.destructiveButtonIndex = 0;
+                }
+
+                
+//                if (!_directoryDownloading) {
+//                    [self getDirectorySize];
+//                } else {
+//                    [self performSelectorInBackground:@selector(stopDirectoryDownloading) withObject:nil];
+//                }
+//                return;
             } else if (buttonIndex == (actionSheet.firstOtherButtonIndex + 1)) {
-                return;	
+//                return;	
             }
         }
+        //[actionSheet release];
+        [_actionsSheet release];
+        _actionsSheet = nil;
     }
+}
+
+// 
+- (NSUInteger)numberOfPhotosInPhotoBrowser:(MWPhotoBrowser *)photoBrowser {
+    return _photos.count;
+}
+
+- (id<MWPhoto>)photoBrowser:(MWPhotoBrowser *)photoBrowser photoAtIndex:(NSUInteger)index {
+    return [_photos objectAtIndex:index];
 }
 
 

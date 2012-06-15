@@ -50,9 +50,8 @@
     if (!_driver.IsConnected) {
         return NO;
     }
-
-    BOOL success = [_driver ChangeRemoteDir:relativeDirPath]; 
-    return success;
+    
+    return [_driver ChangeRemoteDir:relativeDirPath];
 }
 
  
@@ -85,13 +84,14 @@
 }
 
 - (void)directoryList {
-    [self.listEntries removeAllObjects];
-    
     BOOL success = _driver.IsConnected;
     if (!success) {
         success = [self connect];
     }
 
+    SEL handler = @selector(handleErrorNotification:);
+    [self.listEntries removeAllObjects];
+    
     if (success) {
         [_driver setListPattern:@"*"];
         int n = [_driver.NumFilesAndDirs intValue];
@@ -112,26 +112,49 @@
             }
         }
         [self sortByName];
-        [self performSelectorOnMainThread:@selector(notifyAboutFinished:) withObject:self waitUntilDone:NO];
-    } else {
-        [self performSelectorOnMainThread:@selector(notifyAboutError:) withObject:self waitUntilDone:NO];
+        
+        handler = @selector(handleLoadingDidEndNotification:);
     }
-
+    
+    // notificate
+    if ([self.delegate respondsToSelector:handler]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.delegate performSelector:handler withObject:self];
+        });
+    }
 }
 
 - (void)downloadFile:(NSString *)filename {
-    BOOL success = _driver.IsConnected;
-    if (!success) {
-        success = [self connect];
+    [self performSelectorInBackground:@selector(_downloadFile:) withObject:filename];
     }
-    
-    if (success) {
-        [_driver GetFile:filename localFilename:[[self pathToDownload] stringByAppendingPathComponent:filename]];
-    } else {
-        [self performSelectorOnMainThread:@selector(notifyAboutError:) withObject:self waitUntilDone:NO];
+
+- (void)_downloadFile:(NSString *)filename {
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    @try {
+        BOOL success =_driver.IsConnected;
+        
+        if (!success) {
+            success = [self connect];
+        }
+        
+        if (success) {
+            [_driver GetFile:filename localFilename:[[self pathToDownload] stringByAppendingPathComponent:filename]];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [self.delegate handleLoadingDidEndNotification:self];
+            });
+            
+        } else {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [self.delegate handleErrorNotification:self];
+            });
+        }
+    }
+    @catch (NSException *exception) {        
+    }
+    @finally { 
+        [pool drain];        
     }
 }
-
 
 - (NSNumber *)lastBytesReceived {
     return [NSNumber numberWithUnsignedLongLong:_bytesReceived];
@@ -145,28 +168,37 @@
     }
     
     if (!success) {
-        [self performSelectorOnMainThread:@selector(notifyAboutError:) withObject:self waitUntilDone:NO];
-        return;
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.delegate performSelector:@selector(handleErrorNotification:) withObject:self];
+        });
     }
-    
-    _aborted = NO;
-    NSString *localFilename = [[self pathToDownload] stringByAppendingPathComponent:filename];
-    success = [_driver AsyncGetFileStart:filename localFilename:localFilename];
-    if (success) {
-        while (_driver.AsyncFinished != YES) {
-            _bytesReceived = [_driver.AsyncBytesReceived64 unsignedLongLongValue];
-            [_driver SleepMs:[NSNumber numberWithInt:500]];
-            
-            [self performSelectorOnMainThread:@selector(notifyAboutProgress:) withObject:self waitUntilDone:NO];
+    else {
+        _aborted = NO;
+        NSString *localFilename = [[self pathToDownload] stringByAppendingPathComponent:filename];
+        success = [_driver AsyncGetFileStart:filename localFilename:localFilename];
+        if (success) {
+            while (_driver.AsyncFinished != YES) {
+                _bytesReceived = [_driver.AsyncBytesReceived64 unsignedLongLongValue];
+                [_driver SleepMs:[NSNumber numberWithInt:500]];
+                
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [self.delegate performSelector:@selector(handleLoadingProgressNotification:) withObject:self];
+                });
+            }
+            if (!_aborted) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [self.delegate performSelector:@selector(handleLoadingDidEndNotification:) withObject:filename];
+                });
+                
+            } else {
+                [[NSFileManager defaultManager] removeItemAtPath:localFilename error:nil];
+                
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [self.delegate performSelector:@selector(handleAbortedNotification:) withObject:self];
+                });
+            }
         }
-        if (!_aborted) {
-            [self performSelectorOnMainThread:@selector(notifyAboutFinished:) withObject:filename waitUntilDone:NO];
-            
-        } else {
-            [[NSFileManager defaultManager] removeItemAtPath:localFilename error:nil];
-            [self performSelectorOnMainThread:@selector(notifyAboutAborted:) withObject:self waitUntilDone:NO];
-        }
-    }
+    } 
 }
 
 
@@ -179,7 +211,9 @@
     unsigned long long totalDirectorySize = 0;
     
     if (!success) {
-        [self performSelectorOnMainThread:@selector(notifyAboutError:) withObject:self waitUntilDone:NO];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.delegate performSelector:@selector(handleErrorNotification:) withObject:self];
+        });
     } else {
         [self.listEntries removeAllObjects];
         
@@ -219,7 +253,9 @@
     }
     
     if (!success) {
-         [self performSelectorOnMainThread:@selector(notifyAboutError:) withObject:self waitUntilDone:NO];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.delegate performSelector:@selector(handleErrorNotification:) withObject:self];
+        });
     } else {
         _aborted = NO;
 
@@ -247,7 +283,9 @@
                     _bytesReceived = [_driver.AsyncBytesReceived64 unsignedLongLongValue] + totalBytesReceived;
                     [_driver SleepMs:[NSNumber numberWithInt:500]];
                     
-                    [self performSelectorOnMainThread:@selector(notifyAboutProgress:) withObject:self waitUntilDone:NO];
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        [self.delegate performSelector:@selector(handleLoadingProgressNotification:) withObject:self];
+                    });
                 }
                 totalBytesReceived += [_driver.AsyncBytesReceived64 unsignedLongLongValue];
             } else {
@@ -263,37 +301,17 @@
         }
         
         if (!_aborted) {
-            [self performSelectorOnMainThread:@selector(notifyAboutFinished:) withObject:self waitUntilDone:NO];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [self.delegate performSelector:@selector(handleLoadingDidEndNotification:) withObject:self];
+            });
         } else {
-            [self performSelectorOnMainThread:@selector(notifyAboutAborted:) withObject:self waitUntilDone:NO];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [self.delegate performSelector:@selector(handleAbortedNotification:) withObject:self];
+            });
         }
-
     }
 }
 
-- (void)notifyAboutProgress:(id)sender {
-    if ([self.delegate respondsToSelector:@selector(handleLoadingProgressNotification:)]) {
-        [self.delegate handleLoadingProgressNotification:sender];
-    }
-}
-
-- (void)notifyAboutAborted:(id)sender {
-    if ([self.delegate respondsToSelector:@selector(handleAbortedNotification:)]) {
-        [self.delegate handleAbortedNotification:sender];
-    }
-}
-
-- (void)notifyAboutFinished:(id)sender {
-    if ([self.delegate respondsToSelector:@selector(handleLoadingDidEndNotification:)]) {
-        [self.delegate handleLoadingDidEndNotification:sender];
-    }
-}
-
-- (void)notifyAboutError:(id)sender {
-    if ([self.delegate respondsToSelector:@selector(handleErrorNotification:)]) {
-        [self.delegate handleErrorNotification:sender];
-    }
-}
 
 - (void)abort {
     [_driver AsyncAbort];

@@ -9,9 +9,17 @@
 #import <UIKit/UIKit.h>
 
 @class LoginView;
+@class Downloads;
 
-@interface ConnectionsList : UITableViewController
+@interface ConnectionsList : UITableViewController {
+    BOOL _isDirty;
+    
+    Downloads *_downloads;
+}
 
-@property (nonatomic, assign) LoginView *delegate;
+- (id)initWithDownloads:(Downloads *)downloads;
+
+- (NSString *)connectionsFilePath;
+- (void)needToRefresh;
 
 @end
