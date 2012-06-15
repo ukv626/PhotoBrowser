@@ -1,8 +1,8 @@
 //
-//  ImageDelegate.h
-//  PhotoBrowser
+//  MWPhotoProtocol.h
+//  MWPhotoBrowser
 //
-//  Created by ukv on 4/12/12.
+//  Created by Michael Waterfall on 02/01/2012.
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
 //
 
@@ -10,10 +10,16 @@
 
 // Name of notification used when a photo has completed loading process
 // Used to notify browser display the image
-#define PHOTO_DOWNLOADING_DID_END_NOTIFICATION @"PHOTO_DOWNLOADING_DID_END_NOTIFICATION"
-#define PHOTO_LOADING_DID_END_NOTIFICATION @"PHOTO_LOADING_DID_END_NOTIFICATION"
+#define MWPHOTO_LOADING_DID_END_NOTIFICATION @"MWPHOTO_LOADING_DID_END_NOTIFICATION"
 
-@protocol PhotoDelegate <NSObject>
+// If you wish to use your own data models for photo then they must conform
+// to this protocol. See instructions for details on each method.
+// Otherwise you can use the MWPhoto object or subclass it yourself to
+// store more information per photo.
+//
+// You can see the MWPhoto class for an example implementation of this protocol
+//
+@protocol MWPhoto <NSObject>
 
 @required
 
