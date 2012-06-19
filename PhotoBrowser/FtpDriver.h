@@ -22,12 +22,7 @@
 
 - (NSNumber *)directorySize;
 
-- (void)downloadDirectory;
-
-- (NSNumber *)lastBytesReceived;
-
 - (void)abort;
 
-- (NSString *)errorStr;
 
 @end

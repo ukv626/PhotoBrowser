@@ -10,6 +10,7 @@
 #import "LoginView.h"
 #import "FtpDriver.h"
 #import "DirectoryList.h"
+#import "Downloads.h"
 
 @interface ConnectionsList () {
     NSMutableArray *_listEntries;
@@ -156,22 +157,6 @@
     return _listEntries.count;
 }
 
-- (void)customActionPressed:(id)sender {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
-    UITableViewCell *owningCell = (UITableViewCell *)[sender superview];
-    NSIndexPath *pathToCell = [self.tableView indexPathForCell:owningCell];
-    
-    NSString *url = [_listEntries objectAtIndex:pathToCell.row];
-    NSDictionary *entry = [_dictionary objectForKey:url];
-    
-    LoginView *login = [[LoginView alloc] init];
-    login.delegate = self;
-    
-    // Pass the selected object to the new view controller.
-    [self.navigationController pushViewController:login animated:YES];
-    [login setTextFields:url username:[entry objectForKey:@"username"] password:[entry objectForKey:@"password"]];
-    [login release];
-}
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
@@ -184,15 +169,25 @@
     }
     
     cell.textLabel.text = [_listEntries objectAtIndex:indexPath.row];
-    
-    UIButton *button = [UIButton buttonWithType:UIButtonTypeDetailDisclosure];
-    [button addTarget:self action:@selector(customActionPressed:) forControlEvents:UIControlEventTouchDown];
-    [button setTitle:@"Action" forState:UIControlStateNormal];
-    button.frame = CGRectMake(cell.frame.size.width - 35.0, 5.0, 30.0, cell.frame.size.height - 10.0);
-    button.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin;
-    [cell addSubview:button];
+    cell.accessoryType = UITableViewCellAccessoryDetailDisclosureButton;
     
     return cell;
+}
+
+
+- (void)tableView:(UITableView *)tableView accessoryButtonTappedForRowWithIndexPath:(NSIndexPath *)indexPath {
+    NSLog(@"%s", __PRETTY_FUNCTION__);
+    
+    NSString *url = [_listEntries objectAtIndex:indexPath.row];
+    NSDictionary *entry = [_dictionary objectForKey:url];
+    
+    LoginView *login = [[LoginView alloc] init];
+    login.delegate = self;
+    
+    // Pass the selected object to the new view controller.
+    [self.navigationController pushViewController:login animated:YES];
+    [login setTextFields:url username:[entry objectForKey:@"username"] password:[entry objectForKey:@"password"]];
+    [login release];
 }
 
 /*
@@ -262,7 +257,9 @@
             ftpDriver.password = [entry objectForKey:@"password"];
             
             DirectoryList *dirList = [[DirectoryList alloc] initWithDriver:ftpDriver];
+            _downloads.driver = [ftpDriver clone];
             dirList.downloads = _downloads;
+            
             [ftpDriver release];
             [self.navigationController pushViewController:dirList animated:YES];
             // Release

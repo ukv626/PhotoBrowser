@@ -17,6 +17,8 @@
     
     NSMutableArray *_photos;
     Downloads *_downloads;
+    
+    NSMutableArray *_dirList;
 }
 
 @property (nonatomic, assign) Downloads *downloads;
@@ -25,8 +27,8 @@
 - (id)initWithDriver:(BaseDriver *)driver;
 
 //
-- (void)handleLoadingProgressNotification:(id)sender;
-- (void)handleAbortedNotification:(id)sender;
-- (void)handleErrorNotification:(id)sender;
-- (void)handleLoadingDidEndNotification:(id)sender;
+- (void)driver:(BaseDriver *)driver handleLoadingProgressNotification:(id)object;
+- (void)driver:(BaseDriver *)driver handleAbortedNotification:(id)object;
+- (void)driver:(BaseDriver *)driver handleErrorNotification:(id)object;
+- (void)driver:(BaseDriver *)driver handleLoadingDidEndNotification:(id)object;
 @end

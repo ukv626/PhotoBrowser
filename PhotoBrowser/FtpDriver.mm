@@ -15,13 +15,18 @@
 
 @interface FtpDriver() {
     CkoFtp2 *_driver;
-    unsigned long long _bytesReceived;
     BOOL _aborted;
+    
+    NSString *_originalRemoteDir;
 }
+
+@property (nonatomic, copy) NSString *originalRemoteDir;
 
 @end
 
 @implementation FtpDriver
+
+@synthesize originalRemoteDir = _originalRemoteDir;
 
 - (id)initWithURL:(NSURL *)url {
     if ((self = [super initWithURL:url])) {
@@ -42,6 +47,7 @@
     NSLog(@"%s", __PRETTY_FUNCTION__);
     [_driver Disconnect];
     [_driver release];
+    [_originalRemoteDir release];
     
     [super dealloc];
 }
@@ -60,6 +66,7 @@
 }
 
 - (BOOL)connect {
+    NSLog(@"%s [%@]", __PRETTY_FUNCTION__, self.url);
     BOOL success = [_driver UnlockComponent:@"qwe"];
     if (!success) {
         return NO;
@@ -78,6 +85,7 @@
         if (![[self.url path] isEqualToString:@"/"]) {
             success = [_driver ChangeRemoteDir:[[self.url path] substringFromIndex:1]];
         }
+        self.originalRemoteDir = [_driver GetCurrentRemoteDir];
     }
     
     return success;
@@ -89,10 +97,14 @@
         success = [self connect];
     }
 
-    SEL handler = @selector(handleErrorNotification:);
     [self.listEntries removeAllObjects];
     
-    if (success) {
+    if (!success) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.delegate driver:self handleErrorNotification:_driver.LastErrorText];
+        });
+    }
+    else {
         [_driver setListPattern:@"*"];
         int n = [_driver.NumFilesAndDirs intValue];
         if (n > 0) {
@@ -113,18 +125,15 @@
         }
         [self sortByName];
         
-        handler = @selector(handleLoadingDidEndNotification:);
-    }
-    
-    // notificate
-    if ([self.delegate respondsToSelector:handler]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            [self.delegate performSelector:handler withObject:self];
+            [self.delegate driver:self handleLoadingDidEndNotification:@"DIRECTORY_LIST_RECEIVED"];
         });
-    }
+    } 
 }
 
+
 - (void)downloadFile:(NSString *)filename {
+    NSLog(@"%s [%@]", __PRETTY_FUNCTION__, filename);
     [self performSelectorInBackground:@selector(_downloadFile:) withObject:filename];
     }
 
@@ -138,29 +147,25 @@
         }
         
         if (success) {
-            [_driver GetFile:filename localFilename:[[self pathToDownload] stringByAppendingPathComponent:filename]];
+            success = [_driver GetFile:filename localFilename:[[self pathToDownload] stringByAppendingPathComponent:filename]];
             dispatch_async(dispatch_get_main_queue(), ^{
-                [self.delegate handleLoadingDidEndNotification:self];
+                [self.delegate driver:self handleLoadingDidEndNotification:filename];
             });
             
         } else {
             dispatch_async(dispatch_get_main_queue(), ^{
-                [self.delegate handleErrorNotification:self];
+                [self.delegate driver:self handleErrorNotification:[filename stringByAppendingString:_driver.LastErrorText]];
             });
         }
     }
     @catch (NSException *exception) {        
     }
-    @finally { 
+    @finally {
         [pool drain];        
     }
 }
 
-- (NSNumber *)lastBytesReceived {
-    return [NSNumber numberWithUnsignedLongLong:_bytesReceived];
-}
-
-- (void)downloadFileAsync:(NSString *)filename {
+- (void)downloadFileAsync:(NSString *)filepath {
     BOOL success =_driver.IsConnected;
     
     if (!success) {
@@ -169,35 +174,55 @@
     
     if (!success) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            [self.delegate performSelector:@selector(handleErrorNotification:) withObject:self];
+            [self.delegate driver:self handleErrorNotification:[filepath stringByAppendingString:_driver.LastErrorText]];
         });
     }
     else {
         _aborted = NO;
-        NSString *localFilename = [[self pathToDownload] stringByAppendingPathComponent:filename];
-        success = [_driver AsyncGetFileStart:filename localFilename:localFilename];
+        _driver.RestartNext = YES;
+        
+        NSString *relFilepath = [[self.url path] isEqualToString:@"/"] ? 
+                    filepath :
+                    [[filepath stringByReplacingOccurrencesOfString:[self.url path] withString:@""] substringFromIndex:1]; 
+        
+        NSString *newRemoteDir = [_originalRemoteDir stringByAppendingPathComponent:[relFilepath stringByDeletingLastPathComponent]];
+        [_driver ChangeRemoteDir:newRemoteDir];
+
+        [self createDirectory:[relFilepath stringByDeletingLastPathComponent]];
+        
+        NSString *localFilename = [[self pathToDownload] stringByAppendingPathComponent:relFilepath];
+        
+        success = [_driver AsyncGetFileStart:[filepath lastPathComponent] localFilename:localFilename];
         if (success) {
+            NSNumber *bytesReceived = [NSNumber numberWithInt:0];
             while (_driver.AsyncFinished != YES) {
-                _bytesReceived = [_driver.AsyncBytesReceived64 unsignedLongLongValue];
+                bytesReceived = _driver.AsyncBytesReceived64;
                 [_driver SleepMs:[NSNumber numberWithInt:500]];
                 
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    [self.delegate performSelector:@selector(handleLoadingProgressNotification:) withObject:self];
+                    [self.delegate driver:self handleLoadingProgressNotification:bytesReceived]; 
                 });
             }
             if (!_aborted) {
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    [self.delegate performSelector:@selector(handleLoadingDidEndNotification:) withObject:filename];
+                    [self.delegate driver:self handleLoadingDidEndNotification:filepath]; 
                 });
                 
             } else {
-                [[NSFileManager defaultManager] removeItemAtPath:localFilename error:nil];
+                // remove this to DirectoryList
+                //[[NSFileManager defaultManager] removeItemAtPath:localFilename error:nil];
                 
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    [self.delegate performSelector:@selector(handleAbortedNotification:) withObject:self];
+                    [self.delegate driver:self handleAbortedNotification:filepath]; 
                 });
             }
+        } 
+        else {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [self.delegate driver:self handleErrorNotification:[filepath stringByAppendingString:_driver.LastErrorText]];
+            });
         }
+        
     } 
 }
 
@@ -212,7 +237,8 @@
     
     if (!success) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            [self.delegate performSelector:@selector(handleErrorNotification:) withObject:self];
+            [self.delegate driver:self handleErrorNotification:_driver.LastErrorText];
+//            @"DIRECTORY_SIZE_RECEIVED"
         });
     } else {
         [self.listEntries removeAllObjects];
@@ -227,7 +253,6 @@
         NSString *currentDir = [_driver GetCurrentRemoteDir];
         NSString *originalCurrentDir = currentDir;
         
-        
         for (NSString *filepath in files) {
             NSString *newDir = [originalCurrentDir stringByAppendingPathComponent:[filepath stringByDeletingLastPathComponent]];
             if (![currentDir isEqualToString:newDir]) {
@@ -236,15 +261,24 @@
             }
             NSNumber *fileSize = [_driver GetSizeByName64:[filepath lastPathComponent]];
             totalDirectorySize += [fileSize unsignedLongLongValue];
+            
+            NSDate *fileModDate = [_driver GetLastModifiedTimeByName:[filepath lastPathComponent]];
+            
+            EntryLs *entry = [[EntryLs alloc] initWithText:[[self.url path] stringByAppendingPathComponent:filepath] 
+                                               IsDirectory:NO Date:fileModDate Size:[fileSize unsignedLongLongValue]];
+            [self.listEntries addObject:entry];
+            [entry release];
         }
+        [self sortByName];
+        
         // restore current dir
         [_driver ChangeRemoteDir:originalCurrentDir];
-        [self.listEntries addObjectsFromArray:files];
     }
     
     return [NSNumber numberWithUnsignedLongLong:totalDirectorySize];
 }
 
+/*
 - (void)downloadDirectory {
     BOOL success = _driver.IsConnected;
     
@@ -311,7 +345,7 @@
         }
     }
 }
-
+*/
 
 - (void)abort {
     [_driver AsyncAbort];

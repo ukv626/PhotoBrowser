@@ -186,11 +186,15 @@
     //[dirContents release];
     [self sortByName];
     
-    [self performSelectorOnMainThread:@selector(notifyAboutFinished:) withObject:self waitUntilDone:NO];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.delegate driver:self handleLoadingDidEndNotification:@"DIRECTORY_LIST_RECEIVED"];
+    });
 }
 
 - (void)downloadFile:(NSString *)filename {
-    //
+//    dispatch_async(dispatch_get_main_queue(), ^{
+//        [self.delegate driver:self handleLoadingDidEndNotification:filename];
+//    });
 }
 
 - (void)downloadFileAsync:(NSString *)filename {
@@ -202,26 +206,14 @@
     return [NSNumber numberWithInteger:0];
 }
 
-- (void)downloadDirectory {
-    //
-}
-
-- (NSNumber *)lastBytesReceived {
-    return [NSNumber numberWithInteger:0];
-}
 
 - (void)abort {
     //
 }
 
-- (NSString *)errorStr {
-    return @"";
-}
 
-- (void)notifyAboutFinished:(id)sender {
-    if ([self.delegate respondsToSelector:@selector(handleLoadingDidEndNotification:)]) {
-        [self.delegate handleLoadingDidEndNotification:sender];
-    }
-}
+
+
+
 
 @end

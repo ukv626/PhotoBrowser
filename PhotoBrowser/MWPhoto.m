@@ -14,6 +14,7 @@
 @interface MWPhoto () {
     id<LoadingDelegate> _delegate;
     BaseDriver *_driver;
+    BaseDriver *_fileDownloader;
 
     // Image Sources
     NSString *_photoPath;
@@ -107,6 +108,7 @@
 }
 
 - (void)loadUnderlyingImageAndNotify {
+    NSLog(@"%s [%@]", __PRETTY_FUNCTION__, _photoPath);
     NSAssert([[NSThread currentThread] isMainThread], @"This method must be called on the main thread.");
     _loadingInProgress = YES;
     if (self.underlyingImage) {
@@ -118,9 +120,9 @@
             [self performSelectorInBackground:@selector(loadImageFromFileAsync) withObject:nil];
         } else if (_driver.url) {
             // Download file async
-            BaseDriver *downloadDriver = [_driver clone];
-            downloadDriver.delegate = self;
-            [downloadDriver downloadFile:[_photoPath lastPathComponent]];
+            _fileDownloader = [[_driver clone] retain];
+            _fileDownloader.delegate = self;
+            [_fileDownloader downloadFile:[_photoPath lastPathComponent]];
         } else {
             // Failed - no source
             self.underlyingImage = nil;
@@ -188,21 +190,37 @@
 
 #pragma mark - Loading Delegate
 
-- (void)handleLoadingDidEndNotification:(id)sender {
-    [self performSelectorInBackground:@selector(loadImageFromFileAsync) withObject:nil]; 
+- (void)driver:(BaseDriver *)driver handleLoadingDidEndNotification:(id)object {
+    if (driver == _fileDownloader) {
+        [_fileDownloader release];
+        _fileDownloader = nil;
+        
+        [self performSelectorInBackground:@selector(loadImageFromFileAsync) withObject:nil]; 
+    }
 }
 
-- (void)handleErrorNotification:(id)sender {
-    self.underlyingImage = nil;
-    [self imageLoadingComplete]; 
+- (void)driver:(BaseDriver *)driver handleErrorNotification:(id)object {
+    if (driver == _fileDownloader) {
+        [_fileDownloader release];
+        _fileDownloader = nil;
+        
+        self.underlyingImage = nil;
+        [self imageLoadingComplete]; 
+    }
 }
 
-- (void)handleLoadingProgressNotification:(id)sender {
-    //
+- (void)driver:(BaseDriver *)driver handleLoadingProgressNotification:(id)object {
+    if (driver == _fileDownloader) {
+        [_fileDownloader release];
+        _fileDownloader = nil;
+    }
 }
 
-- (void)handleAbortedNotification:(id)sender {
-    //
+- (void)driver:(BaseDriver *)driver handleAbortedNotification:(id)object {
+    if (driver == _fileDownloader) {
+        [_fileDownloader release];
+        _fileDownloader = nil;
+    }
 }
 
 

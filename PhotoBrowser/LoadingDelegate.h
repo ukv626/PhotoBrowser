@@ -8,12 +8,13 @@
 
 #import <Foundation/Foundation.h>
 
+@class BaseDriver;
 @protocol LoadingDelegate <NSObject>
 
 @required
-- (void)handleLoadingDidEndNotification:(id)sender;
-- (void)handleErrorNotification:(id)sender;
-- (void)handleLoadingProgressNotification:(id)sender;
-- (void)handleAbortedNotification:(id)sender;
+- (void)driver:(BaseDriver *)driver handleLoadingDidEndNotification:(id)object;
+- (void)driver:(BaseDriver *)driver handleErrorNotification:(id)object;
+- (void)driver:(BaseDriver *)driver handleLoadingProgressNotification:(id)object;
+- (void)driver:(BaseDriver *)driver handleAbortedNotification:(id)object;
 
 @end
