@@ -209,7 +209,11 @@
         if ([url.scheme isEqualToString:@"ftp"] || [url.scheme isEqualToString:@"ftps"]) {
 
             NSString *filepath = [_delegate connectionsFilePath];
-            NSMutableDictionary *dictionary = [[NSMutableDictionary alloc] initWithContentsOfFile:filepath];
+            NSMutableDictionary *dictionary;
+            dictionary = [[NSMutableDictionary alloc] initWithContentsOfFile:filepath];
+            if (!dictionary) {
+                dictionary = [[NSMutableDictionary alloc] init];
+            }
 
             NSDictionary *innerDict = [dictionary objectForKey:_urlText.text];
             if (innerDict) {

@@ -12,6 +12,8 @@
 
 @interface Downloads ()
 
+- (void)_receiveDidStart;
+- (void)_receiveDidStop;
 @end
 
 @implementation Downloads
@@ -200,28 +202,37 @@ static NSDateFormatter *sDateFormatter;
     return cell;
 }
 
-/*
+
 // Override to support conditional editing of the table view.
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath
 {
     // Return NO if you do not want the specified item to be editable.
+    if (_isLoadingInProgress && indexPath.row == 0) {
+        return NO;
+    }
     return YES;
 }
-*/
 
-/*
+
+
 // Override to support editing the table view.
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath
 {
     if (editingStyle == UITableViewCellEditingStyleDelete) {
         // Delete the row from the data source
+        if (indexPath.row == 0) {
+            // TODO: remove file
+            
+        }
+        [_entries removeObjectAtIndex:indexPath.row];
+        [self refreshBadge];
         [tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationFade];
     }   
     else if (editingStyle == UITableViewCellEditingStyleInsert) {
         // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
     }   
 }
-*/
+
 
 /*
 // Override to support rearranging the table view.
@@ -239,6 +250,24 @@ static NSDateFormatter *sDateFormatter;
 }
 */
 
+- (void)_receiveDidStart {
+    _isLoadingInProgress = YES;
+    if (!self.navigationItem.titleView) {
+        self.navigationItem.leftBarButtonItem = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemPause
+                                                        target:self action:@selector(pauseButtonPressed:)] autorelease];
+        self.navigationItem.titleView = _progressView;
+        _totalBytesReceived = 0;
+    }
+}
+
+- (void)_receiveDidStop {
+    _isLoadingInProgress = NO;
+    self.navigationItem.leftBarButtonItem = nil;
+    self.navigationItem.titleView = nil;
+    _totalBytesToReceive = 0;
+    _totalBytesReceived = 0;
+}
+
 - (void)addEntry:(EntryLs *)entry {
     [_entries addObject:entry];
     _totalBytesToReceive += entry.size;
@@ -254,18 +283,10 @@ static NSDateFormatter *sDateFormatter;
 }
 
 - (void)start {
-    if (_entries.count > 0) {
+    if (_entries.count) {
         NSString *filepath = [[_entries objectAtIndex:0] text];
         
-        if (!_isLoadingInProgress) {
-            self.navigationItem.leftBarButtonItem = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemPause
-                                                                                                   target:self action:@selector(pauseButtonPressed:)] autorelease];
-            self.navigationItem.titleView = _progressView;
-            _isLoadingInProgress = YES;
-            
-            _totalBytesReceived = 0;
-        }
-        
+        [self _receiveDidStart];        
         [self performSelectorInBackground:@selector(_downloadFile:) withObject:filepath];
     }
 }
@@ -287,13 +308,14 @@ static NSDateFormatter *sDateFormatter;
     self.navigationItem.leftBarButtonItem = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemPlay
                                                         target:self action:@selector(playButtonPressed:)] autorelease];
     [_driver abort];
-    
+    _isLoadingInProgress = NO;
 }
 
 - (IBAction)playButtonPressed:(id)sender {
     self.navigationItem.leftBarButtonItem = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemPause
                                                         target:self action:@selector(pauseButtonPressed:)] autorelease];
-    [self start];
+    _entries.count ? [self start] : 
+                     [self _receiveDidStop];
     
 }
 
@@ -336,14 +358,10 @@ static NSDateFormatter *sDateFormatter;
         
         [self.tableView reloadData];
         [self refreshBadge];
-        if (_entries.count > 0) {
+        if (_entries.count) {
             [self start];
         } else {
-            _isLoadingInProgress = NO;
-            self.navigationItem.leftBarButtonItem = nil;
-            self.navigationItem.titleView = nil;
-            _totalBytesToReceive = 0;
-            _totalBytesReceived = 0;
+            [self _receiveDidStop];
             NSLog(@"STOP: ALL FILES DOWNLOADED");
         }
     }

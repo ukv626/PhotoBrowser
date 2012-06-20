@@ -22,6 +22,9 @@
 		016E36231589F39D00287054 /* tex2res2.png in Resources */ = {isa = PBXBuildFile; fileRef = 016E36221589F39D00287054 /* tex2res2.png */; };
 		016EEDB9158B2B3500B6A2D2 /* Downloads.m in Sources */ = {isa = PBXBuildFile; fileRef = 016EEDB8158B2B3400B6A2D2 /* Downloads.m */; };
 		0170ED5A1590AD5300F5F588 /* Note.png in Resources */ = {isa = PBXBuildFile; fileRef = 0170ED591590AD5300F5F588 /* Note.png */; };
+		017113221591B13A00428E58 /* UIPullToReloadHeaderView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0171131F1591B13A00428E58 /* UIPullToReloadHeaderView.m */; };
+		017113231591B13A00428E58 /* UIPullToReloadTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 017113211591B13A00428E58 /* UIPullToReloadTableViewController.m */; };
+		017113251591B1EC00428E58 /* PullToReload.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 017113241591B1EC00428E58 /* PullToReload.bundle */; };
 		01720CB815494FDD00ECC483 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 01720CB715494FDD00ECC483 /* QuartzCore.framework */; };
 		017254BD155169C60087586A /* MBProgressHUD.m in Sources */ = {isa = PBXBuildFile; fileRef = 017254BB155169B20087586A /* MBProgressHUD.m */; };
 		017914151552C03500878E0C /* LoginView.m in Sources */ = {isa = PBXBuildFile; fileRef = 017914141552C03500878E0C /* LoginView.m */; };
@@ -73,6 +76,11 @@
 		016EEDB7158B2B3400B6A2D2 /* Downloads.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Downloads.h; sourceTree = "<group>"; };
 		016EEDB8158B2B3400B6A2D2 /* Downloads.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Downloads.m; sourceTree = "<group>"; };
 		0170ED591590AD5300F5F588 /* Note.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Note.png; sourceTree = "<group>"; };
+		0171131E1591B13A00428E58 /* UIPullToReloadHeaderView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UIPullToReloadHeaderView.h; sourceTree = "<group>"; };
+		0171131F1591B13A00428E58 /* UIPullToReloadHeaderView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UIPullToReloadHeaderView.m; sourceTree = "<group>"; };
+		017113201591B13A00428E58 /* UIPullToReloadTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UIPullToReloadTableViewController.h; sourceTree = "<group>"; };
+		017113211591B13A00428E58 /* UIPullToReloadTableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UIPullToReloadTableViewController.m; sourceTree = "<group>"; };
+		017113241591B1EC00428E58 /* PullToReload.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = PullToReload.bundle; sourceTree = "<group>"; };
 		01720CB715494FDD00ECC483 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		017254BA155169B20087586A /* MBProgressHUD.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MBProgressHUD.h; sourceTree = "<group>"; };
 		017254BB155169B20087586A /* MBProgressHUD.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MBProgressHUD.m; sourceTree = "<group>"; };
@@ -154,6 +162,18 @@
 			name = MWPhotoBrowser;
 			sourceTree = "<group>";
 		};
+		0171131C1591B0EB00428E58 /* UIPullToReloadTableViewController */ = {
+			isa = PBXGroup;
+			children = (
+				0171131E1591B13A00428E58 /* UIPullToReloadHeaderView.h */,
+				0171131F1591B13A00428E58 /* UIPullToReloadHeaderView.m */,
+				017113201591B13A00428E58 /* UIPullToReloadTableViewController.h */,
+				017113211591B13A00428E58 /* UIPullToReloadTableViewController.m */,
+				017113241591B1EC00428E58 /* PullToReload.bundle */,
+			);
+			name = UIPullToReloadTableViewController;
+			sourceTree = "<group>";
+		};
 		01797986152D912D00645399 /* Images */ = {
 			isa = PBXGroup;
 			children = (
@@ -206,6 +226,7 @@
 		017BA802152C7A9E00DF16B2 /* PhotoBrowser */ = {
 			isa = PBXGroup;
 			children = (
+				0171131C1591B0EB00428E58 /* UIPullToReloadTableViewController */,
 				0120EB9B15887B1F005F33B2 /* MWPhotoBrowser */,
 				01797986152D912D00645399 /* Images */,
 				0179535915788BC60028C36D /* libchilkatIos.a */,
@@ -308,6 +329,7 @@
 				016E36231589F39D00287054 /* tex2res2.png in Resources */,
 				016E124C158F665C00606E02 /* Box.png in Resources */,
 				0170ED5A1590AD5300F5F588 /* Note.png in Resources */,
+				017113251591B1EC00428E58 /* PullToReload.bundle in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -337,6 +359,8 @@
 				0120EBAE15887B44005F33B2 /* MWTapDetectingView.m in Sources */,
 				0120EBAF15887B44005F33B2 /* MWZoomingScrollView.m in Sources */,
 				016EEDB9158B2B3500B6A2D2 /* Downloads.m in Sources */,
+				017113221591B13A00428E58 /* UIPullToReloadHeaderView.m in Sources */,
+				017113231591B13A00428E58 /* UIPullToReloadTableViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

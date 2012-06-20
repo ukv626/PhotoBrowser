@@ -46,6 +46,7 @@
     
     BOOL _directoryListReceiving;
     BOOL _fileDownloading;
+    BOOL _isPullToRefreshInProgress;
 }
 
 - (void)searchTableView;
@@ -53,6 +54,9 @@
 
 - (void)showBrowser:(NSString *)currentFilename;
 - (void)showWebViewer:(NSString *)filepath;
+
+- (EntryLs *)entryAtIndex:(NSInteger)index;
+- (NSUInteger)entriesCount;
 
 @end
 
@@ -235,6 +239,21 @@
     }
 }
 
+- (NSUInteger)entriesCount {
+    NSInteger count = _searching ? _filteredListEntries.count : _driver.listEntries.count;
+    
+    return count;
+}
+
+- (EntryLs *)entryAtIndex:(NSInteger)index {
+    EntryLs *listEntry = _searching ? [_filteredListEntries objectAtIndex:index] :
+                                      [_driver.listEntries objectAtIndex:index];
+    
+    return listEntry;
+}
+
+
+ 
 // =====================================================================================================
 // --- directoryList -----------------------------------------------------------------------------------
 
@@ -263,9 +282,19 @@
         self.title = [_driver.url host];
     }
     
-    if ([_driver isDownloadable]) {
-//        _actionButton.enabled = YES;
+    if (_isPullToRefreshInProgress) {
+        [self.pullToReloadHeaderView finishReloading:self.tableView animated:YES];
+        _isPullToRefreshInProgress = NO;
+        
+        if (_searching) {
+            [self searchTableView];
+        }
     }
+    
+    // TODO: ??r
+//    if ([_driver isDownloadable]) {
+//        _actionButton.enabled = YES;
+//    }
     
     if ([_urls count] > 1) {
         // Enable the Back button
@@ -380,32 +409,29 @@
 
 
 // -----------------------------------------------------------------------------------------------------
-- (void)showBrowser:(NSString *)currentFilename {
-    NSUInteger pageIndex = 0;
-    NSUInteger i = 0;
+- (void)showBrowser:(NSString *)currentFilename {;
+    NSInteger photoIndex = 0;
+    NSUInteger loopCurrentPhotoIndex = 0;
     [_photos removeAllObjects];
     
-    for (EntryLs *entry in _driver.listEntries) { 
-        NSString *filename = [entry text];
+    for (NSInteger i = 0; i < [self entriesCount]; ++i) {
+        EntryLs *entry = [self entryAtIndex:i]; 
+        NSString *filename = entry.text;
         if([_driver isImageFile:filename]) {                
-//            NSString *fileURL = [[_driver.url absoluteString] stringByAppendingString:[filename stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
-
-            if([filename isEqualToString:currentFilename]) pageIndex = i;
-            
-            //BaseDriver *downloadDriver = [_driver clone]; //[NSURL URLWithString:fileURL]];
+            if([filename isEqualToString:currentFilename]) photoIndex = loopCurrentPhotoIndex;
             
             NSString *photoPath = [[_driver pathToDownload] stringByAppendingPathComponent:filename];
-            MWPhoto *photo = [[MWPhoto alloc] initWithDriver:_driver PhotoPath:photoPath];
+            MWPhoto *photo = [[MWPhoto alloc] initWithDriver:_driver PhotoPath:photoPath]; // TODO: maybe [_driver clone]
             photo.caption = filename;
             
             [_photos addObject:photo];
             [photo release];
-            ++i;
+            ++loopCurrentPhotoIndex;
         }
     }
     
     MWPhotoBrowser *browser = [[MWPhotoBrowser alloc] initWithDelegate:self];
-    [browser setInitialPageIndex:pageIndex];
+    [browser setInitialPageIndex:photoIndex];
     
     [self.navigationController pushViewController:browser animated:YES];
     // Release
@@ -413,9 +439,6 @@
 }
 
 - (void)showWebViewer:(NSString *)filepath {
-    
-//    NSLog(@"%s [%@]", __PRETTY_FUNCTION__, filepath);
-//    WebViewer *viewer = [[WebViewer alloc] init];
     UIDocumentInteractionController *viewer = [UIDocumentInteractionController interactionControllerWithURL:[NSURL fileURLWithPath:filepath]];
     
     if (viewer) {
@@ -444,14 +467,9 @@
     return 1;
 }
 
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
-{
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     // Return the number of rows in the section.
-    if(_searching) {
-        return _filteredListEntries.count;
-    } else {
-        return _driver.listEntries.count;
-    }
+    return [self entriesCount];
 }
 
 - (NSString *)_stringForNumber:(double)num asUnits:(NSString *)units {
@@ -505,12 +523,7 @@ static NSDateFormatter *sDateFormatter;
         return cell;
     }
     
-    EntryLs *listEntry;
-    if(_searching) {
-        listEntry = [_filteredListEntries objectAtIndex:indexPath.row];
-    } else {
-        listEntry = [_driver.listEntries objectAtIndex:indexPath.row];
-    }
+    EntryLs *listEntry = [self entryAtIndex:indexPath.row];
 
     assert([listEntry isKindOfClass:[EntryLs class]]);
                 
@@ -576,7 +589,7 @@ static NSDateFormatter *sDateFormatter;
         // Dismiss
         [_actionsSheet dismissWithClickedButtonIndex:_actionsSheet.cancelButtonIndex animated:YES];
     } else {
-        EntryLs *entry = [_driver.listEntries objectAtIndex:indexPath.row];
+        EntryLs *entry = [self entryAtIndex:indexPath.row];
         //UITableViewCell *owningCell = [self.tableView cellForRowAtIndexPath:indexPath];
         [self.tableView selectRowAtIndexPath:indexPath animated:NO scrollPosition:UITableViewScrollPositionNone];
         
@@ -584,15 +597,20 @@ static NSDateFormatter *sDateFormatter;
         _actionsSheet = [[UIActionSheet alloc] init];
         _actionsSheet.delegate = self;
         if ([_driver isDownloadable]) {
-            entry.isDir ? [_actionsSheet addButtonWithTitle:@"Download dir"] :
-                          [_actionsSheet addButtonWithTitle:@"Download"];
+            if (entry.isDir) {
+                [_actionsSheet addButtonWithTitle:@"Download dir"];
+            }
+            else {
+                [_actionsSheet addButtonWithTitle:@"Download"];
+            }
         }
-        else {
-            entry.isDir ? [_actionsSheet addButtonWithTitle:@"Delete dir"] :
-            [_actionsSheet addButtonWithTitle:@"Delete"];
+        
+        
+        entry.isDir ? [_actionsSheet addButtonWithTitle:@"Delete dir"] :
+                      [_actionsSheet addButtonWithTitle:@"Delete"];
             
-            //            _actionsSheet.destructiveButtonIndex = 0;
-        }
+            
+        _actionsSheet.destructiveButtonIndex = _actionsSheet.numberOfButtons-1;
         
         [_actionsSheet addButtonWithTitle:@"Cancel"];
         [_actionsSheet setCancelButtonIndex:_actionsSheet.numberOfButtons-1];
@@ -666,27 +684,31 @@ static NSDateFormatter *sDateFormatter;
     
     UITableViewCell *cell = [self.tableView cellForRowAtIndexPath:indexPath];
     
-    EntryLs *entry = [_driver.listEntries objectAtIndex:indexPath.row];
-    if(entry.isDir) {
-        if ([cell.textLabel.text isEqualToString:@".."]) {
-            // pop url
-            [_urls removeObject:_driver.url];
-            
-            assert([_urls count] >= 1);
-            _driver.url = [_urls objectAtIndex:[_urls count] - 1];
-            [_driver changeDir:@".."];
-        } else {
-            _driver.url = [NSURL URLWithString:[NSString stringWithFormat:@"%@%@/", [_driver.url absoluteString], 
-                                           [cell.textLabel.text stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]]];
-            [_driver changeDir:cell.textLabel.text];
+    EntryLs *entry = [self entryAtIndex:indexPath.row];
 
-            // Push url
-            [_urls addObject:_driver.url];              
+    if(entry.isDir) {
+        if (!_searching) {
+            if ([cell.textLabel.text isEqualToString:@".."]) {
+                // pop url
+                [_urls removeObject:_driver.url];
+                
+                assert([_urls count] >= 1);
+                _driver.url = [_urls objectAtIndex:[_urls count] - 1];
+                [_driver changeDir:@".."];
+            } else {
+                _driver.url = [NSURL URLWithString:[NSString stringWithFormat:@"%@%@/", [_driver.url absoluteString], 
+                                                    [cell.textLabel.text stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]]];
+                [_driver changeDir:cell.textLabel.text];
+                
+                // Push url
+                [_urls addObject:_driver.url];              
+            }
+            
+            // move to new dir
+            [self getDirectoryList];
         }
-        
-        // move to new dir
-        [self getDirectoryList];
-    } else {
+    } 
+    else {
         NSString *filePath = [[_driver pathToDownload] stringByAppendingPathComponent:cell.textLabel.text];
         // file already downloaded
         if ([_driver fileExist:filePath]) {
@@ -697,8 +719,6 @@ static NSDateFormatter *sDateFormatter;
                 [self showWebViewer:filePath];
             }
         } else {
-            EntryLs *entry = [_driver.listEntries objectAtIndex:indexPath.row];
-
             NSString *filepath = [[_driver.url path] stringByAppendingPathComponent:cell.textLabel.text];
             [self downloadFile:filepath WithSize:[NSNumber numberWithLongLong:[entry size]]];
         }            
@@ -715,20 +735,15 @@ static NSDateFormatter *sDateFormatter;
 // UISearchBarDelegate
 
 - (void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
-    _searching = YES;
-    _letUserSelectRow = NO;
-    self.tableView.scrollEnabled = NO;
-    
     // Add the done button
     self.navigationItem.rightBarButtonItem = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(doneSearching_Clicked:)] autorelease];
 }
 
 - (void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText {
-    // Remove all objects first
-    [_filteredListEntries removeAllObjects];
+    NSLog(@"%s [%@]", __PRETTY_FUNCTION__, searchText);
+
     
-    if ([searchText length] > 0) {
+    if (searchText.length > 0) {
         _searching = YES;
         _letUserSelectRow = YES;
         self.tableView.scrollEnabled = YES;
@@ -747,34 +762,35 @@ static NSDateFormatter *sDateFormatter;
 }
 
 - (void)searchTableView {
+    // Remove all objects first
+    [_filteredListEntries removeAllObjects];
+    
     NSString *searchText = _searchBar.text;
     
     for(EntryLs *entry in _driver.listEntries) {
-        if([[entry text] rangeOfString:searchText options:NSCaseInsensitiveSearch].location != NSNotFound) {
+        if([entry.text rangeOfString:searchText options:NSCaseInsensitiveSearch].location != NSNotFound) {
             [_filteredListEntries addObject:entry];
         }
     }
 }
 
 - (void)doneSearching_Clicked:(id)sender {
-    _searchBar.text = @"";
     [_searchBar resignFirstResponder];
     
     _letUserSelectRow = YES;
-    _searching = NO;
     self.navigationItem.rightBarButtonItem = nil;
     self.tableView.scrollEnabled = YES;
     
-    [self.tableView reloadData];
+    if (_searchBar.text.length == 0) {
+        _searching = NO;
+    }
 }
 
 
 // Pull To Refresh
-- (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate {
-    if (scrollView.contentOffset.y <= -REFRESH_HEADER_HEIGHT) {
-        NSLog(@"pull to refresh");
-        [self getDirectoryList];
-    }
+- (void)pullDownToReloadAction {
+    _isPullToRefreshInProgress = YES;
+    [self getDirectoryList];
 }
 
 
@@ -865,54 +881,46 @@ static NSDateFormatter *sDateFormatter;
         if (buttonIndex != actionSheet.cancelButtonIndex) {
             
             if (buttonIndex == actionSheet.destructiveButtonIndex) {
-                [[NSFileManager defaultManager] removeItemAtPath:[_driver pathToDownload] error:nil];
-                [self getDirectoryList];
+                if (_driver.isDownloadable) {
+                    // TODO: delete remote file/dir
+                }
+                else {
+                    // TODO: delete local file/dir
+//                    [[NSFileManager defaultManager] removeItemAtPath:[_driver pathToDownload] error:nil];
+//                    [self getDirectoryList];
+                }
             }
             
             if (buttonIndex == 0) { 
                 // Start/Stop direcory downloading
                 
                 NSIndexPath *indexPath = [self.tableView indexPathForSelectedRow];
-                UITableViewCell *cell = [self.tableView cellForRowAtIndexPath:indexPath];
+                EntryLs *entry = [self entryAtIndex:indexPath.row];
                 
-                if ([_driver isDownloadable]) {
-                    if (cell.accessoryType == UITableViewCellAccessoryNone) {
-                        NSLog(@"Download file %@", cell.textLabel.text);
+                if (_driver.isDownloadable) {
+                    if (!entry.isDir) {
+                        NSLog(@"Download file %@", entry.text);
                         
-                        EntryLs *origEntry = [_driver.listEntries objectAtIndex:indexPath.row];
-                        NSString *filepath = [[_driver.url path] stringByAppendingPathComponent:cell.textLabel.text];
+                        NSString *filepath = [[_driver.url path] stringByAppendingPathComponent:entry.text];
                         
-                        EntryLs *entry = [[EntryLs alloc] initWithText:filepath IsDirectory:NO Date:origEntry.date
-                                                                  Size:origEntry.size];
-                        [_downloads addEntry:entry];
+                        EntryLs *entryToDownload = [[EntryLs alloc] initWithText:filepath IsDirectory:NO Date:entry.date
+                                                                  Size:entry.size];
+                        [_downloads addEntry:entryToDownload];
+                        [entryToDownload release];
                         [_downloads refreshBadge];
                     } else {
-                        [self getDirectorySize:[cell.textLabel.text isEqualToString:@".."] ? @"" : cell.textLabel.text];
+                        [self getDirectorySize:[entry.text isEqualToString:@".."] ? @"" : entry.text];
                     }
                 }
                 else {
-                    if (cell.accessoryType == UITableViewCellAccessoryNone) {
-                        NSLog(@"Delete file file %@", cell.textLabel.text);
-                    }
-                    else {
-                        NSLog(@"Delete dir %@", cell.textLabel.text);
-                    }
-                    
-                    //            _actionsSheet.destructiveButtonIndex = 0;
+                    // TODO: first operation for local file/dir
                 }
 
-                
-//                if (!_directoryDownloading) {
-//                    [self getDirectorySize];
-//                } else {
-//                    [self performSelectorInBackground:@selector(stopDirectoryDownloading) withObject:nil];
-//                }
-//                return;
             } else if (buttonIndex == (actionSheet.firstOtherButtonIndex + 1)) {
-//                return;	
+                // TODO: other actions
+	
             }
         }
-        //[actionSheet release];
         [_actionsSheet release];
         _actionsSheet = nil;
     }

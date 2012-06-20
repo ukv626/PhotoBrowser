@@ -104,14 +104,15 @@
 }
 
 - (void)reload {
-    [_dictionary release];
+    if (_dictionary) [_dictionary release];
     [_listEntries removeAllObjects];
     
     _dictionary = [[NSMutableDictionary alloc] initWithContentsOfFile:[self connectionsFilePath]];
-    for (id key in _dictionary) {
-        [_listEntries addObject:key];
+    if (_dictionary) {
+        for (id key in _dictionary) {
+            [_listEntries addObject:key];
+        }
     }
-
     _isDirty = NO;
 }
 

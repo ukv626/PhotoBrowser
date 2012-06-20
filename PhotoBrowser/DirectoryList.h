@@ -10,10 +10,11 @@
 
 @class BaseDriver;
 @class Downloads;
+#import "UIPullToReloadTableViewController.h"
 #import "LoadingDelegate.h"
 #import "MWPhotoBrowser.h"
 
-@interface DirectoryList : UITableViewController <LoadingDelegate, MWPhotoBrowserDelegate, UISearchBarDelegate, UIActionSheetDelegate, UIDocumentInteractionControllerDelegate,UIAlertViewDelegate> {
+@interface DirectoryList : UIPullToReloadTableViewController <LoadingDelegate, MWPhotoBrowserDelegate, UISearchBarDelegate, UIActionSheetDelegate, UIDocumentInteractionControllerDelegate,UIAlertViewDelegate> {
     
     NSMutableArray *_photos;
     Downloads *_downloads;
