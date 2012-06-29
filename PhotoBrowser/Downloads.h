@@ -22,12 +22,17 @@
     unsigned long long _totalBytesReceived;
     unsigned long long _bytesReceived;
     
-    BOOL _isLoadingInProgress;
+    enum State {
+        WAITING = 0,
+        LOADING,
+        PAUSED
+    };
+    
+    NSUInteger _state;
     BOOL _isDirty;
 }
 
 @property (nonatomic, retain) BaseDriver *driver;
-@property (nonatomic, readonly) BOOL isLoadingInProgress;
 
 - (void)addEntry:(EntryLs *)entry;
 - (void)refreshBadge;

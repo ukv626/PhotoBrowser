@@ -19,7 +19,6 @@
 @implementation Downloads
 
 @synthesize driver = _driver;
-@synthesize isLoadingInProgress = _isLoadingInProgress;
 
 - (id)initWithStyle:(UITableViewStyle)style
 {
@@ -33,7 +32,7 @@
         _progressView.progressViewStyle = UIProgressViewStyleBar;
         
         _entries = [[NSMutableArray alloc] init];
-        _isLoadingInProgress = NO;
+        _state = 0;
         _isDirty = NO;
         
     }
@@ -204,10 +203,9 @@ static NSDateFormatter *sDateFormatter;
 
 
 // Override to support conditional editing of the table view.
-- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath
-{
+- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
     // Return NO if you do not want the specified item to be editable.
-    if (_isLoadingInProgress && indexPath.row == 0) {
+    if ((_state == LOADING) && (indexPath.row == 0)) {
         return NO;
     }
     return YES;
@@ -216,8 +214,7 @@ static NSDateFormatter *sDateFormatter;
 
 
 // Override to support editing the table view.
-- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath
-{
+- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
     if (editingStyle == UITableViewCellEditingStyleDelete) {
         // Delete the row from the data source
         if (indexPath.row == 0) {
@@ -225,7 +222,9 @@ static NSDateFormatter *sDateFormatter;
             
         }
         [_entries removeObjectAtIndex:indexPath.row];
-        [self refreshBadge];
+        
+        // refresh badge
+        self.tabBarItem.badgeValue = _entries.count ? [NSString stringWithFormat:@"%d", _entries.count] : nil;
         [tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationFade];
     }   
     else if (editingStyle == UITableViewCellEditingStyleInsert) {
@@ -251,7 +250,7 @@ static NSDateFormatter *sDateFormatter;
 */
 
 - (void)_receiveDidStart {
-    _isLoadingInProgress = YES;
+    _state = LOADING;
     if (!self.navigationItem.titleView) {
         self.navigationItem.leftBarButtonItem = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemPause
                                                         target:self action:@selector(pauseButtonPressed:)] autorelease];
@@ -261,7 +260,7 @@ static NSDateFormatter *sDateFormatter;
 }
 
 - (void)_receiveDidStop {
-    _isLoadingInProgress = NO;
+    _state = WAITING;
     self.navigationItem.leftBarButtonItem = nil;
     self.navigationItem.titleView = nil;
     _totalBytesToReceive = 0;
@@ -277,7 +276,7 @@ static NSDateFormatter *sDateFormatter;
 - (void)refreshBadge {
     self.tabBarItem.badgeValue = _entries.count ? [NSString stringWithFormat:@"%d", _entries.count] : nil;
     
-    if (!_isLoadingInProgress) {
+    if (_state == WAITING) {
         [self start];
     }
 }
@@ -308,7 +307,7 @@ static NSDateFormatter *sDateFormatter;
     self.navigationItem.leftBarButtonItem = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemPlay
                                                         target:self action:@selector(playButtonPressed:)] autorelease];
     [_driver abort];
-    _isLoadingInProgress = NO;
+    _state = PAUSED;
 }
 
 - (IBAction)playButtonPressed:(id)sender {
@@ -334,11 +333,10 @@ static NSDateFormatter *sDateFormatter;
 }
 
 - (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath {
-    return YES;
+    return !_state == LOADING;
 }
 
 - (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)sourceIndexPath toIndexPath:(NSIndexPath *)destinationIndexPath {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
     
     EntryLs *entry = [[_entries objectAtIndex:sourceIndexPath.row] retain];
     [_entries removeObject:entry];

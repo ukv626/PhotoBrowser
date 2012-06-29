@@ -7,7 +7,7 @@
 //
 
 #import "ConnectionsList.h"
-#import "LoginView.h"
+#import "LoginPreferences.h"
 #import "FtpDriver.h"
 #import "DirectoryList.h"
 #import "Downloads.h"
@@ -119,7 +119,7 @@
 // --------------
 - (IBAction)addButtonPressed:(id)sender {
     //
-    LoginView *login = [[LoginView alloc] init];
+    LoginPreferences *login = [[LoginPreferences alloc] init];
     login.delegate = self;
     
     // Pass the selected object to the new view controller.
@@ -178,17 +178,17 @@
 
 - (void)tableView:(UITableView *)tableView accessoryButtonTappedForRowWithIndexPath:(NSIndexPath *)indexPath {
     NSLog(@"%s", __PRETTY_FUNCTION__);
-    
+
     NSString *url = [_listEntries objectAtIndex:indexPath.row];
-    NSDictionary *entry = [_dictionary objectForKey:url];
-    
-    LoginView *login = [[LoginView alloc] init];
-    login.delegate = self;
+//    NSDictionary *entry = [_dictionary objectForKey:url];
     
     // Pass the selected object to the new view controller.
-    [self.navigationController pushViewController:login animated:YES];
-    [login setTextFields:url username:[entry objectForKey:@"username"] password:[entry objectForKey:@"password"]];
-    [login release];
+    
+    LoginPreferences *lp = [[LoginPreferences alloc] init];
+    lp.delegate = self;
+    [lp setAttributes:url];
+    [self.navigationController pushViewController:lp animated:YES];
+    [lp release];
 }
 
 /*
@@ -241,13 +241,18 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
     // Navigation logic may go here. Create and push another view controller.
-    NSString *urlStr = [_listEntries objectAtIndex:indexPath.row];
-    NSDictionary *entry = [_dictionary objectForKey:urlStr];
+    NSString *alias = [_listEntries objectAtIndex:indexPath.row];
+    NSDictionary *entry = [_dictionary objectForKey:alias];
     
-//    [login setTextFields:url username:[entry objectForKey:@"username"] password:[entry objectForKey:@"password"]];
+    NSString *urlStr = [entry objectForKey:@"url"];
+    // add last "/"
+    if ([urlStr characterAtIndex:urlStr.length - 1] != '/') {
+        urlStr = [urlStr stringByAppendingString:@"/"];
+    }
     
     BOOL success = NO;
     NSString *errorStr;
+    
     NSURL *url = [NSURL URLWithString:urlStr];
     // check url
     if (url && url.scheme && url.host) {
@@ -256,6 +261,11 @@
             FtpDriver *ftpDriver = [[FtpDriver alloc] initWithURL:url];
             ftpDriver.username = [entry objectForKey:@"username"];
             ftpDriver.password = [entry objectForKey:@"password"];
+            NSString *port = [entry objectForKey:@"port"];
+            NSNumber *passiveMode = [entry objectForKey:@"connectionType"];
+            ftpDriver.port = [NSNumber numberWithInteger:[port integerValue]];
+            ftpDriver.passiveMode = [passiveMode boolValue];
+            NSLog(@"passive=%d", [passiveMode boolValue]);
             
             DirectoryList *dirList = [[DirectoryList alloc] initWithDriver:ftpDriver];
             _downloads.driver = [ftpDriver clone];

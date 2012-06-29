@@ -27,6 +27,8 @@
 @implementation FtpDriver
 
 @synthesize originalRemoteDir = _originalRemoteDir;
+@synthesize port = _port;
+@synthesize passiveMode = _passiveMode;
 
 - (id)initWithURL:(NSURL *)url {
     if ((self = [super initWithURL:url])) {
@@ -40,6 +42,8 @@
     FtpDriver *copy = [[[FtpDriver alloc] initWithURL:self.url] autorelease];
     copy.username = self.username;
     copy.password = self.password;
+    copy.port = self.port;
+    copy.passiveMode = self.passiveMode;
     return copy;
 }
 
@@ -75,6 +79,8 @@
     _driver.Hostname = [self.url host];
     _driver.Username = self.username;
     _driver.Password = self.password;
+    _driver.Port = self.port;
+    _driver.Passive = self.passiveMode;
     
      if ([self.url.scheme isEqualToString:@"ftps"]) {
          _driver.AuthTls = YES;
@@ -276,6 +282,46 @@
     }
     
     return [NSNumber numberWithUnsignedLongLong:totalDirectorySize];
+}
+
+- (BOOL)deleteRemoteFile:(NSString *)filename {
+    BOOL success = _driver.IsConnected;
+    
+    if (!success) {
+        success = [self connect];
+    }
+    
+    if (success) {
+        success = [_driver DeleteRemoteFile:filename];
+    }
+    
+    if (!success) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.delegate driver:self handleErrorNotification:_driver.LastErrorText];
+        });
+    }
+    
+    return success;
+}
+
+- (BOOL)deleteRemoteDirictory:(NSString *)dir {
+    BOOL success = _driver.IsConnected;
+    
+    if (!success) {
+        success = [self connect];
+    }
+    
+    if (success) {
+        success = [_driver RemoveRemoteDir:dir];
+    }
+    
+    if (!success) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.delegate driver:self handleErrorNotification:_driver.LastErrorText];
+        });
+    }
+    
+    return success;
 }
 
 /*

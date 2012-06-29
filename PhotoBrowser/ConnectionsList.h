@@ -8,7 +8,6 @@
 
 #import <UIKit/UIKit.h>
 
-@class LoginView;
 @class Downloads;
 
 @interface ConnectionsList : UITableViewController {

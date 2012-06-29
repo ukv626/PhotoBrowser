@@ -25,6 +25,7 @@
 - (BOOL)isDownloadable;
 - (NSString *)pathToDownload;
 - (BOOL)fileExist:(NSString *)filePath;
+- (BOOL)needToDownloadFile:(NSString *)filePath withModificationDate:(NSDate *)modificationDate;
 - (BOOL)isImageFile:(NSString *)filename;
 - (void)createDirectory:(NSString *)directory;
 
@@ -34,6 +35,9 @@
 - (void)directoryList;
 - (void)downloadFile:(NSString *)filename;
 - (void)downloadFileAsync:(NSString *)filename;
+
+- (BOOL)deleteRemoteFile:(NSString *)filename;
+- (BOOL)deleteRemoteDirictory:(NSString *)dir;
 
 - (NSNumber *)directorySize;
 

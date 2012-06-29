@@ -28,6 +28,7 @@
     
     // Toolbar
 //    UIBarButtonItem *_actionButton;
+    UIBarButtonItem *_backButton;
     UIBarButtonItem *_abortButton;
     UIActionSheet *_actionsSheet;
     
@@ -48,6 +49,9 @@
     BOOL _fileDownloading;
     BOOL _isPullToRefreshInProgress;
 }
+
+- (void)_receiveDidStartWithActivityIndicator:(BOOL)flag;
+- (void)_receiveDidStopWithActivityIndicator:(BOOL)flag;
 
 - (void)searchTableView;
 - (void)doneSearching_Clicked:(id)sender;
@@ -81,12 +85,12 @@
         _photos = [[NSMutableArray alloc] init];
         _dirList = [[NSMutableArray alloc] init];
         
-        if ([_driver isDownloadable]) {
+        if (_driver.isDownloadable) {
             self.title = @"Remote";
             self.tabBarItem = [[UITabBarItem alloc] initWithTitle:@"Remote" image:nil tag:0];
         } 
         else {
-            self.tabBarItem = [[UITabBarItem alloc] initWithTabBarSystemItem:UITabBarSystemItemSearch tag:1];
+            self.tabBarItem = [[UITabBarItem alloc] initWithTabBarSystemItem:UITabBarSystemItemHistory tag:1];
         }
     }
     return self;
@@ -105,6 +109,7 @@
     [_dirList release];
 //    [_buttons release];
 //    [_actionButton release];
+    [_backButton release];
     [_abortButton release];
     [_searchBar release];
     [_filteredListEntries release];
@@ -136,6 +141,13 @@
 //    _buttons = [[NSMutableArray alloc] init];
     _abortButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemStop
                                                                   target:self action:@selector(abortButtonPressed:)];
+    
+    if (_driver.isDownloadable) {
+        _backButton = [[UIBarButtonItem alloc] initWithTitle:@"Disconnect" style:UIBarButtonItemStyleBordered
+                                                                 target:self action:@selector(backButtonPressed:)];
+        self.navigationItem.leftBarButtonItem = _backButton;
+    }
+    
     
 //    _actionButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction 
 //                                                      target:self action:@selector(actionButtonPressed:)];
@@ -226,8 +238,10 @@
         [_fileDownloader release];
         _fileDownloader = nil;
         
-        _progressView.progress = 0;
-        _totalBytesToReceive = 0;
+        if (_progressView) {
+            _progressView.progress = 0;
+            _totalBytesToReceive = 0;
+        }
         
         self.navigationItem.titleView = nil;
         self.navigationItem.rightBarButtonItem = nil;
@@ -402,6 +416,25 @@
 
 // -----------------------------------------------------------------------------------------------------
 
+- (void)backButtonPressed:(id)sender {
+    if ([_backButton.title isEqualToString:@"Disconnect"]) {
+        [self.navigationController popViewControllerAnimated:YES];
+    } 
+    else {
+        // pop url
+        [_urls removeObject:_driver.url];
+        
+        if(_urls.count >= 1) {
+            _driver.url = [_urls objectAtIndex:[_urls count] - 1];
+            [_driver changeDir:@".."];
+            
+            if (_urls.count == 1) _backButton.title = @"Disconnect";
+        }
+        
+        [self getDirectoryList];
+    }
+}
+
 - (void)abortButtonPressed:(id)sender {
     NSLog(@"%s", __PRETTY_FUNCTION__);
     [self performSelectorInBackground:@selector(stopFileDownloading) withObject:nil];
@@ -536,7 +569,7 @@ static NSDateFormatter *sDateFormatter;
         sDateFormatter = [[NSDateFormatter alloc] init];
         assert(sDateFormatter != nil);
         
-        [sDateFormatter setDateFormat:@"yyyy-MM-dd HH:mm"];
+        [sDateFormatter setDateFormat:@"yyyy-MM-dd"];
     }
     NSString *dateStr = [sDateFormatter stringFromDate:[listEntry date]];
     
@@ -548,7 +581,7 @@ static NSDateFormatter *sDateFormatter;
         cell.imageView.image = [UIImage imageNamed:@"Box.png"];
 //        cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
         if (dateStr.length > 0) {
-            cell.detailTextLabel.text = [NSString stringWithFormat:@"Modified: %@", dateStr];
+            cell.detailTextLabel.text = [NSString stringWithFormat:@"Mod.: %@", dateStr];
         } else {
             cell.detailTextLabel.text = @"";
         }
@@ -557,7 +590,7 @@ static NSDateFormatter *sDateFormatter;
         cell.imageView.image = [UIImage imageNamed:@"Note.png"];
 //        cell.accessoryType = UITableViewCellAccessoryNone;
         if (dateStr.length > 0) {
-            cell.detailTextLabel.text = [NSString stringWithFormat:@"Modified: %@ Size: %@", dateStr, sizeStr];
+            cell.detailTextLabel.text = [NSString stringWithFormat:@"Mod.: %@ Size: %@", dateStr, sizeStr];
         } else {
             cell.detailTextLabel.text = @"";
         }
@@ -689,38 +722,36 @@ static NSDateFormatter *sDateFormatter;
     if(entry.isDir) {
         if (!_searching) {
             if ([cell.textLabel.text isEqualToString:@".."]) {
-                // pop url
-                [_urls removeObject:_driver.url];
-                
-                assert([_urls count] >= 1);
-                _driver.url = [_urls objectAtIndex:[_urls count] - 1];
-                [_driver changeDir:@".."];
+                [self backButtonPressed:nil];
             } else {
                 _driver.url = [NSURL URLWithString:[NSString stringWithFormat:@"%@%@/", [_driver.url absoluteString], 
                                                     [cell.textLabel.text stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]]];
                 [_driver changeDir:cell.textLabel.text];
                 
                 // Push url
-                [_urls addObject:_driver.url];              
+                [_urls addObject:_driver.url];
+                
+                // move to new dir
+                [self getDirectoryList];
+                
+                if (![_backButton.title isEqualToString:@"Back"])  _backButton.title = @"Back";
             }
-            
-            // move to new dir
-            [self getDirectoryList];
         }
     } 
     else {
         NSString *filePath = [[_driver pathToDownload] stringByAppendingPathComponent:cell.textLabel.text];
-        // file already downloaded
-        if ([_driver fileExist:filePath]) {
+
+        if (_driver.isDownloadable &&
+            [_driver needToDownloadFile:filePath withModificationDate:entry.date]) {
+            NSString *filepath = [[_driver.url path] stringByAppendingPathComponent:cell.textLabel.text];
+            [self downloadFile:filepath WithSize:[NSNumber numberWithLongLong:[entry size]]];
+        } else {
             NSLog(@"ALREADY DOWNLOADED");
             if([_driver isImageFile:filePath]) {
                 [self showBrowser:cell.textLabel.text];
             } else {
                 [self showWebViewer:filePath];
             }
-        } else {
-            NSString *filepath = [[_driver.url path] stringByAppendingPathComponent:cell.textLabel.text];
-            [self downloadFile:filepath WithSize:[NSNumber numberWithLongLong:[entry size]]];
         }            
     }
 }
@@ -819,7 +850,7 @@ static NSDateFormatter *sDateFormatter;
             [_downloads refreshBadge];
         }
     } else {
-        [self.navigationController popViewControllerAnimated:YES];
+        // TODO: [self.navigationController popViewControllerAnimated:YES];
     }
     [alertView release];
 }
@@ -858,6 +889,7 @@ static NSDateFormatter *sDateFormatter;
 }
 
 - (void)driver:(BaseDriver *)driver handleErrorNotification:(id)object {
+    NSLog(@"%s", __PRETTY_FUNCTION__);
     NSString *errorMessage = @"";
     if (driver == _driver) {
         [self _receiveDidStopWithActivityIndicator:YES];
@@ -878,25 +910,31 @@ static NSDateFormatter *sDateFormatter;
     if (actionSheet == _actionsSheet) {           
         // Actions 
         NSLog(@"%s [index=%d]", __PRETTY_FUNCTION__, buttonIndex);
+
+        NSIndexPath *indexPath = [self.tableView indexPathForSelectedRow];
+        EntryLs *entry = [self entryAtIndex:indexPath.row];
+
         if (buttonIndex != actionSheet.cancelButtonIndex) {
             
             if (buttonIndex == actionSheet.destructiveButtonIndex) {
                 if (_driver.isDownloadable) {
-                    // TODO: delete remote file/dir
+                    // delete remote file/dir
+                    entry.isDir ? [_driver deleteRemoteDirictory:entry.text] : [_driver deleteRemoteFile:entry.text];
+                    
+                    // TODO: error handling
                 }
                 else {
-                    // TODO: delete local file/dir
-//                    [[NSFileManager defaultManager] removeItemAtPath:[_driver pathToDownload] error:nil];
-//                    [self getDirectoryList];
+                    // delete local file/dir
+                    NSString *itemPath = [[_driver pathToDownload] stringByAppendingPathComponent:entry.text];
+                    [[NSFileManager defaultManager] removeItemAtPath:itemPath error:nil];
                 }
+                
+                [self getDirectoryList];
             }
             
             if (buttonIndex == 0) { 
                 // Start/Stop direcory downloading
-                
-                NSIndexPath *indexPath = [self.tableView indexPathForSelectedRow];
-                EntryLs *entry = [self entryAtIndex:indexPath.row];
-                
+                                
                 if (_driver.isDownloadable) {
                     if (!entry.isDir) {
                         NSLog(@"Download file %@", entry.text);

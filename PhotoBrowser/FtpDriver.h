@@ -8,7 +8,14 @@
 
 #import "BaseDriver.h"
 
-@interface FtpDriver : BaseDriver
+@interface FtpDriver : BaseDriver {
+    NSNumber *_port;
+    BOOL _passiveMode;
+}
+
+@property (nonatomic, retain) NSNumber *port;
+@property (nonatomic, assign) BOOL passiveMode;
+
 
 - (id)initWithURL:(NSURL *)url;
 - (id)clone;

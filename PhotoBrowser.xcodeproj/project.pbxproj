@@ -27,7 +27,7 @@
 		017113251591B1EC00428E58 /* PullToReload.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 017113241591B1EC00428E58 /* PullToReload.bundle */; };
 		01720CB815494FDD00ECC483 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 01720CB715494FDD00ECC483 /* QuartzCore.framework */; };
 		017254BD155169C60087586A /* MBProgressHUD.m in Sources */ = {isa = PBXBuildFile; fileRef = 017254BB155169B20087586A /* MBProgressHUD.m */; };
-		017914151552C03500878E0C /* LoginView.m in Sources */ = {isa = PBXBuildFile; fileRef = 017914141552C03500878E0C /* LoginView.m */; };
+		01728BCE159B32FE001D26BA /* LoginPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 01728BCD159B32FD001D26BA /* LoginPreferences.m */; };
 		0179535715788B700028C36D /* empty.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0179535615788B700028C36D /* empty.cpp */; };
 		0179535A15788BC60028C36D /* libchilkatIos.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0179535915788BC60028C36D /* libchilkatIos.a */; };
 		0179535F157891DC0028C36D /* BaseDriver.m in Sources */ = {isa = PBXBuildFile; fileRef = 0179535E157891DC0028C36D /* BaseDriver.m */; };
@@ -84,8 +84,8 @@
 		01720CB715494FDD00ECC483 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		017254BA155169B20087586A /* MBProgressHUD.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MBProgressHUD.h; sourceTree = "<group>"; };
 		017254BB155169B20087586A /* MBProgressHUD.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MBProgressHUD.m; sourceTree = "<group>"; };
-		017914131552C03500878E0C /* LoginView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LoginView.h; sourceTree = "<group>"; };
-		017914141552C03500878E0C /* LoginView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LoginView.m; sourceTree = "<group>"; };
+		01728BCC159B32FD001D26BA /* LoginPreferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LoginPreferences.h; sourceTree = "<group>"; };
+		01728BCD159B32FD001D26BA /* LoginPreferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LoginPreferences.m; sourceTree = "<group>"; };
 		0179535615788B700028C36D /* empty.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = empty.cpp; sourceTree = "<group>"; };
 		0179535915788BC60028C36D /* libchilkatIos.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libchilkatIos.a; sourceTree = "<group>"; };
 		0179535D157891DC0028C36D /* BaseDriver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BaseDriver.h; sourceTree = "<group>"; };
@@ -243,8 +243,8 @@
 				016EEDB8158B2B3400B6A2D2 /* Downloads.m */,
 				01AB9239155545FC009E5E12 /* DirectoryList.h */,
 				01AB923A155545FC009E5E12 /* DirectoryList.m */,
-				017914131552C03500878E0C /* LoginView.h */,
-				017914141552C03500878E0C /* LoginView.m */,
+				01728BCC159B32FD001D26BA /* LoginPreferences.h */,
+				01728BCD159B32FD001D26BA /* LoginPreferences.m */,
 				01FC27DE156E23CC00C5549C /* ConnectionsList.h */,
 				01FC27DF156E23CC00C5549C /* ConnectionsList.m */,
 				01A8B9EC157CC0270084418B /* XMLReader.h */,
@@ -345,7 +345,6 @@
 				018AF61015459C0500820E79 /* UIImageExtras.m in Sources */,
 				017BA809152C7A9E00DF16B2 /* main.m in Sources */,
 				017BA80D152C7A9F00DF16B2 /* AppDelegate.m in Sources */,
-				017914151552C03500878E0C /* LoginView.m in Sources */,
 				01AB923B155545FC009E5E12 /* DirectoryList.m in Sources */,
 				019DED0515639D000008F616 /* EntryLs.m in Sources */,
 				01FC27E0156E23CC00C5549C /* ConnectionsList.m in Sources */,
@@ -361,6 +360,7 @@
 				016EEDB9158B2B3500B6A2D2 /* Downloads.m in Sources */,
 				017113221591B13A00428E58 /* UIPullToReloadHeaderView.m in Sources */,
 				017113231591B13A00428E58 /* UIPullToReloadTableViewController.m in Sources */,
+				01728BCE159B32FE001D26BA /* LoginPreferences.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

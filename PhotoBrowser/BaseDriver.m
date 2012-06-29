@@ -78,6 +78,20 @@
     return result;
 }
 
+- (BOOL)needToDownloadFile:(NSString *)filePath withModificationDate:(NSDate *)modificationDate {
+    BOOL result = YES;
+    
+    if([[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
+        NSError *attributeError = nil;
+        NSDictionary *fileAttributes = [[NSFileManager defaultManager] attributesOfItemAtPath:filePath error:&attributeError];
+        NSDate *localModificationDate = [fileAttributes objectForKey:NSFileModificationDate];
+
+        result = modificationDate > localModificationDate;
+    }
+    
+    return result;
+}
+
 - (BOOL)isImageFile:(NSString *)filename {
     BOOL result = NO;
     
@@ -212,7 +226,13 @@
 }
 
 
+- (BOOL)deleteRemoteFile:(NSString *)filename {
+    return NO;
+}
 
+- (BOOL)deleteRemoteDirictory:(NSString *)dir {
+    return NO;
+}
 
 
 
