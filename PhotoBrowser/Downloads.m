@@ -14,6 +14,13 @@
 
 - (void)_receiveDidStart;
 - (void)_receiveDidStop;
+- (void)addEntry:(EntryLs *)entry;
+- (void)refreshBadge;
+- (void)start;
+- (void)_downloadFile:(NSString *)filename;
+- (IBAction)playButtonPressed:(id)sender;
+- (IBAction)pauseButtonPressed:(id)sender;
+
 @end
 
 @implementation Downloads
@@ -233,21 +240,24 @@ static NSDateFormatter *sDateFormatter;
 }
 
 
-/*
+
 // Override to support rearranging the table view.
 - (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath
 {
+    EntryLs *entry = [_entries objectAtIndex:fromIndexPath.row];
+    [_entries removeObjectAtIndex:fromIndexPath.row];
+    [_entries insertObject:entry atIndex:toIndexPath.row];
 }
-*/
 
-/*
+
+
 // Override to support conditional rearranging of the table view.
 - (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath
 {
     // Return NO if you do not want the item to be re-orderable.
-    return YES;
+    return YES; //!_state == LOADING;;
 }
-*/
+
 
 - (void)_receiveDidStart {
     _state = LOADING;
@@ -304,10 +314,13 @@ static NSDateFormatter *sDateFormatter;
 
 
 - (IBAction)pauseButtonPressed:(id)sender {
+
     self.navigationItem.leftBarButtonItem = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemPlay
                                                         target:self action:@selector(playButtonPressed:)] autorelease];
     [_driver abort];
     _state = PAUSED;
+    self.tableView.editing = YES;
+    
 }
 
 - (IBAction)playButtonPressed:(id)sender {
@@ -315,7 +328,7 @@ static NSDateFormatter *sDateFormatter;
                                                         target:self action:@selector(pauseButtonPressed:)] autorelease];
     _entries.count ? [self start] : 
                      [self _receiveDidStop];
-    
+    self.tableView.editing = NO;    
 }
 
 #pragma mark - Table view delegate
@@ -332,17 +345,22 @@ static NSDateFormatter *sDateFormatter;
      */
 }
 
-- (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath {
-    return !_state == LOADING;
-}
-
-- (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)sourceIndexPath toIndexPath:(NSIndexPath *)destinationIndexPath {
+/*
+- (void)setEditing:(BOOL)editing animated:(BOOL)animated {
+    [super setEditing:editing animated:animated];
     
-    EntryLs *entry = [[_entries objectAtIndex:sourceIndexPath.row] retain];
-    [_entries removeObject:entry];
-    [_entries insertObject:entry atIndex:destinationIndexPath.row];
-    [entry release];
+    [self.tableView setEditing:editing animated:animated];
+    
+    if (!editing) {
+        int i = 0;
+        for (Row; <#condition#>; <#increment#>) {
+            <#statements#>
+        }
+    }
 }
+*/ 
+
+
 
 #pragma mark - Loading delegate
 

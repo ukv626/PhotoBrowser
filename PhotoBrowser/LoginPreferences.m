@@ -52,11 +52,13 @@
     [super dealloc];
 }
 
+
 - (void)loadView {
     [super loadView];
     
-    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Save" style:UIBarButtonItemStylePlain target:self action:@selector(saveButtonClicked:)];
+    self.navigationItem.rightBarButtonItem = [[[UIBarButtonItem alloc] initWithTitle:@"Save" style:UIBarButtonItemStylePlain target:self action:@selector(saveButtonClicked:)] autorelease];
 }
+
 
 - (void)viewDidLoad
 {
@@ -127,6 +129,38 @@
     return nil;
 }
 
+- (CGFloat)cellsMargin {
+    // No margins for plain table views
+    if (self.tableView.style == UITableViewStylePlain) {
+        return 0;
+    }
+    
+    // iPhone always have 10 pixels margin
+    if (UI_USER_INTERFACE_IDIOM() != UIUserInterfaceIdiomPad) {
+        return 10;
+    }
+    
+    CGFloat tableWidth = self.tableView.frame.size.width;
+    
+    // Really small table
+    if (tableWidth <= 20) {
+        return tableWidth - 10;
+    }
+    
+    // Average table size
+    if (tableWidth < 400) {
+        return 10;
+    }
+    
+    // Big tables have complex margin's logic
+    // Around 6% of table width,
+    // 31 <= tableWidth * 0.06 <= 45
+    
+    CGFloat marginWidth  = tableWidth * 0.06;
+    marginWidth = MAX(31, MIN(45, marginWidth));
+    return marginWidth;
+}
+
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     NSString *CellIdentifier = [NSString stringWithFormat:@"%d:%d", indexPath.section, indexPath.row];
@@ -138,12 +172,16 @@
         
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
         CGSize cellSize = cell.frame.size;
+        float cellMargin = [self cellsMargin];
+//        float cellWidth = tableView.frame.size.width - [self cellsMargin] * 2;
+//        NSLog(@"cellWidth=%f", cellWidth);
         
         switch (indexPath.section) {
             case connectionSection:
                 switch (indexPath.row) {
                     case 0:
-                        _alias = [[UITextField alloc] initWithFrame:CGRectMake(cellSize.width-190, 8, 170, cellSize.height-16)];
+                        _alias = [[UITextField alloc] initWithFrame:CGRectMake(cellSize.width - 190, 8, 
+                                                                                190-cellMargin-10, cellSize.height-16)];
                         _alias.autoresizingMask = UIViewAutoresizingFlexibleWidth;
                         _alias.delegate = self;
                         _alias.borderStyle = UITextBorderStyleRoundedRect;
@@ -157,7 +195,8 @@
                         cell.textLabel.text = @"Alias";
                         break;
                     case 1:
-                        _server = [[UITextField alloc] initWithFrame:CGRectMake(cellSize.width-190, 8, 170, cellSize.height-16)];
+                        _server = [[UITextField alloc] initWithFrame:CGRectMake(cellSize.width-190, 8, 
+                                                                                 190-cellMargin-10, cellSize.height-16)];
                         _server.autoresizingMask = UIViewAutoresizingFlexibleWidth;
                         _server.delegate = self;
                         _server.borderStyle = UITextBorderStyleRoundedRect;
@@ -172,7 +211,8 @@
                         cell.textLabel.text = @"Server";
                         break;
                     case 2:
-                        _port = [[UITextField alloc] initWithFrame:CGRectMake(cellSize.width-110, 8, 90, cellSize.height - 16)];
+                        _port = [[UITextField alloc] initWithFrame:CGRectMake(cellSize.width-110, 8, 
+                                                                               110-cellMargin-10, cellSize.height - 16)];
                         _port.autoresizingMask = UIViewAutoresizingFlexibleWidth;
                         _port.delegate = self;
                         _port.borderStyle = UITextBorderStyleRoundedRect;
@@ -188,7 +228,8 @@
                     case 3:
                         _protocol = [[UISegmentedControl alloc] initWithItems:_connectionTypes];
                         _protocol.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin;
-                        _protocol.frame = CGRectMake(cellSize.width - 145, 8, 125, cellSize.height - 16);
+                        _protocol.frame = CGRectMake(cellSize.width - 135 - cellMargin, 8, 
+                                                     145-20, cellSize.height - 16);
                         _protocol.selectedSegmentIndex = 0;
                         [_protocol addTarget:self action:@selector(segementControlValueChanged:) forControlEvents:UIControlEventValueChanged];
                         [cell addSubview:_protocol];
@@ -200,7 +241,8 @@
                         cell.textLabel.text = @"Protocol";
                         break;
                     case 4:
-                        _connectionType = [[UISwitch alloc] initWithFrame:CGRectMake(cellSize.width - 100, 8, 100, cellSize.height - 16)];
+                        _connectionType = [[UISwitch alloc] initWithFrame:CGRectMake(cellSize.width-90-cellMargin, 8, 
+                                                                            100, cellSize.height - 16)];
                         _connectionType.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin;
                         _connectionType.on = YES;
                         [cell addSubview:_connectionType];
@@ -217,7 +259,8 @@
             case loginSection:
                 switch (indexPath.row) {
                     case 0:
-                        _username = [[UITextField alloc] initWithFrame:CGRectMake(cellSize.width-190, 8, 170, cellSize.height - 16)];
+                        _username = [[UITextField alloc] initWithFrame:CGRectMake(cellSize.width-190, 8, 
+                                                                    190-cellMargin-10, cellSize.height - 16)];
                         _username.autoresizingMask = UIViewAutoresizingFlexibleWidth;
                         _username.delegate = self;
                         _username.borderStyle = UITextBorderStyleRoundedRect;
@@ -230,7 +273,8 @@
                         cell.textLabel.text = @"Login";
                         break;
                     case 1:
-                        _password = [[UITextField alloc] initWithFrame:CGRectMake(cellSize.width-190, 8, 170, cellSize.height - 16)];
+                        _password = [[UITextField alloc] initWithFrame:CGRectMake(cellSize.width-190, 8, 
+                                                                                  190-cellMargin-10, cellSize.height - 16)];
                         _password.autoresizingMask = UIViewAutoresizingFlexibleWidth;
                         _password.delegate = self;
                         _password.borderStyle = UITextBorderStyleRoundedRect;
@@ -248,7 +292,8 @@
             case otherSection:
                 switch (indexPath.row) {
                     case 0:
-                        _cacheMode = [[UISwitch alloc] initWithFrame:CGRectMake(cellSize.width - 100, 8, 100, cellSize.height - 16)];
+                        _cacheMode = [[UISwitch alloc] initWithFrame:CGRectMake(cellSize.width-90-cellMargin, 8, 
+                                                                        100, cellSize.height - 16)];
                         _cacheMode.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin;
                         _cacheMode.on = YES;
                         [cell addSubview:_cacheMode];

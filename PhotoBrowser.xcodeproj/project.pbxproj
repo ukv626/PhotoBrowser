@@ -28,6 +28,8 @@
 		01720CB815494FDD00ECC483 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 01720CB715494FDD00ECC483 /* QuartzCore.framework */; };
 		017254BD155169C60087586A /* MBProgressHUD.m in Sources */ = {isa = PBXBuildFile; fileRef = 017254BB155169B20087586A /* MBProgressHUD.m */; };
 		01728BCE159B32FE001D26BA /* LoginPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 01728BCD159B32FD001D26BA /* LoginPreferences.m */; };
+		01751C6D15A5C2820043DFA4 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 01751C6C15A5C2820043DFA4 /* SystemConfiguration.framework */; };
+		01751C7515A5C6C80043DFA4 /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = 01751C7415A5C69D0043DFA4 /* Reachability.m */; };
 		0179535715788B700028C36D /* empty.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0179535615788B700028C36D /* empty.cpp */; };
 		0179535A15788BC60028C36D /* libchilkatIos.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0179535915788BC60028C36D /* libchilkatIos.a */; };
 		0179535F157891DC0028C36D /* BaseDriver.m in Sources */ = {isa = PBXBuildFile; fileRef = 0179535E157891DC0028C36D /* BaseDriver.m */; };
@@ -86,6 +88,9 @@
 		017254BB155169B20087586A /* MBProgressHUD.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MBProgressHUD.m; sourceTree = "<group>"; };
 		01728BCC159B32FD001D26BA /* LoginPreferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LoginPreferences.h; sourceTree = "<group>"; };
 		01728BCD159B32FD001D26BA /* LoginPreferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LoginPreferences.m; sourceTree = "<group>"; };
+		01751C6C15A5C2820043DFA4 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
+		01751C7315A5C69D0043DFA4 /* Reachability.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Reachability.h; sourceTree = "<group>"; };
+		01751C7415A5C69D0043DFA4 /* Reachability.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Reachability.m; sourceTree = "<group>"; };
 		0179535615788B700028C36D /* empty.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = empty.cpp; sourceTree = "<group>"; };
 		0179535915788BC60028C36D /* libchilkatIos.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libchilkatIos.a; sourceTree = "<group>"; };
 		0179535D157891DC0028C36D /* BaseDriver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BaseDriver.h; sourceTree = "<group>"; };
@@ -125,6 +130,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				01751C6D15A5C2820043DFA4 /* SystemConfiguration.framework in Frameworks */,
 				0120EBB1158888FA005F33B2 /* MessageUI.framework in Frameworks */,
 				01720CB815494FDD00ECC483 /* QuartzCore.framework in Frameworks */,
 				01DF222E1536FAD10089B7F2 /* CFNetwork.framework in Frameworks */,
@@ -213,6 +219,7 @@
 		017BA7FB152C7A9E00DF16B2 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				01751C6C15A5C2820043DFA4 /* SystemConfiguration.framework */,
 				0120EBB0158888F9005F33B2 /* MessageUI.framework */,
 				01720CB715494FDD00ECC483 /* QuartzCore.framework */,
 				01DF222D1536FAD00089B7F2 /* CFNetwork.framework */,
@@ -250,6 +257,8 @@
 				01A8B9EC157CC0270084418B /* XMLReader.h */,
 				01A8B9ED157CC0270084418B /* XMLReader.m */,
 				0179535615788B700028C36D /* empty.cpp */,
+				01751C7315A5C69D0043DFA4 /* Reachability.h */,
+				01751C7415A5C69D0043DFA4 /* Reachability.m */,
 				017BA803152C7A9E00DF16B2 /* Supporting Files */,
 			);
 			path = PhotoBrowser;
@@ -340,6 +349,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				01751C7515A5C6C80043DFA4 /* Reachability.m in Sources */,
 				01A8B9EF157CC43E0084418B /* XMLReader.m in Sources */,
 				017254BD155169C60087586A /* MBProgressHUD.m in Sources */,
 				018AF61015459C0500820E79 /* UIImageExtras.m in Sources */,

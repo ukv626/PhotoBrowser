@@ -9,11 +9,13 @@
 #import <UIKit/UIKit.h>
 
 @class Downloads;
+@class Reachability;
 
-@interface ConnectionsList : UITableViewController {
+@interface ConnectionsList : UITableViewController <UIGestureRecognizerDelegate> {
     BOOL _isDirty;
     
     Downloads *_downloads;
+    Reachability *_internetReach;
 }
 
 - (id)initWithDownloads:(Downloads *)downloads;

@@ -71,7 +71,7 @@
 
 - (BOOL)connect {
     NSLog(@"%s [%@]", __PRETTY_FUNCTION__, self.url);
-    BOOL success = [_driver UnlockComponent:@"qwe"];
+    BOOL success = [_driver UnlockComponent:@"EVGENIFTP_ZdydGMurmTnt"];
     if (!success) {
         return NO;
     }

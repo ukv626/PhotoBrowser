@@ -30,6 +30,7 @@
 //    UIBarButtonItem *_actionButton;
     UIBarButtonItem *_backButton;
     UIBarButtonItem *_abortButton;
+    UIBarButtonItem *_searchDoneButton;
     UIActionSheet *_actionsSheet;
     
     // Confirmation
@@ -53,14 +54,31 @@
 - (void)_receiveDidStartWithActivityIndicator:(BOOL)flag;
 - (void)_receiveDidStopWithActivityIndicator:(BOOL)flag;
 
-- (void)searchTableView;
-- (void)doneSearching_Clicked:(id)sender;
-
+- (NSUInteger)entriesCount;
+- (EntryLs *)entryAtIndex:(NSInteger)index;
+- (void)getDirectoryList;
+- (void)_getDirectoryList; 
+- (void)directoryListReceived;
+- (void)getDirectorySize:(NSString *)dir;
+- (void)_getDirectorySize:(NSString *)dir;
+- (void)directorySizeReceived:(NSNumber *)value;
+- (void)downloadFile:(NSString *)filename WithSize:(NSNumber *)size;
+- (void)_downloadFile:(NSString *)filename;
+- (void)fileDownloaded:(NSString *)filepath;
+- (void)stopFileDownloading;
+- (void)backButtonPressed:(id)sender;
+- (void)abortButtonPressed:(id)sender;
 - (void)showBrowser:(NSString *)currentFilename;
 - (void)showWebViewer:(NSString *)filepath;
+- (void)doneSearching_Clicked:(id)sender;
 
-- (EntryLs *)entryAtIndex:(NSInteger)index;
-- (NSUInteger)entriesCount;
+- (void)driver:(BaseDriver *)driver handleErrorNotification:(id)object;
+- (void)driver:(BaseDriver *)driver handleAbortedNotification:(id)object;
+- (void)driver:(BaseDriver *)driver handleLoadingProgressNotification:(id)object;
+- (void)driver:(BaseDriver *)driver handleLoadingDidEndNotification:(id)object;
+
+- (NSUInteger)numberOfPhotosInPhotoBrowser:(MWPhotoBrowser *)photoBrowser;
+- (id<MWPhoto>)photoBrowser:(MWPhotoBrowser *)photoBrowser photoAtIndex:(NSUInteger)index;
 
 @end
 
@@ -111,6 +129,7 @@
 //    [_actionButton release];
     [_backButton release];
     [_abortButton release];
+    [_searchDoneButton release];
     [_searchBar release];
     [_filteredListEntries release];
     [_activityIndicator release];
@@ -147,6 +166,8 @@
                                                                  target:self action:@selector(backButtonPressed:)];
         self.navigationItem.leftBarButtonItem = _backButton;
     }
+    
+    _searchDoneButton = nil;
     
     
 //    _actionButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction 
@@ -244,7 +265,7 @@
         }
         
         self.navigationItem.titleView = nil;
-        self.navigationItem.rightBarButtonItem = nil;
+        self.navigationItem.rightBarButtonItem = _searchDoneButton;
     }
     
     if (_driver.isDownloadable && !_directoryListReceiving && !_fileDownloading) {
@@ -767,7 +788,8 @@ static NSDateFormatter *sDateFormatter;
 
 - (void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {
     // Add the done button
-    self.navigationItem.rightBarButtonItem = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(doneSearching_Clicked:)] autorelease];
+    _searchDoneButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(doneSearching_Clicked:)];
+    self.navigationItem.rightBarButtonItem = _searchDoneButton;
 }
 
 - (void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText {
@@ -809,6 +831,9 @@ static NSDateFormatter *sDateFormatter;
     [_searchBar resignFirstResponder];
     
     _letUserSelectRow = YES;
+    [_searchDoneButton release];
+    _searchDoneButton = nil;
+    
     self.navigationItem.rightBarButtonItem = nil;
     self.tableView.scrollEnabled = YES;
     
@@ -892,13 +917,15 @@ static NSDateFormatter *sDateFormatter;
     NSLog(@"%s", __PRETTY_FUNCTION__);
     NSString *errorMessage = @"";
     if (driver == _driver) {
-        [self _receiveDidStopWithActivityIndicator:YES];
         errorMessage = (NSString *)object;
+        _directoryListReceiving = NO;
     } 
     else if (driver == _fileDownloader) {
         errorMessage = (NSString *)object;
         _fileDownloading = NO;
     }
+
+    [self _receiveDidStopWithActivityIndicator:YES];
     
     UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:errorMessage delegate:self cancelButtonTitle:nil otherButtonTitles:@"OK", nil];
     [alert show];

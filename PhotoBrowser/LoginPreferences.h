@@ -39,7 +39,7 @@
 @property (nonatomic, assign) ConnectionsList *delegate;
 
 - (id)init;
--(void)dealloc;
+- (void)dealloc;
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView;
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section;

@@ -11,6 +11,7 @@
 #import "FtpDriver.h"
 #import "DirectoryList.h"
 #import "Downloads.h"
+#import "Reachability.h"
 
 @interface ConnectionsList () {
     NSMutableArray *_listEntries;
@@ -54,11 +55,26 @@
                                                                                            target:self action:@selector(addButtonPressed:)] autorelease];
     self.navigationItem.rightBarButtonItem = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemEdit
                                                                                             target:self action:@selector(startEditing)] autorelease];
+    
+//    UILongPressGestureRecognizer *lpgr = [[UILongPressGestureRecognizer alloc] 
+//                                          initWithTarget:self action:@selector(handleLongPress:)];
+//    lpgr.delegate = self;
+//    [self.tableView addGestureRecognizer:lpgr];
+//    [lpgr release];
+
+//    self.tableView.editing = YES;
 }
 
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityChanged:) name:kReachabilityChangedNotification object:nil];
+    
+    _internetReach = [[Reachability reachabilityForInternetConnection] retain];
+    [_internetReach startNotifier];
+    
+    [self updateInternetStatus:_internetReach];
 
     // Uncomment the following line to preserve selection between presentations.
     // self.clearsSelectionOnViewWillAppear = NO;
@@ -74,7 +90,10 @@
     // e.g. self.myOutlet = nil;
 }
 
+
 - (void)viewDidAppear:(BOOL)animated {
+    NSLog(@"%s", __PRETTY_FUNCTION__);
+    
     [super viewDidAppear:animated];
     
     [self.navigationController setToolbarHidden:YES animated:YES];
@@ -191,14 +210,14 @@
     [lp release];
 }
 
-/*
+
 // Override to support conditional editing of the table view.
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath
 {
     // Return NO if you do not want the specified item to be editable.
     return YES;
 }
-*/
+
 
 
 // Override to support editing the table view.
@@ -272,7 +291,9 @@
             dirList.downloads = _downloads;
             
             [ftpDriver release];
+            NSLog(@"dirList.retainCount=%d", [dirList retainCount]);
             [self.navigationController pushViewController:dirList animated:YES];
+            NSLog(@"dirList.retainCount=%d", [dirList retainCount]);
             // Release
             [dirList release];
         } else {
@@ -292,5 +313,36 @@
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
     [alertView release];
 }
+
+
+//
+- (void)updateInternetStatus:(Reachability *)curReach {
+    NetworkStatus netStatus = [curReach currentReachabilityStatus];
+    NSString *statusString = @"Network: ";
+    
+    switch (netStatus) {
+        case NotReachable:
+            statusString = [statusString stringByAppendingString:@"Not Available"];
+            break;
+        case ReachableViaWWAN:
+            statusString = [statusString stringByAppendingString:statusString = @"WWAN"];
+            break;
+        case ReachableViaWiFi:
+            statusString = [statusString stringByAppendingString:statusString = @"WiFi"];
+            break;
+        default:
+            break;
+    }
+    
+    NSLog(@"%@", statusString);
+    self.navigationItem.title = statusString;
+}
+
+- (void)reachabilityChanged:(NSNotification *)note {
+    Reachability *curReach = [note object];
+    //NSParameterAssert([curReach isKindOfClass:[Reachability class]]);
+    [self updateInternetStatus:curReach];
+}
+
 
 @end
