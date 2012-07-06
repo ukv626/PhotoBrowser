@@ -347,6 +347,7 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 
 #pragma mark - Appearance
 
+
 - (void)viewWillAppear:(BOOL)animated {
     
 	// Super
@@ -371,6 +372,7 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 	[self hideControlsAfterDelay];
     
 }
+
 
 - (void)viewWillDisappear:(BOOL)animated {
     
@@ -403,6 +405,7 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
+    
     _viewIsActive = YES;
 }
 

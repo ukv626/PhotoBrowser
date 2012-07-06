@@ -9,6 +9,7 @@
 #import "MWZoomingScrollView.h"
 #import "MWPhotoBrowser.h"
 #import "MWPhoto.h"
+#import <QuartzCore/QuartzCore.h>
 
 // Declare private methods of browser
 @interface MWPhotoBrowser ()
@@ -111,6 +112,7 @@
 			
 			// Set image
 			_photoImageView.image = img;
+            //_photoImageView.layer.contents = (id)img.CGImage;
 			_photoImageView.hidden = NO;
 			
 			// Setup photo frame

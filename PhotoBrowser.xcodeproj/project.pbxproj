@@ -46,6 +46,7 @@
 		01800D86152EE7BF0044CEE0 /* UIBarButtonItemArrowRight.png in Resources */ = {isa = PBXBuildFile; fileRef = 01800D81152EE7BF0044CEE0 /* UIBarButtonItemArrowRight.png */; };
 		01800D87152EE7BF0044CEE0 /* UIBarButtonItemArrowRight@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 01800D82152EE7BF0044CEE0 /* UIBarButtonItemArrowRight@2x.png */; };
 		018AF61015459C0500820E79 /* UIImageExtras.m in Sources */ = {isa = PBXBuildFile; fileRef = 018AF60E15459BF500820E79 /* UIImageExtras.m */; };
+		0191012115A6EEDF00C5F374 /* UIImage+ImmediateLoading.m in Sources */ = {isa = PBXBuildFile; fileRef = 0191012015A6EEDF00C5F374 /* UIImage+ImmediateLoading.m */; };
 		019DED0515639D000008F616 /* EntryLs.m in Sources */ = {isa = PBXBuildFile; fileRef = 019DED0415639D000008F616 /* EntryLs.m */; };
 		01A8B9EF157CC43E0084418B /* XMLReader.m in Sources */ = {isa = PBXBuildFile; fileRef = 01A8B9ED157CC0270084418B /* XMLReader.m */; };
 		01AB923B155545FC009E5E12 /* DirectoryList.m in Sources */ = {isa = PBXBuildFile; fileRef = 01AB923A155545FC009E5E12 /* DirectoryList.m */; };
@@ -114,6 +115,8 @@
 		01800D82152EE7BF0044CEE0 /* UIBarButtonItemArrowRight@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "UIBarButtonItemArrowRight@2x.png"; sourceTree = "<group>"; };
 		018AF60D15459BF500820E79 /* UIImageExtras.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UIImageExtras.h; sourceTree = "<group>"; };
 		018AF60E15459BF500820E79 /* UIImageExtras.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UIImageExtras.m; sourceTree = "<group>"; };
+		0191011F15A6EEDF00C5F374 /* UIImage+ImmediateLoading.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+ImmediateLoading.h"; sourceTree = "<group>"; };
+		0191012015A6EEDF00C5F374 /* UIImage+ImmediateLoading.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+ImmediateLoading.m"; sourceTree = "<group>"; };
 		019DED0315639D000008F616 /* EntryLs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EntryLs.h; sourceTree = "<group>"; };
 		019DED0415639D000008F616 /* EntryLs.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EntryLs.m; sourceTree = "<group>"; };
 		01A8B9EC157CC0270084418B /* XMLReader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = XMLReader.h; sourceTree = "<group>"; };
@@ -164,6 +167,8 @@
 				0120EBA715887B44005F33B2 /* MWTapDetectingView.m */,
 				0120EBA815887B44005F33B2 /* MWZoomingScrollView.h */,
 				0120EBA915887B44005F33B2 /* MWZoomingScrollView.m */,
+				0191011F15A6EEDF00C5F374 /* UIImage+ImmediateLoading.h */,
+				0191012015A6EEDF00C5F374 /* UIImage+ImmediateLoading.m */,
 			);
 			name = MWPhotoBrowser;
 			sourceTree = "<group>";
@@ -371,6 +376,7 @@
 				017113221591B13A00428E58 /* UIPullToReloadHeaderView.m in Sources */,
 				017113231591B13A00428E58 /* UIPullToReloadTableViewController.m in Sources */,
 				01728BCE159B32FE001D26BA /* LoginPreferences.m in Sources */,
+				0191012115A6EEDF00C5F374 /* UIImage+ImmediateLoading.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

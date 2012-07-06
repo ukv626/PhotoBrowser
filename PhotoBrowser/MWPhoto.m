@@ -9,6 +9,7 @@
 #import "MWPhoto.h"
 #import "MWPhotoBrowser.h"
 #import "LoadingDelegate.h"
+#import "UIImage+ImmediateLoading.h"
 
 // Private
 @interface MWPhoto () {
@@ -146,6 +147,7 @@
 - (void)loadImageFromFileAsync {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     @try {
+        /*
         NSError *error = nil;
         NSLog(@"%s [%@]", __PRETTY_FUNCTION__, _photoPath);
         NSData *data = [NSData dataWithContentsOfFile:_photoPath options:NSDataReadingUncached error:&error];
@@ -155,9 +157,12 @@
             self.underlyingImage = nil;
             MWLog(@"Photo from file error: %@", error);
         }
+        */
+        self.underlyingImage = [[UIImage alloc] initImmediateLoadWithContentsOfFile:_photoPath];
+        [self performSelectorOnMainThread:@selector(imageDidFinishLoadingSoDecompress) withObject:nil waitUntilDone:NO];
     } @catch (NSException *exception) {
     } @finally {
-        [self performSelectorOnMainThread:@selector(imageDidFinishLoadingSoDecompress) withObject:nil waitUntilDone:NO];
+        
         [pool drain];
     }
 }
