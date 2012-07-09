@@ -10,7 +10,7 @@
 
 @interface EntryLs : NSObject
 
-@property (nonatomic, copy) NSString *text;
+@property (nonatomic, retain) NSString *text;
 @property (nonatomic, assign) unsigned long long size;
 @property (nonatomic, retain) NSDate *date;
 @property (nonatomic, assign) BOOL isDir;

@@ -11,6 +11,7 @@
 @interface FtpDriver : BaseDriver {
     NSNumber *_port;
     BOOL _passiveMode;
+
 }
 
 @property (nonatomic, retain) NSNumber *port;

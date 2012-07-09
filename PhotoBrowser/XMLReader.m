@@ -84,6 +84,7 @@ NSString *const kXMLReaderTextNodeKey = @"text";
     NSXMLParser *parser = [[NSXMLParser alloc] initWithData:data];
     parser.delegate = self;
     BOOL success = [parser parse];
+    [parser release];
     
     // Return the stack's root dictionary on success
     if (success)
@@ -120,6 +121,7 @@ NSString *const kXMLReaderTextNodeKey = @"text";
         [_currentFile insertString:path  atIndex:0];
         [_files addObject:_currentFile];
         
+        [path release];
         [_currentFile release];
         _currentFile = [[NSMutableString alloc] init];
     }

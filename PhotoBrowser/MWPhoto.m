@@ -158,7 +158,7 @@
             MWLog(@"Photo from file error: %@", error);
         }
         */
-        self.underlyingImage = [[UIImage alloc] initImmediateLoadWithContentsOfFile:_photoPath];
+        self.underlyingImage = [UIImage imageImmediateLoadWithContentsOfFile:_photoPath];
         [self performSelectorOnMainThread:@selector(imageDidFinishLoadingSoDecompress) withObject:nil waitUntilDone:NO];
     } @catch (NSException *exception) {
     } @finally {

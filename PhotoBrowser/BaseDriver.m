@@ -28,6 +28,7 @@
 @synthesize password = _password;
 @synthesize delegate = _delegate;
 @synthesize listEntries = _listEntries;
+@synthesize cacheMode = _cacheMode;
 
 - (id)initWithURL:(NSURL *)url {
     if((self = [super init])) {
@@ -44,6 +45,7 @@
 
 - (void)dealloc {
 //    NSLog(@"%s", __PRETTY_FUNCTION__);
+    [_url release];
     [_username release];
     [_password release];
     [_listEntries release];

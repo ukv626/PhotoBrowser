@@ -10,14 +10,18 @@
 
 @protocol LoadingDelegate;
 
-@interface BaseDriver : NSObject
+@interface BaseDriver : NSObject {
+        BOOL _cacheMode;
+}
 
-@property (nonatomic, copy) NSURL *url;
-@property (nonatomic, copy) NSString *username;
-@property (nonatomic, copy) NSString *password;
+@property (nonatomic, retain) NSURL *url;
+@property (nonatomic, retain) NSString *username;
+@property (nonatomic, retain) NSString *password;
 
 @property (assign) id<LoadingDelegate> delegate;
 @property (nonatomic, readonly) NSMutableArray *listEntries;
+
+@property (nonatomic, assign) BOOL cacheMode;
 
 - (id)initWithURL:(NSURL *)url;
 - (id)clone;

@@ -30,7 +30,7 @@
     self = [super initWithStyle:UITableViewStylePlain];
     if (self) {
         // Custom initialization   
-        self.tabBarItem = [[UITabBarItem alloc] initWithTabBarSystemItem:UITabBarSystemItemContacts tag:0];
+        self.tabBarItem = [[[UITabBarItem alloc] initWithTabBarSystemItem:UITabBarSystemItemContacts tag:0] autorelease];
         
         _downloads = downloads;
         _listEntries = [[NSMutableArray alloc] init];
@@ -281,20 +281,17 @@ forRowAtIndexPath:(NSIndexPath *)indexPath
             FtpDriver *ftpDriver = [[FtpDriver alloc] initWithURL:url];
             ftpDriver.username = [entry objectForKey:@"username"];
             ftpDriver.password = [entry objectForKey:@"password"];
-            NSString *port = [entry objectForKey:@"port"];
-            NSNumber *passiveMode = [entry objectForKey:@"connectionType"];
-            ftpDriver.port = [NSNumber numberWithInteger:[port integerValue]];
-            ftpDriver.passiveMode = [passiveMode boolValue];
-            NSLog(@"passive=%d", [passiveMode boolValue]);
+
+            ftpDriver.port = [NSNumber numberWithInteger:[[entry objectForKey:@"port"] integerValue]];
+            ftpDriver.passiveMode = [[entry objectForKey:@"connectionType"] boolValue];
+            ftpDriver.cacheMode = [[entry objectForKey:@"cacheMode"] boolValue];
             
             DirectoryList *dirList = [[DirectoryList alloc] initWithDriver:ftpDriver];
             _downloads.driver = [ftpDriver clone];
             dirList.downloads = _downloads;
             
             [ftpDriver release];
-            NSLog(@"dirList.retainCount=%d", [dirList retainCount]);
             [self.navigationController pushViewController:dirList animated:YES];
-            NSLog(@"dirList.retainCount=%d", [dirList retainCount]);
             // Release
             [dirList release];
         } else {

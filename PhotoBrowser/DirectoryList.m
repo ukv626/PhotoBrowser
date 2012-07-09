@@ -105,10 +105,10 @@
         
         if (_driver.isDownloadable) {
             self.title = @"Remote";
-            self.tabBarItem = [[UITabBarItem alloc] initWithTitle:@"Remote" image:nil tag:0];
+            self.tabBarItem = [[[UITabBarItem alloc] initWithTitle:@"Remote" image:nil tag:0] autorelease];
         } 
         else {
-            self.tabBarItem = [[UITabBarItem alloc] initWithTabBarSystemItem:UITabBarSystemItemHistory tag:1];
+            self.tabBarItem = [[[UITabBarItem alloc] initWithTabBarSystemItem:UITabBarSystemItemHistory tag:1] autorelease];
         }
     }
     return self;
@@ -202,8 +202,6 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-            
-    [self getDirectoryList];
 
     // Uncomment the following line to preserve selection between presentations.
     // self.clearsSelectionOnViewWillAppear = NO;
@@ -440,6 +438,11 @@
 - (void)backButtonPressed:(id)sender {
     if ([_backButton.title isEqualToString:@"Disconnect"]) {
         [self.navigationController popViewControllerAnimated:YES];
+        
+        // clear "cache" if needed
+        if (!_driver.cacheMode) {
+            [[NSFileManager defaultManager] removeItemAtPath:[_driver pathToDownload] error:nil];        
+        }
     } 
     else {
         // pop url
@@ -782,6 +785,7 @@ static NSDateFormatter *sDateFormatter;
     [super viewDidAppear:animated];
     
     [self.navigationController setToolbarHidden:YES animated:YES];
+    [self getDirectoryList];
 }
 
 // UISearchBarDelegate

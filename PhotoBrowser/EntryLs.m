@@ -63,4 +63,11 @@
     return self;
 }
 
+- (void)dealloc {
+    [self.text release];
+    [self.date release];
+    
+    [super dealloc];
+}
+
 @end

@@ -10,7 +10,7 @@
 
 @interface UIImage (UIImage_ImmediateLoading)
 
-- (UIImage*) initImmediateLoadWithContentsOfFile:(NSString*)path;
+//- (UIImage*) initImmediateLoadWithContentsOfFile:(NSString*)path;
 + (UIImage*)imageImmediateLoadWithContentsOfFile:(NSString*)path;
 
 @end

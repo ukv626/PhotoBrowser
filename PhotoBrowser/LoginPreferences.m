@@ -302,7 +302,7 @@
                             NSNumber *cacheMode = [_entry objectForKey:@"cacheMode"];
                             _cacheMode.on = [cacheMode boolValue];
                         }
-                        cell.textLabel.text = @"Cache";
+                        cell.textLabel.text = @"Save cache";
                         break;
 
                 }
