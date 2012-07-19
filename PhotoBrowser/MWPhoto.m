@@ -109,7 +109,6 @@
 }
 
 - (void)loadUnderlyingImageAndNotify {
-    NSLog(@"%s [%@]", __PRETTY_FUNCTION__, _photoPath);
     NSAssert([[NSThread currentThread] isMainThread], @"This method must be called on the main thread.");
     _loadingInProgress = YES;
     if (self.underlyingImage) {
@@ -159,6 +158,8 @@
         }
         */
         self.underlyingImage = [UIImage imageImmediateLoadWithContentsOfFile:_photoPath];
+        
+        // notify 
         [self performSelectorOnMainThread:@selector(imageDidFinishLoadingSoDecompress) withObject:nil waitUntilDone:NO];
     } @catch (NSException *exception) {
     } @finally {
@@ -184,7 +185,6 @@
 }
 
 - (void)imageLoadingComplete {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
     NSAssert([[NSThread currentThread] isMainThread], @"This method must be called on the main thread.");
     // Complete so notify
     _loadingInProgress = NO;

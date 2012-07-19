@@ -47,6 +47,11 @@
 		01800D87152EE7BF0044CEE0 /* UIBarButtonItemArrowRight@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 01800D82152EE7BF0044CEE0 /* UIBarButtonItemArrowRight@2x.png */; };
 		018AF61015459C0500820E79 /* UIImageExtras.m in Sources */ = {isa = PBXBuildFile; fileRef = 018AF60E15459BF500820E79 /* UIImageExtras.m */; };
 		0191012115A6EEDF00C5F374 /* UIImage+ImmediateLoading.m in Sources */ = {isa = PBXBuildFile; fileRef = 0191012015A6EEDF00C5F374 /* UIImage+ImmediateLoading.m */; };
+		0198F76615B58BA5000EBEDB /* KTThumbsView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0198F76115B58BA5000EBEDB /* KTThumbsView.m */; };
+		0198F76715B58BA5000EBEDB /* KTThumbsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0198F76315B58BA5000EBEDB /* KTThumbsViewController.m */; };
+		0198F76815B58BA5000EBEDB /* KTThumbView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0198F76515B58BA5000EBEDB /* KTThumbView.m */; };
+		0198F77915B7F3A6000EBEDB /* PreviewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0198F77815B7F3A5000EBEDB /* PreviewController.m */; };
+		0198F77C15B7FEC5000EBEDB /* UIImage+KTCategory.m in Sources */ = {isa = PBXBuildFile; fileRef = 0198F77A15B7FEC4000EBEDB /* UIImage+KTCategory.m */; };
 		019DED0515639D000008F616 /* EntryLs.m in Sources */ = {isa = PBXBuildFile; fileRef = 019DED0415639D000008F616 /* EntryLs.m */; };
 		01A8B9EF157CC43E0084418B /* XMLReader.m in Sources */ = {isa = PBXBuildFile; fileRef = 01A8B9ED157CC0270084418B /* XMLReader.m */; };
 		01AB923B155545FC009E5E12 /* DirectoryList.m in Sources */ = {isa = PBXBuildFile; fileRef = 01AB923A155545FC009E5E12 /* DirectoryList.m */; };
@@ -117,6 +122,17 @@
 		018AF60E15459BF500820E79 /* UIImageExtras.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UIImageExtras.m; sourceTree = "<group>"; };
 		0191011F15A6EEDF00C5F374 /* UIImage+ImmediateLoading.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+ImmediateLoading.h"; sourceTree = "<group>"; };
 		0191012015A6EEDF00C5F374 /* UIImage+ImmediateLoading.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+ImmediateLoading.m"; sourceTree = "<group>"; };
+		0198F76015B58BA5000EBEDB /* KTThumbsView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KTThumbsView.h; sourceTree = "<group>"; };
+		0198F76115B58BA5000EBEDB /* KTThumbsView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KTThumbsView.m; sourceTree = "<group>"; };
+		0198F76215B58BA5000EBEDB /* KTThumbsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KTThumbsViewController.h; sourceTree = "<group>"; };
+		0198F76315B58BA5000EBEDB /* KTThumbsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KTThumbsViewController.m; sourceTree = "<group>"; };
+		0198F76415B58BA5000EBEDB /* KTThumbView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KTThumbView.h; sourceTree = "<group>"; };
+		0198F76515B58BA5000EBEDB /* KTThumbView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KTThumbView.m; sourceTree = "<group>"; };
+		0198F76A15B58E41000EBEDB /* KTPhotoBrowserDataSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KTPhotoBrowserDataSource.h; sourceTree = "<group>"; };
+		0198F77715B7F3A5000EBEDB /* PreviewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PreviewController.h; sourceTree = "<group>"; };
+		0198F77815B7F3A5000EBEDB /* PreviewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PreviewController.m; sourceTree = "<group>"; };
+		0198F77A15B7FEC4000EBEDB /* UIImage+KTCategory.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+KTCategory.m"; sourceTree = "<group>"; };
+		0198F77B15B7FEC4000EBEDB /* UIImage+KTCategory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+KTCategory.h"; sourceTree = "<group>"; };
 		019DED0315639D000008F616 /* EntryLs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EntryLs.h; sourceTree = "<group>"; };
 		019DED0415639D000008F616 /* EntryLs.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EntryLs.m; sourceTree = "<group>"; };
 		01A8B9EC157CC0270084418B /* XMLReader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = XMLReader.h; sourceTree = "<group>"; };
@@ -264,6 +280,17 @@
 				0179535615788B700028C36D /* empty.cpp */,
 				01751C7315A5C69D0043DFA4 /* Reachability.h */,
 				01751C7415A5C69D0043DFA4 /* Reachability.m */,
+				0198F77715B7F3A5000EBEDB /* PreviewController.h */,
+				0198F77815B7F3A5000EBEDB /* PreviewController.m */,
+				0198F76A15B58E41000EBEDB /* KTPhotoBrowserDataSource.h */,
+				0198F76015B58BA5000EBEDB /* KTThumbsView.h */,
+				0198F76115B58BA5000EBEDB /* KTThumbsView.m */,
+				0198F76215B58BA5000EBEDB /* KTThumbsViewController.h */,
+				0198F76315B58BA5000EBEDB /* KTThumbsViewController.m */,
+				0198F76415B58BA5000EBEDB /* KTThumbView.h */,
+				0198F76515B58BA5000EBEDB /* KTThumbView.m */,
+				0198F77A15B7FEC4000EBEDB /* UIImage+KTCategory.m */,
+				0198F77B15B7FEC4000EBEDB /* UIImage+KTCategory.h */,
 				017BA803152C7A9E00DF16B2 /* Supporting Files */,
 			);
 			path = PhotoBrowser;
@@ -377,6 +404,11 @@
 				017113231591B13A00428E58 /* UIPullToReloadTableViewController.m in Sources */,
 				01728BCE159B32FE001D26BA /* LoginPreferences.m in Sources */,
 				0191012115A6EEDF00C5F374 /* UIImage+ImmediateLoading.m in Sources */,
+				0198F76615B58BA5000EBEDB /* KTThumbsView.m in Sources */,
+				0198F76715B58BA5000EBEDB /* KTThumbsViewController.m in Sources */,
+				0198F76815B58BA5000EBEDB /* KTThumbView.m in Sources */,
+				0198F77915B7F3A6000EBEDB /* PreviewController.m in Sources */,
+				0198F77C15B7FEC5000EBEDB /* UIImage+KTCategory.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

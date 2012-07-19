@@ -81,7 +81,7 @@
 #pragma mark actions
 
 -(void) pullDownToReloadAction {
-	NSLog(@"TODO: Overload this");
+	//NSLog(@"TODO: Overload this");
 }
 
 

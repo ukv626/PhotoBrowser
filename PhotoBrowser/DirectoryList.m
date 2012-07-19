@@ -13,6 +13,8 @@
 #import "BaseDriver.h"
 #import "EntryLs.h"
 #import "Downloads.h"
+#import "UIImage+ImmediateLoading.h"
+#import "KTThumbView.h"
 
 #define REFRESH_HEADER_HEIGHT 52.0f
 
@@ -87,7 +89,6 @@
 @synthesize downloads = _downloads;
 
 - (id)initWithDriver:(BaseDriver *)driver {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
     
     self = [super initWithStyle:UITableViewStylePlain];
     if (self) {
@@ -115,8 +116,6 @@
 }
 
 - (void)dealloc {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
-    
     _directoryListReceiving = NO;
     _fileDownloading = NO;
     [self _receiveDidStopWithActivityIndicator:YES];
@@ -460,7 +459,6 @@
 }
 
 - (void)abortButtonPressed:(id)sender {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
     [self performSelectorInBackground:@selector(stopFileDownloading) withObject:nil];
 }
 
@@ -488,6 +486,7 @@
     }
     
     MWPhotoBrowser *browser = [[MWPhotoBrowser alloc] initWithDelegate:self];
+    browser.displayThumbsButton = !_driver.isDownloadable;
     [browser setInitialPageIndex:photoIndex];
     
     [self.navigationController pushViewController:browser animated:YES];
@@ -506,7 +505,7 @@
         BOOL success = [viewer presentPreviewAnimated:YES];
         if(!success) {
             if(!(success = [viewer presentOpenInMenuFromBarButtonItem:self.navigationItem.rightBarButtonItem animated:YES])) {
-                NSLog(@"VIEWER: FALSE");
+//                NSLog(@"VIEWER: FALSE");
                 [viewer release];
             }
         }
@@ -641,7 +640,6 @@ static NSDateFormatter *sDateFormatter;
 
 
 - (void)tableView:(UITableView *)tableView accessoryButtonTappedForRowWithIndexPath:(NSIndexPath *)indexPath {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
     if (_actionsSheet) {
         // Dismiss
         [_actionsSheet dismissWithClickedButtonIndex:_actionsSheet.cancelButtonIndex animated:YES];
@@ -660,13 +658,14 @@ static NSDateFormatter *sDateFormatter;
             else {
                 [_actionsSheet addButtonWithTitle:@"Download"];
             }
+        } else {
+            // TODO:
         }
         
         
         entry.isDir ? [_actionsSheet addButtonWithTitle:@"Delete dir"] :
                       [_actionsSheet addButtonWithTitle:@"Delete"];
-            
-            
+        
         _actionsSheet.destructiveButtonIndex = _actionsSheet.numberOfButtons-1;
         
         [_actionsSheet addButtonWithTitle:@"Cancel"];
@@ -675,7 +674,8 @@ static NSDateFormatter *sDateFormatter;
         
         _actionsSheet.actionSheetStyle = UIActionSheetStyleBlackTranslucent;
         if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
-            [_actionsSheet showFromBarButtonItem:self.navigationItem.rightBarButtonItem animated:YES];
+//            [_actionsSheet showFromToolbar:self.navigationController.toolbar];
+            [_actionsSheet showInView:[self.view window]];
         } else {
             [_actionsSheet showInView:[self.view window]];
         }            
@@ -770,7 +770,7 @@ static NSDateFormatter *sDateFormatter;
             NSString *filepath = [[_driver.url path] stringByAppendingPathComponent:cell.textLabel.text];
             [self downloadFile:filepath WithSize:[NSNumber numberWithLongLong:[entry size]]];
         } else {
-            NSLog(@"ALREADY DOWNLOADED");
+//            NSLog(@"ALREADY DOWNLOADED");
             if([_driver isImageFile:filePath]) {
                 [self showBrowser:cell.textLabel.text];
             } else {
@@ -797,8 +797,6 @@ static NSDateFormatter *sDateFormatter;
 }
 
 - (void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText {
-    NSLog(@"%s [%@]", __PRETTY_FUNCTION__, searchText);
-
     
     if (searchText.length > 0) {
         _searching = YES;
@@ -903,7 +901,7 @@ static NSDateFormatter *sDateFormatter;
 - (void)driver:(BaseDriver *)driver handleLoadingProgressNotification:(id)object {
     // Notification from _directoryDownloader
     if (driver == _fileDownloader) {
-        NSLog(@"%s [%llu]", __PRETTY_FUNCTION__, [(NSNumber *)object unsignedLongLongValue]);
+//        NSLog(@"%s [%llu]", __PRETTY_FUNCTION__, [(NSNumber *)object unsignedLongLongValue]);
         _bytesReceived = [(NSNumber *)object unsignedLongLongValue];
     }
     
@@ -918,7 +916,6 @@ static NSDateFormatter *sDateFormatter;
 }
 
 - (void)driver:(BaseDriver *)driver handleErrorNotification:(id)object {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
     NSString *errorMessage = @"";
     if (driver == _driver) {
         errorMessage = (NSString *)object;
@@ -940,7 +937,6 @@ static NSDateFormatter *sDateFormatter;
 - (void)actionSheet:(UIActionSheet *)actionSheet didDismissWithButtonIndex:(NSInteger)buttonIndex {
     if (actionSheet == _actionsSheet) {           
         // Actions 
-        NSLog(@"%s [index=%d]", __PRETTY_FUNCTION__, buttonIndex);
 
         NSIndexPath *indexPath = [self.tableView indexPathForSelectedRow];
         EntryLs *entry = [self entryAtIndex:indexPath.row];
@@ -968,8 +964,6 @@ static NSDateFormatter *sDateFormatter;
                                 
                 if (_driver.isDownloadable) {
                     if (!entry.isDir) {
-                        NSLog(@"Download file %@", entry.text);
-                        
                         NSString *filepath = [[_driver.url path] stringByAppendingPathComponent:entry.text];
                         
                         EntryLs *entryToDownload = [[EntryLs alloc] initWithText:filepath IsDirectory:NO Date:entry.date
@@ -995,7 +989,7 @@ static NSDateFormatter *sDateFormatter;
     }
 }
 
-// 
+// MWPhotoBrowser 
 - (NSUInteger)numberOfPhotosInPhotoBrowser:(MWPhotoBrowser *)photoBrowser {
     return _photos.count;
 }
@@ -1004,5 +998,33 @@ static NSDateFormatter *sDateFormatter;
     return [_photos objectAtIndex:index];
 }
 
+// KTPhotoBrowser
+- (NSInteger)numberOfPhotos {
+    return _photos.count;
+}
+
+/*
+- (UIImage *)thumbImageAtIndex:(NSInteger)index {
+    UIImage *image = [UIImage imageImmediateLoadWithContentsOfFile:[[_photos objectAtIndex:index] photoPath]];
+//    NSLog(@"image=%@", );
+    
+    return image;
+}
+*/
+
+- (void)thumbImageAtIndex:(NSInteger)index thumbView:(KTThumbView *)thumbView {
+    NSString *filename = [[[_photos objectAtIndex:index] photoPath] lastPathComponent];
+    NSString *path = [NSString stringWithString:@"Thumbs"];
+    for (NSInteger i=1; i<_urls.count; ++i) {
+        path = [path stringByAppendingPathComponent:[[_urls objectAtIndex:i] lastPathComponent]];
+    }
+
+    path = [path stringByAppendingPathComponent:filename];
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *thumbPath = [[paths objectAtIndex:0] stringByAppendingPathComponent:path];
+    UIImage *image = [UIImage imageWithContentsOfFile:thumbPath];
+    //[UIImage imageImmediateLoadWithContentsOfFile:[[_photos objectAtIndex:index] photoPath]];
+    [thumbView setThumbImage:image];
+}
 
 @end

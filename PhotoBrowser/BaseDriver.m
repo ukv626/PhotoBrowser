@@ -236,6 +236,9 @@
     return NO;
 }
 
+- (void)saveThumb:(NSString *)filename {
+    //
+}
 
 
 @end

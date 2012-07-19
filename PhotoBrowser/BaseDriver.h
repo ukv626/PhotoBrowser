@@ -47,5 +47,7 @@
 
 - (void)abort;
 
+- (void)saveThumb:(NSString *)filename;
+
 
 @end

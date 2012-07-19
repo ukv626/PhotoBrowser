@@ -11,6 +11,7 @@
 #import "MWZoomingScrollView.h"
 #import "MBProgressHUD.h"
 //#import "SDImageCache.h"
+#import "PreviewController.h"
 
 #define SYSTEM_VERSION_EQUAL_TO(v)                  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedSame)
 #define SYSTEM_VERSION_GREATER_THAN(v)              ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedDescending)
@@ -26,7 +27,7 @@
 @interface MWPhotoBrowser () {
     
 	// Data
-    id <MWPhotoBrowserDelegate> _delegate;
+    id <MWPhotoBrowserDelegate, KTPhotoBrowserDataSource> _delegate;
     NSUInteger _photoCount;
     NSMutableArray *_photos;
 	NSArray *_depreciatedPhotoData; // Depreciated
@@ -42,7 +43,7 @@
 	// Navigation & controls
 	UIToolbar *_toolbar;
 	NSTimer *_controlVisibilityTimer;
-	UIBarButtonItem *_previousButton, *_nextButton, *_actionButton;
+	UIBarButtonItem *_thumbsButton, *_previousButton, *_nextButton, *_actionButton;
     UIActionSheet *_actionsSheet;
     MBProgressHUD *_progressHUD;
     
@@ -55,6 +56,7 @@
     UIBarButtonItem *_previousViewControllerBackButton;
     
     // Misc
+    BOOL _displayThumbsButton;
     BOOL _displayActionButton;
 	BOOL _performingLayout;
 	BOOL _rotating;
@@ -99,7 +101,6 @@
 
 // Navigation
 - (void)updateNavigation;
-- (void)jumpToPageAtIndex:(NSUInteger)index;
 - (void)gotoPreviousPage;
 - (void)gotoNextPage;
 
@@ -138,6 +139,7 @@
 navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandscapePhone;
 @synthesize displayActionButton = _displayActionButton, actionsSheet = _actionsSheet;
 @synthesize progressHUD = _progressHUD;
+@synthesize displayThumbsButton = _displayThumbsButton;
 @synthesize previousViewControllerBackButton = _previousViewControllerBackButton;
 
 #pragma mark - NSObject
@@ -157,6 +159,7 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
         _recycledPages = [[NSMutableSet alloc] init];
         _photos = [[NSMutableArray alloc] init];
         _displayActionButton = YES;
+        _displayThumbsButton = NO;
         _didSavePreviousStateOfNavBar = NO;
         
         // Listen for MWPhoto notifications
@@ -168,7 +171,7 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
     return self;
 }
 
-- (id)initWithDelegate:(id <MWPhotoBrowserDelegate>)delegate {
+- (id)initWithDelegate:(id <MWPhotoBrowserDelegate, KTPhotoBrowserDataSource>)delegate {
     if ((self = [self init])) {
         _delegate = delegate;
 	}
@@ -192,6 +195,7 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 	[_visiblePages release];
 	[_recycledPages release];
 	[_toolbar release];
+    [_thumbsButton release];
 	[_previousButton release];
 	[_nextButton release];
     [_actionButton release];
@@ -248,9 +252,12 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
     _toolbar.autoresizingMask = UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleWidth;
     
     // Toolbar Items
+    _thumbsButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSearch 
+                                                                  target:self action:@selector(thumbsButtonPressed:)];
     _previousButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"UIBarButtonItemArrowLeft.png"] style:UIBarButtonItemStylePlain target:self action:@selector(gotoPreviousPage)];
     _nextButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"UIBarButtonItemArrowRight.png"] style:UIBarButtonItemStylePlain target:self action:@selector(gotoNextPage)];
-    _actionButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(actionButtonPressed:)];
+    _actionButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction 
+                                                                  target:self action:@selector(actionButtonPressed:)];
     
     // Update
     [self reloadData];
@@ -282,7 +289,10 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
     fixedLeftSpace.width = 32; // To balance action button
     UIBarButtonItem *flexSpace = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:self action:nil] autorelease];
     NSMutableArray *items = [[NSMutableArray alloc] init];
-    if (_displayActionButton) [items addObject:fixedLeftSpace];
+    
+    if (_displayThumbsButton) [items addObject:_thumbsButton];
+    //[items addObject:flexSpace];
+    if (_displayActionButton && !_displayThumbsButton) [items addObject:fixedLeftSpace];
     [items addObject:flexSpace];
     if (numberOfPhotos > 1) [items addObject:_previousButton];
     [items addObject:flexSpace];
@@ -450,8 +460,6 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 #pragma mark - Layout
 
 - (void)viewWillLayoutSubviews {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
-    
     // Super
     if (SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"5")) [super viewWillLayoutSubviews];
 	
@@ -629,7 +637,6 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 #pragma mark - MWPhoto Loading Notification
 
 - (void)handleMWPhotoLoadingDidEndNotification:(NSNotification *)notification {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
     id <MWPhoto> photo = [notification object];
     MWZoomingScrollView *page = [self pageDisplayingPhoto:photo];
     if (page) {
@@ -637,7 +644,7 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
             // Successful load
             [page displayImage];
             //[self loadAdjacentPhotosIfNecessary:photo];
-            [self performSelector:@selector(loadAdjacentPhotosIfNecessary:) withObject:photo afterDelay:1.0];
+            [self performSelector:@selector(loadAdjacentPhotosIfNecessary:) withObject:photo afterDelay:2.5];
         } else {
             // Failed to load
             [page displayImageFailure];
@@ -727,7 +734,6 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 }
 
 - (void)configurePage:(MWZoomingScrollView *)page forIndex:(NSUInteger)index {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
 	page.frame = [self frameForPageAtIndex:index];
     page.tag = PAGE_INDEX_TAG_OFFSET + index;
     page.photo = [self photoAtIndex:index];
@@ -744,8 +750,6 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 
 // Handle page changes
 - (void)didStartViewingPageAtIndex:(NSUInteger)index {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
-    
     // Release images further away than +/-1
     NSUInteger i;
     if (index > 0) {
@@ -777,7 +781,7 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
     if ([currentPhoto underlyingImage]) {
         // photo loaded so load ajacent now
         //[self loadAdjacentPhotosIfNecessary:currentPhoto];
-        [self performSelector:@selector(loadAdjacentPhotosIfNecessary:) withObject:currentPhoto afterDelay:1.0];
+        [self performSelector:@selector(loadAdjacentPhotosIfNecessary:) withObject:currentPhoto afterDelay:2.5];
     }
     
 }
@@ -997,6 +1001,21 @@ navigationBarBackgroundImageLandscapePhone = _navigationBarBackgroundImageLandsc
 - (void)doneButtonPressed:(id)sender {
     [self dismissModalViewControllerAnimated:YES];
 }
+
+- (void)thumbsButtonPressed:(id)sender {
+    if (_actionsSheet) {
+        // Dismiss
+        [_actionsSheet dismissWithClickedButtonIndex:_actionsSheet.cancelButtonIndex animated:YES];
+    } else {
+        //
+        PreviewController *preview = [[PreviewController alloc] init];
+        preview.browser = self;
+        preview.dataSource = _delegate;
+        [self.navigationController pushViewController:preview animated:YES];
+        [preview release];        
+    }
+}
+
 
 - (void)actionButtonPressed:(id)sender {
     if (_actionsSheet) {

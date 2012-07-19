@@ -92,8 +92,6 @@
 
 
 - (void)viewDidAppear:(BOOL)animated {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
-    
     [super viewDidAppear:animated];
     
     [self.navigationController setToolbarHidden:YES animated:YES];
@@ -196,8 +194,6 @@
 
 
 - (void)tableView:(UITableView *)tableView accessoryButtonTappedForRowWithIndexPath:(NSIndexPath *)indexPath {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
-
     NSString *url = [_listEntries objectAtIndex:indexPath.row];
 //    NSDictionary *entry = [_dictionary objectForKey:url];
     
@@ -332,7 +328,6 @@ forRowAtIndexPath:(NSIndexPath *)indexPath
             break;
     }
     
-    NSLog(@"%@", statusString);
     self.navigationItem.title = statusString;
 }
 

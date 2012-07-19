@@ -13,8 +13,10 @@
 #import "UIPullToReloadTableViewController.h"
 #import "LoadingDelegate.h"
 #import "MWPhotoBrowser.h"
+#import "KTPhotoBrowserDataSource.h"
 
-@interface DirectoryList : UIPullToReloadTableViewController <LoadingDelegate, MWPhotoBrowserDelegate, UISearchBarDelegate, UIActionSheetDelegate, UIDocumentInteractionControllerDelegate,UIAlertViewDelegate> {
+@interface DirectoryList : UIPullToReloadTableViewController <LoadingDelegate, MWPhotoBrowserDelegate, 
+    KTPhotoBrowserDataSource, UISearchBarDelegate, UIActionSheetDelegate, UIDocumentInteractionControllerDelegate,UIAlertViewDelegate> {
     
     NSMutableArray *_photos;
     Downloads *_downloads;

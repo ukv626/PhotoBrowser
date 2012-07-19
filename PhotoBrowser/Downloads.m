@@ -378,7 +378,7 @@ static NSDateFormatter *sDateFormatter;
             [self start];
         } else {
             [self _receiveDidStop];
-            NSLog(@"STOP: ALL FILES DOWNLOADED");
+//            NSLog(@"STOP: ALL FILES DOWNLOADED");
         }
     }
 }

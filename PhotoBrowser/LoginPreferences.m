@@ -456,7 +456,6 @@
     NSString *filepath = [_delegate connectionsFilePath];
     NSMutableDictionary *dictionary = [[NSMutableDictionary alloc] initWithContentsOfFile:filepath];
     if (!dictionary) {
-        NSLog(@"dictionary = nil");
         return;
     }
     

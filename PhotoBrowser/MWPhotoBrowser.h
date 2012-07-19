@@ -11,6 +11,7 @@
 #import "MWPhoto.h"
 #import "MWPhotoProtocol.h"
 #import "MWCaptionView.h"
+#import "KTPhotoBrowserDataSource.h"
 
 // Debug Logging
 #if 0 // Set to 1 to enable debug logging
@@ -33,16 +34,19 @@
 
 // Properties
 @property (nonatomic) BOOL displayActionButton;
+@property (nonatomic) BOOL displayThumbsButton;
+
 
 // Init
 - (id)initWithPhotos:(NSArray *)photosArray  __attribute__((deprecated)); // Depreciated
-- (id)initWithDelegate:(id <MWPhotoBrowserDelegate>)delegate;
+- (id)initWithDelegate:(id <MWPhotoBrowserDelegate, KTPhotoBrowserDataSource>)delegate;
 
 // Reloads the photo browser and refetches data
 - (void)reloadData;
 
 // Set page that photo browser starts on
 - (void)setInitialPageIndex:(NSUInteger)index;
+- (void)jumpToPageAtIndex:(NSUInteger)index;
 
 @end
 
