@@ -28,7 +28,19 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-	// Do any additional setup after loading the view.
+	// Do any additional setup after loading the view
+    self.view.backgroundColor = [UIColor blackColor];
+    
+//    // Toolbar
+//    _toolbar = [[UIToolbar alloc] initWithFrame:[self frameForToolbarAtOrientation:self.interfaceOrientation]];
+//    _toolbar.tintColor = nil;
+//    if ([[UIToolbar class] respondsToSelector:@selector(appearance)]) {
+//        [_toolbar setBackgroundImage:nil forToolbarPosition:UIToolbarPositionAny barMetrics:UIBarMetricsDefault];
+//        [_toolbar setBackgroundImage:nil forToolbarPosition:UIToolbarPositionAny barMetrics:UIBarMetricsLandscapePhone];
+//    }
+//    _toolbar.barStyle = UIBarStyleBlackTranslucent;
+//    _toolbar.autoresizingMask = UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleWidth;
+    
     [self setDataSource:self.dataSource];
 }
 

@@ -17,8 +17,9 @@
 @private
    id <KTPhotoBrowserDataSource> dataSource_;
    KTThumbsView *scrollView_;
-   BOOL viewDidAppearOnce_;
-   BOOL navbarWasTranslucent_;
+//   BOOL viewDidAppearOnce_;
+//   BOOL navbarWasTranslucent_;
+   UIStatusBarStyle _previousStatusBarStyle;
 }
 
 @property (nonatomic, retain) id <KTPhotoBrowserDataSource> dataSource;

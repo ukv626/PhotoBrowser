@@ -22,6 +22,9 @@
     unsigned long long _totalBytesReceived;
     unsigned long long _bytesReceived;
     
+    UIBarButtonItem *_playButton;
+    UIBarButtonItem *_trashButton;
+    
     enum State {
         WAITING = 0,
         LOADING,

@@ -398,6 +398,11 @@
 }
 
 - (void)saveThumb:(NSString *)filename {
+    
+    if (![self isImageFile:filename]) {
+        return;
+    }
+    
     if ([filename isEqualToString:[filename lastPathComponent]]) {
         filename = [self.url.path stringByAppendingPathComponent:filename];
     }
@@ -419,7 +424,7 @@
             NSLog(@"error");
         }
     }
-    NSLog(@"thumbPath=%@", thumbPath);
+//    NSLog(@"thumbPath=%@", thumbPath);
     
     [jpg writeToFile:thumbPath atomically:NO];
 }

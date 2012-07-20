@@ -309,6 +309,13 @@
 }
 
 - (void)directoryListReceived {
+    
+//    NSString *str = @"/";
+//    for (NSUInteger i = 0; i < _urls.count; ++i) {
+//        str = [str stringByAppendingPathComponent:[[_urls objectAtIndex:i] lastPathComponent]];
+//    }
+//    self.title = str;
+//    
     self.title = [_driver.url lastPathComponent];
     if(([self.title length] == 0) || ([self.title isEqualToString:@"/"]))  {
         self.title = [_driver.url host];

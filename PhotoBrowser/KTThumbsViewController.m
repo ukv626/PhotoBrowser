@@ -30,6 +30,7 @@
    // Make sure to set wantsFullScreenLayout or the photo
    // will not display behind the status bar.
    [self setWantsFullScreenLayout:YES];
+//    self.view.backgroundColor = [UIColor blackColor];
 
    KTThumbsView *scrollView = [[KTThumbsView alloc] initWithFrame:CGRectZero];
    [scrollView setDataSource:self];
@@ -72,20 +73,32 @@
 
 - (void)viewWillAppear:(BOOL)animated {
   // The first time the view appears, store away the current translucency so we can reset on pop.
-  UINavigationBar *navbar = [[self navigationController] navigationBar];
-  if (!viewDidAppearOnce_) {
-    viewDidAppearOnce_ = YES;
-    navbarWasTranslucent_ = [navbar isTranslucent];
-  }
+    // Status bar
+    if (self.wantsFullScreenLayout && UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) {
+        _previousStatusBarStyle = [[UIApplication sharedApplication] statusBarStyle];
+        [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleBlackTranslucent animated:animated];
+    }
+  
+    
+//  UINavigationBar *navbar = [[self navigationController] navigationBar];
+//  if (!viewDidAppearOnce_) {
+//    viewDidAppearOnce_ = YES;
+//    navbarWasTranslucent_ = [navbar isTranslucent];
+//  }
   // Then ensure translucency to match the look of Apple's Photos app.
-  [navbar setTranslucent:YES];
+  //[navbar setTranslucent:YES];
   [super viewWillAppear:animated];
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
   // Restore old translucency when we pop this controller.
-  UINavigationBar *navbar = [[self navigationController] navigationBar];
-  [navbar setTranslucent:navbarWasTranslucent_];
+    // Status bar
+    if (self.wantsFullScreenLayout && UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) {
+        [[UIApplication sharedApplication] setStatusBarStyle:_previousStatusBarStyle animated:animated];
+    }
+    
+//  UINavigationBar *navbar = [[self navigationController] navigationBar];
+//  [navbar setTranslucent:navbarWasTranslucent_];
   [super viewWillDisappear:animated];
 }
 

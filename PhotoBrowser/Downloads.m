@@ -19,7 +19,7 @@
 - (void)start;
 - (void)_downloadFile:(NSString *)filename;
 - (IBAction)playButtonPressed:(id)sender;
-- (IBAction)pauseButtonPressed:(id)sender;
+- (IBAction)trashButtonPressed:(id)sender;
 
 @end
 
@@ -32,8 +32,12 @@
     self = [super initWithStyle:style];
     if (self) {
         // Custom initialization
-        self.tabBarItem = [[UITabBarItem alloc] initWithTabBarSystemItem:UITabBarSystemItemDownloads tag:2];
+        self.tabBarItem = [[[UITabBarItem alloc] initWithTabBarSystemItem:UITabBarSystemItemDownloads tag:2] autorelease];
         
+        _playButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemPause
+                                                                    target:self action:@selector(playButtonPressed:)];
+        _trashButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemTrash
+                                                                    target:self action:@selector(trashButtonPressed:)];
         // ProgressView
         _progressView = [[UIProgressView alloc] initWithFrame:CGRectMake(0.0, 0.0, 100.0, 20.0)];
         _progressView.progressViewStyle = UIProgressViewStyleBar;
@@ -44,6 +48,13 @@
         
     }
     return self;
+}
+
+- (void)dealloc {
+    [_playButton release];
+    [_trashButton release];
+    
+    [super dealloc];
 }
 
 - (void)setDriver:(BaseDriver *)driver {
@@ -69,6 +80,12 @@
     [super viewDidLoad];
 
     self.navigationItem.title = @"Downloads";
+    
+    _playButton.enabled = NO;
+    _trashButton.enabled = NO;
+    
+    self.navigationItem.leftBarButtonItem = _playButton;
+    self.navigationItem.rightBarButtonItem = _trashButton;
     
     // Uncomment the following line to preserve selection between presentations.
     // self.clearsSelectionOnViewWillAppear = NO;
@@ -262,8 +279,8 @@ static NSDateFormatter *sDateFormatter;
 - (void)_receiveDidStart {
     _state = LOADING;
     if (!self.navigationItem.titleView) {
-        self.navigationItem.leftBarButtonItem = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemPause
-                                                        target:self action:@selector(pauseButtonPressed:)] autorelease];
+        _playButton.enabled = YES;
+        _trashButton.enabled = NO;
         self.navigationItem.titleView = _progressView;
         _totalBytesReceived = 0;
     }
@@ -271,8 +288,10 @@ static NSDateFormatter *sDateFormatter;
 
 - (void)_receiveDidStop {
     _state = WAITING;
-    self.navigationItem.leftBarButtonItem = nil;
+    _playButton.enabled = NO;
+    _trashButton.enabled = NO;
     self.navigationItem.titleView = nil;
+
     _totalBytesToReceive = 0;
     _totalBytesReceived = 0;
 }
@@ -312,23 +331,33 @@ static NSDateFormatter *sDateFormatter;
     }
 }
 
-
-- (IBAction)pauseButtonPressed:(id)sender {
-
-    self.navigationItem.leftBarButtonItem = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemPlay
-                                                        target:self action:@selector(playButtonPressed:)] autorelease];
-    [_driver abort];
-    _state = PAUSED;
-    self.tableView.editing = YES;
+- (IBAction)trashButtonPressed:(id)sender {
+    _trashButton.enabled = NO;
+    
+    [_entries removeAllObjects];
+    [self _receiveDidStop];
+    [self.tableView reloadData];
+    [self refreshBadge];
     
 }
 
+
 - (IBAction)playButtonPressed:(id)sender {
-    self.navigationItem.leftBarButtonItem = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemPause
-                                                        target:self action:@selector(pauseButtonPressed:)] autorelease];
-    _entries.count ? [self start] : 
-                     [self _receiveDidStop];
-    self.tableView.editing = NO;    
+    if (_state == LOADING) {
+        _playButton.style = UIBarButtonSystemItemPause;
+        _trashButton.enabled = YES;
+
+        [_driver abort];
+        _state = PAUSED;
+        self.tableView.editing = YES;
+    } else if (_state == PAUSED) {
+        _playButton.style = UIBarButtonSystemItemPlay;
+        _trashButton.enabled = NO;
+        
+        _entries.count ? [self start] : [self _receiveDidStop];
+        self.tableView.editing = NO;
+    }
+    
 }
 
 #pragma mark - Table view delegate
@@ -367,7 +396,7 @@ static NSDateFormatter *sDateFormatter;
 - (void)driver:(BaseDriver *)driver handleLoadingDidEndNotification:(id)object {
     if (_driver == driver) {
         EntryLs *downloadedEntry = [_entries objectAtIndex:0];
-        assert([downloadedEntry.text isEqualToString:(NSString *)object]);
+//        assert([downloadedEntry.text isEqualToString:(NSString *)object]);
         
         _totalBytesReceived += downloadedEntry.size;
         [_entries removeObject:downloadedEntry];
@@ -375,7 +404,7 @@ static NSDateFormatter *sDateFormatter;
         [self.tableView reloadData];
         [self refreshBadge];
         if (_entries.count) {
-            [self start];
+            if (_state == LOADING) [self start];
         } else {
             [self _receiveDidStop];
 //            NSLog(@"STOP: ALL FILES DOWNLOADED");
