@@ -608,7 +608,7 @@ static NSDateFormatter *sDateFormatter;
 //    UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(cell.frame.size.width-90, cell.frame.size.height-20, 88, 18)];
     
     if([listEntry isDir]) {
-        cell.imageView.image = [UIImage imageNamed:@"Box.png"];
+        cell.imageView.image = [UIImage imageNamed:@"folder.png"];
 //        cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
         if (dateStr.length > 0) {
             cell.detailTextLabel.text = [NSString stringWithFormat:@"Mod.: %@", dateStr];
@@ -617,7 +617,29 @@ static NSDateFormatter *sDateFormatter;
         }
 //        label.text = @"";
     } else {
-        cell.imageView.image = [UIImage imageNamed:@"Note.png"];
+        UIImage *image;
+        if ([_driver isImageFile:cell.textLabel.text]) image = [UIImage imageNamed:@"image@2x.png"];
+        else if ([[cell.textLabel.text pathExtension] isEqualToString:@"pdf"]) 
+            image = [UIImage imageNamed:@"pdf@2x.png"];
+        else if ([[cell.textLabel.text pathExtension] isEqualToString:@"doc"] ||
+                 [[cell.textLabel.text pathExtension] isEqualToString:@"docx"]) 
+            image = [UIImage imageNamed:@"word@2x.png"];
+        else if ([[cell.textLabel.text pathExtension] isEqualToString:@"xls"] ||
+                 [[cell.textLabel.text pathExtension] isEqualToString:@"xlsx"]) 
+            image = [UIImage imageNamed:@"xls@2x.png"];
+        else if ([[cell.textLabel.text pathExtension] isEqualToString:@"txt"]) 
+            image = [UIImage imageNamed:@"txt@2x.png"];
+        else if ([[cell.textLabel.text pathExtension] isEqualToString:@"avi"] ||
+                 [[cell.textLabel.text pathExtension] isEqualToString:@"mpeg"] ||
+                 [[cell.textLabel.text pathExtension] isEqualToString:@"mkv"] ||
+                 [[cell.textLabel.text pathExtension] isEqualToString:@"mov"]) 
+            image = [UIImage imageNamed:@"video@2x.png"];
+        else if ([[cell.textLabel.text pathExtension] isEqualToString:@"dll"]) 
+            image = [UIImage imageNamed:@"dll@2x.png"];
+        else image = [UIImage imageNamed:@"unknown@2x.png"];
+
+                                                            
+        cell.imageView.image = image;
 //        cell.accessoryType = UITableViewCellAccessoryNone;
         if (dateStr.length > 0) {
             cell.detailTextLabel.text = [NSString stringWithFormat:@"Mod.: %@ Size: %@", dateStr, sizeStr];
@@ -755,7 +777,7 @@ static NSDateFormatter *sDateFormatter;
             if ([cell.textLabel.text isEqualToString:@".."]) {
                 [self backButtonPressed:nil];
             } else {
-                _driver.url = [NSURL URLWithString:[NSString stringWithFormat:@"%@%@/", [_driver.url absoluteString], 
+                _driver.url = [NSURL URLWithString:[NSString stringWithFormat:@"%@/%@/", [_driver.url absoluteString], 
                                                     [cell.textLabel.text stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]]];
                 [_driver changeDir:cell.textLabel.text];
                 

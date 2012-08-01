@@ -27,7 +27,11 @@
 - (id)init {
     if ((self = [super initWithStyle:UITableViewStyleGrouped])) {
         //
-        _connectionTypes = [[NSArray alloc] initWithObjects:@"FTP",@"FTPS", nil];
+        _connectionTypes = [[NSArray alloc] initWithObjects:@"FTP", @"FTPS", nil];
+        _encodingTypes = [[NSArray alloc] initWithObjects:@"Utf-8", @"1251", @"1250", @"CP866", nil];
+        _encodingFullTypes = [[NSArray alloc] 
+                              initWithObjects:@"Utf-8", @"Windows-1251", @"Windows-1250", @"CP866", nil];
+        
     }
     
     return self;
@@ -48,6 +52,10 @@
     [_cacheMode release];
     
     [_entry release];
+    [_encoding release];
+    [_encodingControl release];
+    [_encodingTypes release];
+//    [_encodings release];
     
     [super dealloc];
 }
@@ -63,6 +71,16 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    /*
+    _encodings = [[NSMutableArray alloc] init];
+    [_encodings addObject:@"Red"];
+    [_encodings addObject:@"Orange"];
+    [_encodings addObject:@"Yellow"];
+    [_encodings addObject:@"Green"];
+    [_encodings addObject:@"Blue"];
+    [_encodings addObject:@"Indigo"];
+    [_encodings addObject:@"Violet"];
+     */
 
     // Uncomment the following line to preserve selection between presentations.
     // self.clearsSelectionOnViewWillAppear = NO;
@@ -101,6 +119,9 @@
         case loginSection:
             return 2;
             break;
+        case encodingSection:
+            return 2;
+            break;
         case otherSection:
             return 1;
             break;
@@ -118,6 +139,9 @@
             break;
         case loginSection:
             return @"Login Settings";
+            break;
+        case encodingSection:
+            return @"Encoding Settings";
             break;
         case otherSection:
             return @"Other Settings";
@@ -289,6 +313,44 @@
                 }
                 break;
                 
+            case encodingSection:
+                switch (indexPath.row) {
+                    case 0:
+                        _encodingControl = [[UISegmentedControl alloc] initWithItems:_encodingTypes];
+                        _encodingControl.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin;
+                        _encodingControl.frame = CGRectMake(cellSize.width - 290 - cellMargin, 8, 
+                                                     300-20, cellSize.height - 16);
+                        //_encodingControl.selectedSegmentIndex = 0;
+                        //_encodingControl.userInteractionEnabled = NO;
+                        [_encodingControl addTarget:self action:@selector(segementControlValueChanged:) forControlEvents:UIControlEventValueChanged];
+                        [cell addSubview:_encodingControl];
+                        
+                        //cell.textLabel.text = @"Brief";
+                        break;
+
+                    case 1:
+                        _encoding = [[UITextField alloc] initWithFrame:CGRectMake(cellSize.width - 190, 8, 
+                                                                       190-cellMargin-10, cellSize.height-16)];
+                        
+                        _encoding.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+                        _encoding.delegate = self;
+                        _encoding.borderStyle = UITextBorderStyleRoundedRect;
+                        _encoding.clearButtonMode = UITextFieldViewModeWhileEditing;
+                        //_server.keyboardType = UIKeyboardTypeURL;
+                        _encoding.returnKeyType = UIReturnKeyDone;
+                        //                        _pickerView.delegate = self;
+                        //                        _pickerView.showsSelectionIndicator = YES;
+                        //_pickerView.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin;
+                        [cell addSubview:_encoding];
+                        
+                        _encoding.text =  _entry ? [_entry objectForKey:@"encoding"] : @"Utf-8";
+                        cell.textLabel.text = @"String";
+                        break;
+                        
+                    default:
+                        break;
+                }
+                break;
             case otherSection:
                 switch (indexPath.row) {
                     case 0:
@@ -374,6 +436,7 @@
     if ((textField == _alias) ||
         (textField == _server) || 
         (textField == _port) || 
+        (textField == _encoding) ||
         (textField == _username) ||
         (textField == _password) ) {
         [textField resignFirstResponder];
@@ -394,8 +457,9 @@
     // check url
     if (url && url.scheme && url.host) {
         if ([url.scheme isEqualToString:@"ftp"] || [url.scheme isEqualToString:@"ftps"]) {
-            
             if (_alias.text.length == 0) _alias.text = urlStr;
+            if (_username.text.length == 0) _username.text = @"";
+            if (_password.text.length == 0) _password.text = @"";
             
             // add last "/"
             if ([urlStr characterAtIndex:urlStr.length - 1] != '/') {
@@ -417,6 +481,7 @@
                 [innerDict setValue:_port.text forKey:@"port"];
                 [innerDict setValue:[NSNumber numberWithInteger:_protocol.selectedSegmentIndex] forKey:@"protocol"];
                 [innerDict setValue:[NSNumber numberWithBool:_connectionType.on] forKey:@"connectionType"];
+                [innerDict setValue:_encoding.text forKey:@"encoding"];
                 [innerDict setValue:_username.text forKey:@"username"];
                 [innerDict setValue:_password.text forKey:@"password"];
                 [innerDict setValue:[NSNumber numberWithBool:_cacheMode.on] forKey:@"cacheMode"];
@@ -428,10 +493,12 @@
                               _port.text,
                               [NSNumber numberWithInteger:_protocol.selectedSegmentIndex],
                               [NSNumber numberWithBool:_connectionType.on],
+                              _encoding.text,
                               _username.text,
                               _password.text, 
                               [NSNumber numberWithBool:_cacheMode.on], nil] 
-                                                        forKeys:[NSArray arrayWithObjects:@"url", @"server", @"port", @"protocol", @"connectionType", @"username", @"password",  @"cacheMode", nil]];
+                                                        forKeys:[NSArray arrayWithObjects:@"url", @"server", @"port", @"protocol", @"connectionType", @"encoding", 
+                                                                 @"username", @"password",  @"cacheMode", nil]];
             }
             [dictionary setObject:innerDict forKey:_alias.text];
             success = [dictionary writeToFile:filepath atomically:YES];
@@ -450,6 +517,8 @@
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:errorStr delegate:self cancelButtonTitle:nil otherButtonTitles:@"OK", nil];
         [alert show];
     }
+
+    
 }
 
 - (void)setAttributes:(NSString *)alias {
@@ -472,7 +541,28 @@
 - (IBAction)segementControlValueChanged:(id)sender {
     if (sender == _protocol) {
         _port.text =  (_protocol.selectedSegmentIndex == 0) ? @"21" : @"443";
+    } else if (sender == _encodingControl) {
+        _encoding.text = [_encodingFullTypes objectAtIndex:_encodingControl.selectedSegmentIndex];
     }
 }
+/*
+- (NSInteger)numberOfComponentsInPickerView:(UIPickerView *)thePickerView {
+    return 1;
+}
+
+- (NSInteger)pickerView:(UIPickerView *)thePickerView numberOfRowsInComponent:(NSInteger)component {
+    
+    return [_encodings count];
+}
+
+- (NSString *)pickerView:(UIPickerView *)thePickerView titleForRow:(NSInteger)row forComponent:(NSInteger)component {
+    return [_encodings objectAtIndex:row];
+}
+
+- (void)pickerView:(UIPickerView *)thePickerView didSelectRow:(NSInteger)row inComponent:(NSInteger)component {
+    
+    NSLog(@"Selected Color: %@. Index of selected color: %i", [_encodings objectAtIndex:row], row);
+}
+*/
 
 @end

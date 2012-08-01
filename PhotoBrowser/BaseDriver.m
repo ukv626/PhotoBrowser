@@ -114,9 +114,9 @@
 
 - (void)createDirectory:(NSString *)directory {
     NSString *path = [[self pathToDownload] stringByAppendingPathComponent:directory];
+    //NSString *path = [self pathToDownload];
     NSError *error;
     
-    //    NSLog(@"%@", path);
     if(![[NSFileManager defaultManager] fileExistsAtPath:path]) {
         if(![[NSFileManager defaultManager] createDirectoryAtPath:path 
                                       withIntermediateDirectories:YES attributes:nil error:&error]) {

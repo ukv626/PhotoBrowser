@@ -22,7 +22,7 @@
     NSString *_originalRemoteDir;
 }
 
-@property (nonatomic, copy) NSString *originalRemoteDir;
+@property (nonatomic, retain) NSString *originalRemoteDir;
 
 @end
 
@@ -31,6 +31,7 @@
 @synthesize originalRemoteDir = _originalRemoteDir;
 @synthesize port = _port;
 @synthesize passiveMode = _passiveMode;
+@synthesize encoding = _encoding;
 
 
 - (id)initWithURL:(NSURL *)url {
@@ -47,6 +48,8 @@
     copy.password = self.password;
     copy.port = self.port;
     copy.passiveMode = self.passiveMode;
+    copy.originalRemoteDir = self.originalRemoteDir;
+    copy.encoding = self.encoding;
     return copy;
 }
 
@@ -78,8 +81,8 @@
     }
     
     _driver.Hostname = [self.url host];
-    _driver.Username = self.username;
-    _driver.Password = self.password;
+    if (self.username.length > 0) _driver.Username = self.username;
+    if (self.password.length > 0) _driver.Password = self.password;
     _driver.Port = self.port;
     _driver.Passive = self.passiveMode;
     
@@ -89,6 +92,11 @@
      }
     
     if((success = [_driver Connect])) {
+        if (self.encoding.length > 0) {
+            [_driver setDirListingCharset:self.encoding];
+            //[_driver setCrlfMode:[NSNumber numberWithInt:1]];
+        }
+        
         if (![[self.url path] isEqualToString:@"/"]) {
             success = [_driver ChangeRemoteDir:[[self.url path] substringFromIndex:1]];
         }
@@ -119,6 +127,11 @@
                 NSNumber *fileNum = [NSNumber numberWithInt:i];
             
                 NSString *filename = [_driver GetFilename:fileNum];
+                if ([filename isEqualToString:@"."] ||
+                    [filename isEqualToString:@".."]) {
+                    continue;
+                }
+                
                 NSNumber *fileSize = [_driver GetSize:fileNum];
                 BOOL isDir = [_driver GetIsDirectory:fileNum];
                 NSDate *fileModDate = [_driver GetLastModifiedTime:fileNum];
@@ -146,7 +159,7 @@
 - (void)_downloadFile:(NSString *)filename {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     @try {
-        BOOL success =_driver.IsConnected;
+        BOOL success = _driver.IsConnected;
         
         if (!success) {
             success = [self connect];
@@ -174,7 +187,7 @@
 }
 
 - (void)downloadFileAsync:(NSString *)filepath {
-    BOOL success =_driver.IsConnected;
+    BOOL success = _driver.IsConnected;
     
     if (!success) {
         success = [self connect];
@@ -189,11 +202,13 @@
         _aborted = NO;
         _driver.RestartNext = YES;
         
+        NSString *urlPath = [self.url.path stringByReplacingOccurrencesOfString:@"//" withString:@"/"];
         NSString *relFilepath = [[self.url path] isEqualToString:@"/"] ? 
                     filepath :
-                    [[filepath stringByReplacingOccurrencesOfString:[self.url path] withString:@""] substringFromIndex:1]; 
-        
+        //[filepath lastPathComponent];
+                    [[filepath stringByReplacingOccurrencesOfString:urlPath withString:@""] substringFromIndex:1]; 
         NSString *newRemoteDir = [_originalRemoteDir stringByAppendingPathComponent:[relFilepath stringByDeletingLastPathComponent]];
+                
         [_driver ChangeRemoteDir:newRemoteDir];
 
         [self createDirectory:[relFilepath stringByDeletingLastPathComponent]];
@@ -252,7 +267,7 @@
     } else {
         [self.listEntries removeAllObjects];
         
-        [_driver setDirListingCharset:@"utf-8"];
+//        [_driver setDirListingCharset:@"utf-8"];
         NSString *xmlStr = [_driver DirTreeXml];
         
         NSError *parseError = nil;

@@ -38,6 +38,9 @@
                                                                     target:self action:@selector(playButtonPressed:)];
         _trashButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemTrash
                                                                     target:self action:@selector(trashButtonPressed:)];
+        _playButton.enabled = NO;
+        _trashButton.enabled = NO;
+        
         // ProgressView
         _progressView = [[UIProgressView alloc] initWithFrame:CGRectMake(0.0, 0.0, 100.0, 20.0)];
         _progressView.progressViewStyle = UIProgressViewStyleBar;
@@ -53,6 +56,7 @@
 - (void)dealloc {
     [_playButton release];
     [_trashButton release];
+    [_progressView release];
     
     [super dealloc];
 }
@@ -81,9 +85,6 @@
 
     self.navigationItem.title = @"Downloads";
     
-    _playButton.enabled = NO;
-    _trashButton.enabled = NO;
-    
     self.navigationItem.leftBarButtonItem = _playButton;
     self.navigationItem.rightBarButtonItem = _trashButton;
     
@@ -100,7 +101,7 @@
     
     // Release any retained subviews of the main view.
     // e.g. self.myOutlet = nil;
-    [_progressView release], _progressView = nil;
+    //[_progressView release], _progressView = nil;
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -278,11 +279,12 @@ static NSDateFormatter *sDateFormatter;
 
 - (void)_receiveDidStart {
     _state = LOADING;
+    _playButton.enabled = YES;
+    _trashButton.enabled = NO;
     if (!self.navigationItem.titleView) {
-        _playButton.enabled = YES;
-        _trashButton.enabled = NO;
         self.navigationItem.titleView = _progressView;
         _totalBytesReceived = 0;
+     self.tableView.editing = NO;
     }
 }
 

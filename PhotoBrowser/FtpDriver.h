@@ -11,11 +11,13 @@
 @interface FtpDriver : BaseDriver {
     NSNumber *_port;
     BOOL _passiveMode;
+    NSString *_encoding;
 
 }
 
 @property (nonatomic, retain) NSNumber *port;
 @property (nonatomic, assign) BOOL passiveMode;
+@property (nonatomic, retain) NSString *encoding;
 
 
 - (id)initWithURL:(NSURL *)url;

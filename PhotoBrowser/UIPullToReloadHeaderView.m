@@ -89,7 +89,8 @@
 		arrowImage.image = [UIImage imageNamed:@"PullToReload.bundle/arrow.png"];
 		[self addSubview:arrowImage];
 		
-		activityView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle: UIActivityIndicatorViewStyleGray];
+		activityView = [[UIActivityIndicatorView alloc] 
+                        initWithActivityIndicatorStyle: UIActivityIndicatorViewStyleGray];
 		activityView.frame = CGRectMake(25.0f, frame.size.height - 38.0f, 20.0f, 20.0f);
 		activityView.hidesWhenStopped = YES;
 		[self addSubview:activityView];

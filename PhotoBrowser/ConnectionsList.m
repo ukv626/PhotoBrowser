@@ -281,6 +281,7 @@ forRowAtIndexPath:(NSIndexPath *)indexPath
             ftpDriver.port = [NSNumber numberWithInteger:[[entry objectForKey:@"port"] integerValue]];
             ftpDriver.passiveMode = [[entry objectForKey:@"connectionType"] boolValue];
             ftpDriver.cacheMode = [[entry objectForKey:@"cacheMode"] boolValue];
+            ftpDriver.encoding = [entry objectForKey:@"encoding"];
             
             DirectoryList *dirList = [[DirectoryList alloc] initWithDriver:ftpDriver];
             _downloads.driver = [ftpDriver clone];

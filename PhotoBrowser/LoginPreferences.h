@@ -14,6 +14,7 @@
     enum Sections {
         connectionSection = 0,
         loginSection,
+        encodingSection,
         otherSection,
         SECTIONS_COUNT
     };
@@ -22,15 +23,21 @@
     UITextField *_server;
     UITextField *_port;
     UISegmentedControl *_protocol;
+    UISegmentedControl *_encodingControl;
     UISwitch *_connectionType;
+    UITextField *_encoding;
     
     UITextField *_username;
     UITextField *_password;
     
     UISwitch *_cacheMode;
+//    UIPickerView *_pickerView;
+//    NSMutableArray *_encodings;
     
     //
     NSArray *_connectionTypes;
+    NSArray *_encodingTypes;
+    NSArray *_encodingFullTypes;
     
     ConnectionsList *_delegate;
     NSDictionary *_entry;

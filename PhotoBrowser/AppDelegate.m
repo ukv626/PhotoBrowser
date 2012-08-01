@@ -90,7 +90,6 @@
     UIViewController *local = [[UINavigationController alloc] 
                        initWithRootViewController:[[DirectoryList alloc] initWithDriver:localDriver]];
     [localDriver release];
-    local.title = @"Local 2";
     
     
     
